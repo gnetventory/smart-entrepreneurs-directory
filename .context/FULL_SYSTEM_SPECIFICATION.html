@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Entrepreneurs Directory — System Specification</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <style>
+    body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background-color: #FAFAF7; color: #1C1917; }
+    h1, h2, h3, h4, .font-display { font-family: 'Outfit', system-ui, sans-serif; letter-spacing: -0.02em; }
+    code, pre { font-family: 'Fira Code', monospace; }
+    @media print {
+      body { background-color: white !important; color: black !important; }
+      .no-print { display: none !important; }
+      .card { border: 1px solid #e5e7eb !important; box-shadow: none !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen py-10 px-4 sm:px-8 max-w-5xl mx-auto space-y-8">
+
+  <!-- Action Bar (Hide on Print) -->
+  <div class="no-print flex items-center justify-between bg-white p-4 rounded-2xl border border-stone-200 shadow-sm">
+    <div className="flex items-center gap-2">
+      <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">Standalone Printable HTML</span>
+      <span class="text-xs text-stone-500 font-medium">Open in browser & press Ctrl+P to save as PDF</span>
+    </div>
+    <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-sm flex items-center gap-2">
+      🖨️ Print / Export to PDF
+    </button>
+  </div>
+
+  <!-- Header Banner -->
+  <header class="bg-stone-900 text-white p-8 sm:p-10 rounded-3xl shadow-xl space-y-4 border border-stone-800 relative overflow-hidden">
+    <div class="absolute -top-10 -right-10 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl"></div>
+    <div class="flex items-center gap-3">
+      <div class="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-stone-950 font-black text-2xl shadow-lg">🚀</div>
+      <div>
+        <span class="text-xs font-mono font-bold tracking-widest text-emerald-400 uppercase">Master System Specification</span>
+        <h1 class="text-3xl sm:text-4xl font-black tracking-tight text-white">Smart Entrepreneurs Directory</h1>
+      </div>
+    </div>
+    <p class="text-stone-300 text-sm font-medium leading-relaxed max-w-3xl">
+      Complete scope, functional capabilities, user options matrix, and full technical specifications for the zero-backend client-side directory application.
+    </p>
+    <div class="flex flex-wrap gap-2 pt-2 text-xs font-semibold">
+      <span class="bg-stone-800 text-emerald-400 px-3 py-1 rounded-full border border-stone-700">v1.0.0 Production Release</span>
+      <span class="bg-stone-800 text-sky-400 px-3 py-1 rounded-full border border-stone-700">React 18 + Vite 6</span>
+      <span class="bg-stone-800 text-violet-400 px-3 py-1 rounded-full border border-stone-700">SHA-256 Security Vault</span>
+      <span class="bg-stone-800 text-amber-400 px-3 py-1 rounded-full border border-stone-700">Warm Humanist Design System</span>
+    </div>
+  </header>
+
+  <!-- 1. Executive Summary & Scope -->
+  <section class="bg-white p-8 rounded-3xl border border-stone-200 shadow-sm space-y-6">
+    <div class="border-b border-stone-200 pb-4">
+      <h2 class="text-2xl font-bold text-stone-900 flex items-center gap-2">
+        <span class="text-emerald-600">1.</span> Executive Summary & Scope
+      </h2>
+    </div>
+
+    <div class="space-y-4 text-stone-700 text-sm leading-relaxed">
+      <h3 class="text-lg font-bold text-stone-900">1.1 Purpose & Mission</h3>
+      <p>
+        WhatsApp and Telegram entrepreneur groups suffer from rapid message turnover. Critical intros, skill offers, geographic locations, and business needs scroll past and are permanently lost in chat history.
+      </p>
+      <p>
+        The <strong>Smart Entrepreneurs Directory (SED)</strong> converts raw, unstructured WhatsApp chat intros into a living, structured, searchable, AI-enhanced directory. It empowers community admins and founders to discover peers, match synergies, export digital business cards, and analyze community growth—without requiring a server or database subscription.
+      </p>
+
+      <h3 class="text-lg font-bold text-stone-900 pt-2">1.2 Architectural Principles & Scope Boundaries</h3>
+      <div class="grid md:grid-cols-2 gap-4 pt-1">
+        <div class="p-5 bg-emerald-50/70 border border-emerald-200 rounded-2xl space-y-3">
+          <h4 class="font-bold text-emerald-900 text-base flex items-center gap-2">✅ In-Scope (Core Capabilities)</h4>
+          <ul class="space-y-2 text-xs font-medium text-emerald-950">
+            <li>• <strong>Zero-Server Client-Side Persistence:</strong> 100% of member data, settings, and posts live in browser <code>localStorage</code>.</li>
+            <li>• <strong>Privacy-First Architecture:</strong> Member data is never sent to third-party databases. Direct user Gemini API keys.</li>
+            <li>• <strong>Dual Ingestion Engine:</strong> Single message parser, bulk WhatsApp group chat export parser, and manual form.</li>
+            <li>• <strong>AI Matchmaker:</strong> Profile compatibility scoring (0–10) and personalized WhatsApp outreach drafts.</li>
+            <li>• <strong>Geographic Map:</strong> World map rendering member distributions and top country statistics.</li>
+            <li>• <strong>Skills Exchange:</strong> 30-day auto-expiring board for skill offers and help requests.</li>
+            <li>• <strong>Business Card Engine:</strong> High-resolution PNG digital card exporter via <code>html2canvas</code>.</li>
+            <li>• <strong>Security Vault:</strong> SHA-256 Web Crypto PIN protection, 5-attempt rate-limiting, 30-min TTL, and typed deletion verification.</li>
+          </ul>
+        </div>
+        <div class="p-5 bg-rose-50/70 border border-rose-200 rounded-2xl space-y-3">
+          <h4 class="font-bold text-rose-900 text-base flex items-center gap-2">❌ Out-of-Scope (Non-Goals for v1.0)</h4>
+          <ul class="space-y-2 text-xs font-medium text-rose-950">
+            <li>• Multi-community SaaS tenancy (optimized for single community instance).</li>
+            <li>• Live cloud database synchronization (handled via JSON export/import).</li>
+            <li>• Direct WhatsApp Webhook bots (ingestion is file/text paste based).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Feature Matrix -->
+  <section class="bg-white p-8 rounded-3xl border border-stone-200 shadow-sm space-y-6">
+    <div class="border-b border-stone-200 pb-4">
+      <h2 class="text-2xl font-bold text-stone-900 flex items-center gap-2">
+        <span class="text-emerald-600">2.</span> Complete Feature Matrix & Capabilities
+      </h2>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead>
+          <tr class="bg-stone-100 text-stone-900 border-b border-stone-200 font-bold uppercase tracking-wider">
+            <th class="p-3.5 rounded-l-xl">Module ID</th>
+            <th class="p-3.5">Feature Name</th>
+            <th class="p-3.5">Core Functionality</th>
+            <th class="p-3.5 rounded-r-xl">Primary Components</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-stone-200 font-medium text-stone-700">
+          <tr class="hover:bg-stone-50">
+            <td class="p-3.5 font-mono font-bold text-emerald-600">F01</td>
+            <td class="p-3.5 font-bold text-stone-900">Member Directory</td>
+            <td class="p-3.5">Debounced search (&lt;150ms), stage filters (Idea, Starting, Running, Growing), industry tag selector, stale profile indicator (&gt;90 days), grid vs split views.</td>
+            <td class="p-3.5 font-mono text-[11px] text-stone-500">Directory.jsx, ProfileCard.jsx</td>
+          </tr>
+          <tr class="hover:bg-stone-50">
+            <td class="p-3.5 font-mono font-bold text-emerald-600">F02</td>
+            <td class="p-3.5 font-bold text-stone-900">AI Intro & Chat Parser</td>
+            <td class="p-3.5">Single message parser, bulk WhatsApp chat parser, multi-model fallback chain (gemini-1.5-flash → 2.0-flash → 2.5-flash → 1.5-pro), rule-based local parser.</td>
+            <td class="p-3.5 font-mono text-[11px] text-stone-500">AIParser.jsx, EditMemberModal.jsx</td>
+          </tr>
+          <tr class="hover:bg-stone-50">
+            <td class="p-3.5 font-mono font-bold text-emerald-600">F03</td>
+            <td class="p-3.5 font-bold text-stone-900">AI Synergy Matchmaker</td>
+            <td class="p-3.5">Profile compatibility scoring (0–10), synergy reasoning, value exchange breakdown, visual progress bar, and instant WhatsApp outreach message drafter.</td>
+            <td class="p-3.5 font-mono text-[11px] text-stone-500">AIMatchmaker.jsx</td>
+          </tr>
+          <tr class="hover:bg-stone-50">
+            <td class="p-3.5 font-mono font-bold text-emerald-600">F04</td>
+            <td class="p-3.5 font-bold text-stone-900">World Map View</td>
+            <td class="p-3.5">Geographic pin visualization of member distribution, city clustering, country breakdown sidebar, and unmapped location handling.</td>
+            <td class="p-3.5 font-mono text-[11px] text-stone-500">WorldMapView.jsx</td>
+          </tr>
+          <tr class="hover:bg-stone-50">
+            <td class="p-3.5 font-mono font-bold text-emerald-600">F05</td>
+            <td class="p-3.5 font-bold text-stone-900">Skills Exchange</td>
+            <td class="p-3.5">Needs & Offers bulletin board, tag filtering, expiration tracker (30-day TTL), and direct contact actions.</td>
+            <td class="p-3.5 font-mono text-[11px] text-stone-500">SkillsExchange.jsx</td>
+          </tr>
+          <tr class="hover:bg-stone-50">
+            <td class="p-3.5 font-mono font-bold text-emerald-600">F06</td>
+            <td class="p-3.5 font-bold text-stone-900">Community Dashboard</td>
+            <td class="p-3.5">Community health analytics: stage distribution chart, top country rankings, top industry tags, and activity metrics.</td>
+            <td class="p-3.5 font-mono text-[11px] text-stone-500">CommunityDashboard.jsx</td>
+          </tr>
+          <tr class="hover:bg-stone-50">
+            <td class="p-3.5 font-mono font-bold text-emerald-600">F07</td>
+            <td class="p-3.5 font-bold text-stone-900">AI Weekly Digest</td>
+            <td class="p-3.5">Formatted WhatsApp broadcast generator for introducing new weekly members with AI narrative polish and copy-to-clipboard.</td>
+            <td class="p-3.5 font-mono text-[11px] text-stone-500">WeeklyDigest.jsx</td>
+          </tr>
+          <tr class="hover:bg-stone-50">
+            <td class="p-3.5 font-mono font-bold text-emerald-600">F08</td>
+            <td class="p-3.5 font-bold text-stone-900">Digital Business Card</td>
+            <td class="p-3.5">Standalone card generator page & modal: renders stylized card with gradient avatars, badges, and high-res PNG download.</td>
+            <td class="p-3.5 font-mono text-[11px] text-stone-500">BusinessCardPage.jsx, BusinessCardModal.jsx</td>
+          </tr>
+          <tr class="hover:bg-stone-50">
+            <td class="p-3.5 font-mono font-bold text-emerald-600">F09</td>
+            <td class="p-3.5 font-bold text-stone-900">User & Onboarding Guide</td>
+            <td class="p-3.5">Step-by-step 7-field intro writing guide, copyable community template, and direct "Paste into AI Parser" shortcut.</td>
+            <td class="p-3.5 font-mono text-[11px] text-stone-500">IntroGuide.jsx</td>
+          </tr>
+          <tr class="hover:bg-stone-50">
+            <td class="p-3.5 font-mono font-bold text-emerald-600">F10</td>
+            <td class="p-3.5 font-bold text-stone-900">Admin Security Vault</td>
+            <td class="p-3.5">SHA-256 PIN authentication, rate-limiting lockout, 30-min session TTL, API key manager, JSON backup import/export, and typed deletion verification.</td>
+            <td class="p-3.5 font-mono text-[11px] text-stone-500">AdminPanel.jsx</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 3. Technical Specs -->
+  <section class="bg-white p-8 rounded-3xl border border-stone-200 shadow-sm space-y-6">
+    <div class="border-b border-stone-200 pb-4">
+      <h2 class="text-2xl font-bold text-stone-900 flex items-center gap-2">
+        <span class="text-emerald-600">3.</span> Technical Specifications & Architecture
+      </h2>
+    </div>
+
+    <div class="space-y-6 text-sm text-stone-700 leading-relaxed">
+      <!-- Tech Stack -->
+      <div>
+        <h3 class="text-base font-bold text-stone-900 mb-3">3.1 Technology Stack & BOM</h3>
+        <div class="bg-stone-900 text-stone-200 p-5 rounded-2xl font-mono text-xs space-y-1.5 border border-stone-800">
+          <div><span class="text-emerald-400 font-bold">Framework:</span> React 18.3.1 (Concurrent Mode Rendering)</div>
+          <div><span class="text-emerald-400 font-bold">Build Tool:</span> Vite 6.0.5 (ESM Bundling + HMR)</div>
+          <div><span class="text-emerald-400 font-bold">Styling:</span> Tailwind CSS 3.4.17 + PostCSS + Autoprefixer</div>
+          <div><span class="text-emerald-400 font-bold">Icons:</span> Lucide React 0.460.0</div>
+          <div><span class="text-emerald-400 font-bold">AI Integration:</span> @google/generative-ai 0.21.0</div>
+          <div><span class="text-emerald-400 font-bold">Date Math:</span> date-fns 4.1.0</div>
+          <div><span class="text-emerald-400 font-bold">Media Engine:</span> html2canvas 1.4.1</div>
+          <div><span class="text-emerald-400 font-bold">Security Vault:</span> Web Crypto API (SubtleCrypto SHA-256)</div>
+          <div><span class="text-emerald-400 font-bold">Testing Suite:</span> Vitest 2.x + Testing Library React + jsdom</div>
+        </div>
+      </div>
+
+      <!-- State Architecture -->
+      <div>
+        <h3 class="text-base font-bold text-stone-900 mb-3">3.2 State Architecture (Tri-Split Context Pattern)</h3>
+        <p class="text-xs text-stone-600 mb-4">
+          To eliminate re-render jank across unrelated components, state is divided into three separate memoized contexts:
+        </p>
+        <div class="grid md:grid-cols-3 gap-4 text-xs font-semibold">
+          <div class="p-4 bg-stone-50 border border-stone-200 rounded-2xl space-y-2">
+            <div class="text-emerald-700 font-bold uppercase tracking-wider text-[11px]">MembersContext</div>
+            <p class="text-stone-600 text-[11px]">Holds member database array, exchange posts, refresh triggers.</p>
+          </div>
+          <div class="p-4 bg-stone-50 border border-stone-200 rounded-2xl space-y-2">
+            <div class="text-sky-700 font-bold uppercase tracking-wider text-[11px]">UIContext</div>
+            <p class="text-stone-600 text-[11px]">Holds active tab, theme mode, API key, sidebar toggle, toast notifications.</p>
+          </div>
+          <div class="p-4 bg-stone-50 border border-stone-200 rounded-2xl space-y-2">
+            <div class="text-violet-700 font-bold uppercase tracking-wider text-[11px]">FiltersContext</div>
+            <p class="text-stone-600 text-[11px]">Holds search query string, stage filter selection, view mode toggle.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Security Vault -->
+      <div>
+        <h3 class="text-base font-bold text-stone-900 mb-3">3.3 Security Vault & Cryptography</h3>
+        <div class="p-5 bg-stone-900 text-stone-200 rounded-2xl space-y-3 font-mono text-xs border border-stone-800">
+          <div class="text-emerald-400 font-bold">// SHA-256 Admin PIN Hash Formula</div>
+          <div class="text-amber-300">Hash = SHA-256("sed-pin-salt-" + userInputPIN)</div>
+          <div class="pt-2 text-stone-400 font-sans leading-relaxed text-xs">
+            Admin PINs are never stored in plain text. Failed attempts trigger a 5-minute lockout after 5 consecutive failures. Active sessions expire after 30 minutes of inactivity.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="text-center text-xs text-stone-400 font-medium py-4">
+    Smart Entrepreneurs Directory · Master System Specification · v1.0.0
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,157 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+  html {
+    scroll-behavior: smooth;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* ── Warm Humanist Light Mode (Default) ───────────────────────────────── */
+  body {
+    @apply bg-stone-50 text-stone-900 font-sans tracking-tight antialiased min-h-screen transition-colors duration-200;
+    background-image:
+      radial-gradient(at 10% 10%, rgba(16, 185, 129, 0.05) 0%, transparent 50%),
+      radial-gradient(at 90% 20%, rgba(99, 102, 241, 0.04) 0%, transparent 50%),
+      radial-gradient(at 50% 90%, rgba(14, 165, 233, 0.03) 0%, transparent 60%);
+  }
+
+  /* ── Dark Mode Overlay ────────────────────────────────────────────────── */
+  html.dark body {
+    @apply bg-stone-950 text-stone-100;
+    background-image:
+      radial-gradient(at 10% 10%, rgba(16, 185, 129, 0.07) 0%, transparent 50%),
+      radial-gradient(at 90% 20%, rgba(99, 102, 241, 0.07) 0%, transparent 50%),
+      radial-gradient(at 50% 80%, rgba(14, 165, 233, 0.04) 0%, transparent 60%);
+  }
+
+  /* ── Display font for headings ────────────────────────────────────────── */
+  h1, h2, h3, .font-display {
+    font-family: 'Outfit', system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  /* ── Warm scrollbar ───────────────────────────────────────────────────── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-stone-300 dark:bg-stone-700 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-stone-400 dark:bg-stone-600;
+  }
+}
+
+@layer components {
+  /* ── Card ──────────────────────────────────────────────────────────────── */
+  .card {
+    @apply bg-white dark:bg-stone-900
+           border border-stone-200 dark:border-stone-800
+           rounded-2xl shadow-card
+           backdrop-blur-sm
+           transition-all duration-200;
+  }
+
+  .card-hover {
+    @apply card
+           hover:shadow-card-hover
+           hover:-translate-y-0.5
+           hover:border-stone-300 dark:hover:border-stone-700
+           cursor-pointer;
+  }
+
+  /* ── Buttons ───────────────────────────────────────────────────────────── */
+  .btn-primary {
+    @apply bg-emerald-600 hover:bg-emerald-700
+           active:scale-[0.98]
+           text-white font-semibold
+           px-5 py-2.5 rounded-xl
+           shadow-sm hover:shadow-md
+           transition-all duration-150
+           flex items-center justify-center gap-2 text-sm
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none
+           disabled:active:scale-100;
+  }
+
+  .btn-secondary {
+    @apply bg-stone-100 dark:bg-stone-800
+           hover:bg-stone-200 dark:hover:bg-stone-700
+           active:scale-[0.98]
+           text-stone-800 dark:text-stone-100
+           font-semibold px-5 py-2.5 rounded-xl
+           border border-stone-200 dark:border-stone-700
+           transition-all duration-150
+           flex items-center justify-center gap-2 text-sm;
+  }
+
+  .btn-ghost {
+    @apply hover:bg-stone-100 dark:hover:bg-stone-800
+           text-stone-600 dark:text-stone-400
+           hover:text-stone-900 dark:hover:text-stone-100
+           px-3.5 py-2 rounded-xl
+           transition-all duration-150
+           flex items-center gap-2 text-sm font-semibold;
+  }
+
+  .btn-danger {
+    @apply bg-rose-600 hover:bg-rose-700
+           active:scale-[0.98]
+           text-white font-semibold
+           px-5 py-2.5 rounded-xl
+           shadow-sm
+           transition-all duration-150
+           flex items-center justify-center gap-2 text-sm;
+  }
+
+  /* ── Inputs ────────────────────────────────────────────────────────────── */
+  .input {
+    @apply w-full
+           bg-white dark:bg-stone-900
+           border border-stone-200 dark:border-stone-700
+           rounded-xl px-4 py-2.5
+           text-stone-900 dark:text-stone-100
+           text-sm
+           placeholder-stone-400 dark:placeholder-stone-500
+           focus:outline-none
+           focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0
+           focus:border-emerald-500
+           transition-all duration-150;
+  }
+
+  .label {
+    @apply block text-xs font-semibold uppercase tracking-widest
+           text-stone-500 dark:text-stone-400 mb-1.5;
+  }
+
+  /* ── Badges ────────────────────────────────────────────────────────────── */
+  .badge {
+    @apply inline-flex items-center gap-1.5
+           px-2.5 py-0.5 rounded-full
+           text-xs font-semibold
+           transition-all;
+  }
+
+  /* ── Skeleton loader (Warm Humanist shimmer) ───────────────────────────── */
+  .skeleton {
+    @apply rounded-lg bg-stone-200 dark:bg-stone-800;
+    background-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255,255,255,0.5) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.8s infinite linear;
+  }
+
+  html.dark .skeleton {
+    background-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255,255,255,0.06) 50%,
+      transparent 100%
+    );
+  }
+}

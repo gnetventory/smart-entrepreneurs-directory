@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Entrepreneurs Directory — Product Brochure & Value Guide</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background-color: #FAFAF7; color: #1C1917; }
+    h1, h2, h3, h4, .font-display { font-family: 'Outfit', system-ui, sans-serif; letter-spacing: -0.02em; }
+    @media print {
+      body { background-color: white !important; color: black !important; }
+      .no-print { display: none !important; }
+      .card { border: 1px solid #e5e7eb !important; box-shadow: none !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen py-10 px-4 sm:px-8 max-w-5xl mx-auto space-y-8">
+
+  <!-- Action Bar (Hide on Print) -->
+  <div class="no-print flex items-center justify-between bg-white p-4 rounded-2xl border border-stone-200 shadow-sm">
+    <div class="flex items-center gap-2">
+      <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">Interactive Product Brochure</span>
+      <span class="text-xs text-stone-500 font-medium">Ready for pitches, presentations & PDF exports</span>
+    </div>
+    <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-sm flex items-center gap-2">
+      🖨️ Print / Save as PDF
+    </button>
+  </div>
+
+  <!-- Hero Header -->
+  <header class="bg-gradient-to-br from-stone-900 via-stone-900 to-stone-950 text-white p-8 sm:p-12 rounded-3xl shadow-xl space-y-5 border border-stone-800 relative overflow-hidden">
+    <div class="absolute -top-10 -right-10 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl"></div>
+    <div class="flex items-center gap-3">
+      <div class="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-stone-950 font-black text-2xl shadow-lg">🚀</div>
+      <span class="text-xs font-mono font-bold tracking-widest text-emerald-400 uppercase">Product Brochure & Value Guide</span>
+    </div>
+    <h1 class="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
+      Transform Your Chaotic WhatsApp Group Into an AI-Powered Directory.
+    </h1>
+    <p class="text-stone-300 text-base sm:text-lg font-medium leading-relaxed max-w-3xl">
+      Turn lost chat intros into a structured, searchable, AI-matched member database with <strong>Zero Server Costs</strong> and <strong>100% Privacy Compliance</strong>.
+    </p>
+    <div class="flex flex-wrap gap-2 pt-2 text-xs font-semibold">
+      <span class="bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-full border border-emerald-500/30">Zero Backend Database</span>
+      <span class="bg-sky-500/20 text-sky-300 px-3 py-1 rounded-full border border-sky-500/30">Client-Side Gemini AI</span>
+      <span class="bg-violet-500/20 text-violet-300 px-3 py-1 rounded-full border border-violet-500/30">Instant Bulk Ingestion</span>
+      <span class="bg-amber-500/20 text-amber-300 px-3 py-1 rounded-full border border-amber-500/30">PNG Business Card Exporter</span>
+    </div>
+  </header>
+
+  <!-- Value Showcase Matrix -->
+  <section class="space-y-6">
+    <div class="text-center space-y-2">
+      <h2 class="text-2xl sm:text-3xl font-bold text-stone-900">Why Community Leaders & Founders Choose SED</h2>
+      <p class="text-stone-500 text-sm max-w-xl mx-auto">Every feature is built to solve a real friction point in WhatsApp business communities.</p>
+    </div>
+
+    <!-- Feature 1: AI Parser -->
+    <div class="bg-white p-6 sm:p-8 rounded-3xl border border-stone-200 shadow-sm space-y-4">
+      <div class="flex items-center justify-between gap-4 flex-wrap">
+        <div class="flex items-center gap-3">
+          <div class="p-3 bg-emerald-100 text-emerald-700 rounded-2xl text-xl font-bold">🤖</div>
+          <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-600">Feature #1</span>
+            <h3 class="text-xl font-bold text-stone-900">AI Ingestion & Bulk Group Chat Parser</h3>
+          </div>
+        </div>
+        <span class="bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200">Zero Onboarding Friction</span>
+      </div>
+      <p class="text-stone-600 text-sm leading-relaxed">
+        <strong>What it does:</strong> Extracts 10 structured fields (Name, Role, Pitch, Stage, Needs, Offers, Location, Phone, Tags) from a single pasted message or an entire exported WhatsApp chat log (scanning thousands of lines).
+      </p>
+      <div class="p-4 bg-emerald-50/70 border border-emerald-200 rounded-2xl space-y-1">
+        <h4 class="text-xs font-bold text-emerald-900 uppercase tracking-wider">🎯 Why It's Useful (The Benefit)</h4>
+        <p class="text-xs text-emerald-950 font-medium leading-relaxed">
+          Members don't need to fill out 10-page web forms. Admins can turn a 6-month-old WhatsApp group with 300 members into a fully structured directory in under 2 minutes.
+        </p>
+      </div>
+    </div>
+
+    <!-- Feature 2: Smart Search -->
+    <div class="bg-white p-6 sm:p-8 rounded-3xl border border-stone-200 shadow-sm space-y-4">
+      <div class="flex items-center justify-between gap-4 flex-wrap">
+        <div class="flex items-center gap-3">
+          <div class="p-3 bg-sky-100 text-sky-700 rounded-2xl text-xl font-bold">⚡</div>
+          <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-sky-600">Feature #2</span>
+            <h3 class="text-xl font-bold text-stone-900">Debounced Search & Multi-Stage Filter Controls (&lt;150ms)</h3>
+          </div>
+        </div>
+        <span class="bg-sky-50 text-sky-700 text-xs font-bold px-3 py-1 rounded-full border border-sky-200">Instant Discovery</span>
+      </div>
+      <p class="text-stone-600 text-sm leading-relaxed">
+        <strong>What it does:</strong> Instant keyword search (<150ms debounce) across Name, Role, Business Pitch, Needs, Offers, and Location. Filter by venture stage (Idea, Starting, Running, Growing) or dynamic industry tags.
+      </p>
+      <div class="p-4 bg-sky-50/70 border border-sky-200 rounded-2xl space-y-1">
+        <h4 class="text-xs font-bold text-sky-900 uppercase tracking-wider">🎯 Why It's Useful (The Benefit)</h4>
+        <p class="text-xs text-sky-950 font-medium leading-relaxed">
+          Eliminates DM anxiety and endless chat scrolling. Need a React Native developer in Cairo? Find them in 2 seconds instead of asking <em>"Does anyone know a..."</em> in the main chat.
+        </p>
+      </div>
+    </div>
+
+    <!-- Feature 3: Matchmaker -->
+    <div class="bg-white p-6 sm:p-8 rounded-3xl border border-stone-200 shadow-sm space-y-4">
+      <div class="flex items-center justify-between gap-4 flex-wrap">
+        <div class="flex items-center gap-3">
+          <div class="p-3 bg-violet-100 text-violet-700 rounded-2xl text-xl font-bold">🪄</div>
+          <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-violet-600">Feature #3</span>
+            <h3 class="text-xl font-bold text-stone-900">AI Collaboration Matchmaker & WhatsApp Outreach Assistant</h3>
+          </div>
+        </div>
+        <span class="bg-violet-50 text-violet-700 text-xs font-bold px-3 py-1 rounded-full border border-violet-200">24/7 Super-Connector</span>
+      </div>
+      <p class="text-stone-600 text-sm leading-relaxed">
+        <strong>What it does:</strong> Analyzes any profile against the entire directory, returning top 5 peer matches with scores (0–10), synergy rationale, and custom-drafted 3-sentence WhatsApp intro messages.
+      </p>
+      <div class="p-4 bg-violet-50/70 border border-violet-200 rounded-2xl space-y-1">
+        <h4 class="text-xs font-bold text-violet-900 uppercase tracking-wider">🎯 Why It's Useful (The Benefit)</h4>
+        <p class="text-xs text-violet-950 font-medium leading-relaxed">
+          Unlocks high-value peer connections that members would otherwise miss. The AI drafts natural, contextual messages that turn cold outreach into warm introductions.
+        </p>
+      </div>
+    </div>
+
+    <!-- Feature 4: Business Cards -->
+    <div class="bg-white p-6 sm:p-8 rounded-3xl border border-stone-200 shadow-sm space-y-4">
+      <div class="flex items-center justify-between gap-4 flex-wrap">
+        <div class="flex items-center gap-3">
+          <div class="p-3 bg-amber-100 text-amber-700 rounded-2xl text-xl font-bold">🎴</div>
+          <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-amber-600">Feature #4</span>
+            <h3 class="text-xl font-bold text-stone-900">Digital Business Card & High-Res PNG Exporter</h3>
+          </div>
+        </div>
+        <span class="bg-amber-50 text-amber-700 text-xs font-bold px-3 py-1 rounded-full border border-amber-200">Viral Network Growth</span>
+      </div>
+      <p class="text-stone-600 text-sm leading-relaxed">
+        <strong>What it does:</strong> Renders modern digital business cards with gradient avatars, stage badges, and contact details, downloadable as high-resolution PNG images.
+      </p>
+      <div class="p-4 bg-amber-50/70 border border-amber-200 rounded-2xl space-y-1">
+        <h4 class="text-xs font-bold text-amber-900 uppercase tracking-wider">🎯 Why It's Useful (The Benefit)</h4>
+        <p class="text-xs text-amber-950 font-medium leading-relaxed">
+          Gives members a professional badge to share on LinkedIn, Twitter, or WhatsApp. Every shared card promotes your community's brand, organically attracting new member applications.
+        </p>
+      </div>
+    </div>
+
+    <!-- Feature 5: Security Vault -->
+    <div class="bg-white p-6 sm:p-8 rounded-3xl border border-stone-200 shadow-sm space-y-4">
+      <div class="flex items-center justify-between gap-4 flex-wrap">
+        <div class="flex items-center gap-3">
+          <div class="p-3 bg-rose-100 text-rose-700 rounded-2xl text-xl font-bold">🔒</div>
+          <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-rose-600">Feature #5</span>
+            <h3 class="text-xl font-bold text-stone-900">Zero-Cost, Private & Hardened Admin Security Vault</h3>
+          </div>
+        </div>
+        <span class="bg-rose-50 text-rose-700 text-xs font-bold px-3 py-1 rounded-full border border-rose-200">100% Free & GDPR Compliant</span>
+      </div>
+      <p class="text-stone-600 text-sm leading-relaxed">
+        <strong>What it does:</strong> 100% browser localStorage persistence. Admin functions protected by SHA-256 Web Crypto PIN hashing, 5-attempt rate-limiting, 30-min session TTL, and typed wipe verification.
+      </p>
+      <div class="p-4 bg-rose-50/70 border border-rose-200 rounded-2xl space-y-1">
+        <h4 class="text-xs font-bold text-rose-900 uppercase tracking-wider">🎯 Why It's Useful (The Benefit)</h4>
+        <p class="text-xs text-rose-950 font-medium leading-relaxed">
+          Zero hosting or database bills forever. Member data stays strictly on your browser—it is never sent to third-party databases, eliminating privacy risks and compliance headaches.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Call to Action Footer -->
+  <footer class="bg-stone-900 text-white p-8 rounded-3xl text-center space-y-3">
+    <h3 class="text-xl font-bold">Ready to Launch Your Community Directory?</h3>
+    <p class="text-stone-400 text-xs max-w-md mx-auto">Enter a free Google Gemini API key in Admin → Settings and add your first member in seconds.</p>
+  </footer>
+
+</body>
+</html>
