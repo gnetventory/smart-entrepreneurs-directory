@@ -28,7 +28,7 @@ import { buildWhatsAppUrl } from '../../utils/helpers';
 import { isAdminSession } from '../../utils/session';
 
 export default function CommunityDashboard() {
-  const { members, setActiveTab, setSearchQuery, setStageFilter } = useApp();
+  const { activeMembers: members, setActiveTab, setSearchQuery, setStageFilter } = useApp();
   const [streamFilter, setStreamFilter] = useState('all'); // 'all' | 'need' | 'offer'
   const [selectedVertical, setSelectedVertical] = useState('all');
   const isAdmin = isAdminSession();

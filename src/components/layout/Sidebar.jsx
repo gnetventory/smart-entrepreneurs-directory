@@ -22,7 +22,7 @@ const ICONS = {
 };
 
 export default function Sidebar() {
-  const { activeTab, setActiveTab, members, sidebarOpen, setSidebarOpen } = useApp();
+  const { activeTab, setActiveTab, activeMembers: members, sidebarOpen, setSidebarOpen } = useApp();
 
   const handleNav = (tabId) => {
     setActiveTab(tabId);

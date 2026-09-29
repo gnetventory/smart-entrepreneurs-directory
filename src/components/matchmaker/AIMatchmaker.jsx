@@ -7,7 +7,7 @@ import LoadingSpinner from '../common/LoadingSpinner';
 import Modal from '../common/Modal';
 
 export default function AIMatchmaker() {
-  const { members, apiKey, notify } = useApp();
+  const { activeMembers: members, apiKey, notify } = useApp();
   const [selectedMemberId, setSelectedMemberId] = useState('');
   const [loading, setLoading] = useState(false);
   const [matches, setMatches] = useState([]);

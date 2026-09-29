@@ -22,7 +22,7 @@ import EgyptGISMap from './EgyptGISMap';
 import ProfileCard from '../directory/ProfileCard';
 
 export default function WorldMapView() {
-  const { members, refreshMembers } = useApp();
+  const { activeMembers: members, refreshMembers } = useApp();
 
   // Filter States
   const [selectedIndustry, setSelectedIndustry] = useState('all');

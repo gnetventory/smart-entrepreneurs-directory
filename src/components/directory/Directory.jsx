@@ -39,7 +39,7 @@ import EmptyState from './EmptyState';
 
 export default function Directory() {
   const {
-    members,
+    activeMembers: members,
     refreshMembers,
     searchQuery,
     setSearchQuery,

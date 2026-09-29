@@ -6,7 +6,7 @@ import { isWithinDays, copyToClipboard } from '../../utils/helpers';
 import LoadingSpinner from '../common/LoadingSpinner';
 
 export default function WeeklyDigest() {
-  const { members, apiKey, notify } = useApp();
+  const { activeMembers: members, apiKey, notify } = useApp();
   const [days, setDays] = useState(7);
   const [loading, setLoading] = useState(false);
   const [digestText, setDigestText] = useState('');
