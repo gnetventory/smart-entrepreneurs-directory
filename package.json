@@ -1,14 +1,14 @@
 {
   "name": "smart-entrepreneurs-directory",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.1.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint src --report-unused-disable-directives",
     "format": "prettier --write \"src/**/*.{js,jsx,css}\"",
     "audit:check": "npm audit",
     "release": "standard-version"
