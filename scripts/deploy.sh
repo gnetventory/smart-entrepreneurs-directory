@@ -27,6 +27,13 @@ npm run test
 echo "📦 Building Production Bundle..."
 npm run build
 
+# 5.5 Auto-Commit Changes
+if [[ -n $(git status -s) ]]; then
+  echo "💾 Found uncommitted changes. Auto-committing before release..."
+  git add .
+  git commit -m "feat: automated deployment update"
+fi
+
 # 6. Smart Versioning & Changelog
 echo "🏷️ Bumping Version & Generating Changelog..."
 npm run release

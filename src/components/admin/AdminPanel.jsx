@@ -22,6 +22,10 @@ import {
   Loader2,
   ListFilter,
   RotateCcw,
+  Bell,
+  UserCheck,
+  UserX,
+  Clock,
 } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
 import {
@@ -37,11 +41,17 @@ import {
   getTombstones,
   removeTombstone,
   clearTombstones,
+  getAdminEmail,
+  saveAdminEmail,
+  updateMember,
 } from '../../utils/storage';
 import {
   syncFromGoogleSheets,
   testSheetsConnection,
   getGoogleAppsScriptCode,
+  pushAdminConfigToSheets,
+  approveMember,
+  rejectMember,
 } from '../../utils/sheetsSync';
 import { MAP_TILE_PRESETS } from '../../utils/constants';
 import { isStale, downloadJSON, hashPIN, copyToClipboard } from '../../utils/helpers';
@@ -75,6 +85,16 @@ export default function AdminPanel({ onLock }) {
   const [showTombstonesModal, setShowTombstonesModal] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [tombstonesList, setTombstonesList] = useState(getTombstones());
+
+  // ── Admin Email / Notification States ────────────────────────────────────
+  const [adminEmailInput, setAdminEmailInput] = useState(getAdminEmail());
+  const [isPushingEmail, setIsPushingEmail] = useState(false);
+  const [emailPushFeedback, setEmailPushFeedback] = useState(null);
+
+  // ── Pending Approvals ────────────────────────────────────────────────────
+  const pendingMembers = members.filter((m) => m.status === 'pending');
+  const [approvingId, setApprovingId] = useState(null);
+  const [rejectingId, setRejectingId] = useState(null);
 
   const staleMembers = members.filter((m) => isStale(m.updatedAt));
 
@@ -166,6 +186,62 @@ export default function AdminPanel({ onLock }) {
     clearTombstones();
     setTombstonesList([]);
     notify('All deletion tombstones cleared');
+  };
+
+  const handleSaveAdminEmail = async (e) => {
+    e?.preventDefault();
+    if (!adminEmailInput.trim()) {
+      notify('Please enter a valid email address', 'warning');
+      return;
+    }
+    saveAdminEmail(adminEmailInput.trim());
+    setIsPushingEmail(true);
+    setEmailPushFeedback(null);
+    try {
+      const result = await pushAdminConfigToSheets({ adminEmail: adminEmailInput.trim() });
+      if (result?.success) {
+        setEmailPushFeedback({ success: true, message: 'Email saved & pushed to Apps Script ✓' });
+        notify("Admin email saved! You'll receive notifications on new form submissions.");
+      } else {
+        setEmailPushFeedback({
+          success: false,
+          message: result?.error || 'Push failed — check your Apps Script URL',
+        });
+        notify('Email saved locally but failed to push to Apps Script', 'warning');
+      }
+    } catch {
+      setEmailPushFeedback({ success: false, message: 'Network error — email saved locally only' });
+    } finally {
+      setIsPushingEmail(false);
+    }
+  };
+
+  const handleApproveMember = async (member) => {
+    setApprovingId(member.id);
+    try {
+      updateMember(member.id, { status: 'active', appStatus: 'APPROVED' });
+      await approveMember(member);
+      refreshMembers();
+      notify(`✅ ${member.name} approved and is now visible in the public directory!`);
+    } catch (err) {
+      notify(`Failed to approve: ${err.message}`, 'error');
+    } finally {
+      setApprovingId(null);
+    }
+  };
+
+  const handleRejectMember = async (member) => {
+    setRejectingId(member.id);
+    try {
+      updateMember(member.id, { status: 'rejected', appStatus: 'REJECTED' });
+      await rejectMember(member, 'Rejected by Admin');
+      refreshMembers();
+      notify(`❌ ${member.name} rejected and removed from directory.`, 'warning');
+    } catch (err) {
+      notify(`Failed to reject: ${err.message}`, 'error');
+    } finally {
+      setRejectingId(null);
+    }
   };
 
   const handleExport = () => setShowExportWarning(true);
@@ -407,7 +483,151 @@ export default function AdminPanel({ onLock }) {
           </div>
         </div>
 
-        {/* Section 2: Gemini AI API Key */}
+        {/* Section 2: Email Notifications & Admin Email */}
+        <div className="card p-5 space-y-3.5 border-blue-200/80 dark:border-blue-900/50 bg-gradient-to-b from-blue-50/20 to-transparent dark:from-blue-950/10">
+          <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-2.5">
+            <h3 className="section-title text-sm">
+              <Bell size={15} className="text-blue-600 dark:text-blue-400" />
+              Email Notifications
+            </h3>
+            <span
+              className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${getAdminEmail() ? 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300' : 'bg-stone-100 dark:bg-stone-800 text-stone-500'}`}
+            >
+              {getAdminEmail() ? 'Active' : 'Not Set'}
+            </span>
+          </div>
+          <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed font-medium">
+            Receive an email alert whenever a new member submits the Google Form. Requires the{' '}
+            <code>onFormSubmit</code> trigger to be set up in Apps Script.
+          </p>
+          <form onSubmit={handleSaveAdminEmail} className="space-y-3 pt-1">
+            <div>
+              <label className="label text-[10px]">Admin Notification Email</label>
+              <input
+                type="email"
+                value={adminEmailInput}
+                onChange={(e) => setAdminEmailInput(e.target.value)}
+                placeholder="you@example.com"
+                className="input text-xs py-2"
+              />
+            </div>
+            {emailPushFeedback && (
+              <div
+                className={`p-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 ${
+                  emailPushFeedback.success
+                    ? 'bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300'
+                    : 'bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300'
+                }`}
+              >
+                {emailPushFeedback.success ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
+                <span>{emailPushFeedback.message}</span>
+              </div>
+            )}
+            <button
+              type="submit"
+              disabled={isPushingEmail || !adminEmailInput.trim()}
+              className="btn-primary text-xs w-full py-2 font-bold justify-center"
+            >
+              {isPushingEmail ? <Loader2 size={13} className="animate-spin" /> : <Bell size={13} />}
+              {isPushingEmail ? 'Saving & Pushing...' : 'Save & Push to Apps Script'}
+            </button>
+          </form>
+          <div className="p-2.5 rounded-xl bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-[11px] text-stone-600 dark:text-stone-400 leading-relaxed">
+            <strong className="text-stone-700 dark:text-stone-300">
+              ⚡ One-time trigger setup:
+            </strong>{' '}
+            After saving your email, go to Apps Script → Triggers (clock icon) → + Add Trigger →{' '}
+            <code>onFormSubmit</code> → On form submit → Save.
+          </div>
+        </div>
+
+        {/* Section 3: Pending Approvals */}
+        <div className="card p-5 space-y-3.5 border-amber-200/80 dark:border-amber-900/50 bg-gradient-to-b from-amber-50/20 to-transparent dark:from-amber-950/10">
+          <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-2.5">
+            <h3 className="section-title text-sm">
+              <Clock size={15} className="text-amber-600 dark:text-amber-400" />
+              Pending Approvals
+            </h3>
+            <span
+              className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
+                pendingMembers.length > 0
+                  ? 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 animate-pulse'
+                  : 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
+              }`}
+            >
+              {pendingMembers.length > 0 ? `${pendingMembers.length} Pending` : 'All Clear'}
+            </span>
+          </div>
+          <p className="text-xs text-stone-600 dark:text-stone-400 font-medium">
+            New form submissions wait here before appearing in the public directory. Review and
+            approve or reject each one.
+          </p>
+
+          {pendingMembers.length === 0 ? (
+            <div className="p-4 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl text-center text-stone-400 text-xs">
+              <CheckCircle2 size={20} className="mx-auto mb-2 text-emerald-500" />
+              No pending submissions — all clear!
+            </div>
+          ) : (
+            <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+              {pendingMembers.map((member) => (
+                <div
+                  key={member.id}
+                  className="p-3 bg-white dark:bg-stone-900 border border-amber-200 dark:border-amber-900/60 rounded-xl space-y-2"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="font-bold text-sm text-stone-900 dark:text-stone-100 truncate">
+                        {member.name}
+                      </p>
+                      <p className="text-[11px] text-stone-500 truncate">
+                        {member.role} {member.location?.city ? `· ${member.location.city}` : ''}
+                      </p>
+                    </div>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 shrink-0">
+                      PENDING
+                    </span>
+                  </div>
+                  {member.business && (
+                    <p className="text-[11px] text-stone-600 dark:text-stone-400 line-clamp-2">
+                      {member.business}
+                    </p>
+                  )}
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => handleApproveMember(member)}
+                      disabled={approvingId === member.id || rejectingId === member.id}
+                      className="btn-primary text-[11px] py-1.5 px-3 flex-1 font-bold justify-center"
+                    >
+                      {approvingId === member.id ? (
+                        <Loader2 size={12} className="animate-spin" />
+                      ) : (
+                        <UserCheck size={12} />
+                      )}
+                      Approve
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRejectMember(member)}
+                      disabled={approvingId === member.id || rejectingId === member.id}
+                      className="btn-danger text-[11px] py-1.5 px-3 flex-1 font-bold justify-center"
+                    >
+                      {rejectingId === member.id ? (
+                        <Loader2 size={12} className="animate-spin" />
+                      ) : (
+                        <UserX size={12} />
+                      )}
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Section 4: Gemini AI API Key */}
         <div className="card p-5 space-y-3.5">
           <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-2.5">
             <h3 className="section-title text-sm">

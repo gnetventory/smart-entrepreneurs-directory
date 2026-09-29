@@ -288,21 +288,28 @@ export function clearAllData() {
 }
 
 // ─── Google Sheets Sync Configuration ────────────────────────────────────────
+const DEFAULT_SHEETS_URL =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SHEETS_URL) ||
+  'https://script.google.com/macros/s/AKfycbw4LsEO25x4cShDWg8nI6DSwqURApEB9aMNgT6nb7rPGRkOxlS2nP144PxJLtO6eR9F8Q/exec';
+
 export function getSheetsConfig() {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.SHEETS_CONFIG);
     if (!raw) {
       return {
-        apiUrl: '',
+        apiUrl: DEFAULT_SHEETS_URL,
         autoSync: false,
         lastSyncAt: null,
         lastSyncStatus: null,
       };
     }
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    // Always ensure a URL is present even if stored config has empty string
+    if (!parsed.apiUrl) parsed.apiUrl = DEFAULT_SHEETS_URL;
+    return parsed;
   } catch {
     return {
-      apiUrl: '',
+      apiUrl: DEFAULT_SHEETS_URL,
       autoSync: false,
       lastSyncAt: null,
       lastSyncStatus: null,
@@ -360,4 +367,20 @@ export function removeTombstone(tombstoneKey) {
 export function clearTombstones() {
   localStorage.setItem(STORAGE_KEYS.TOMBSTONES, JSON.stringify([]));
   pushToDisk({ tombstones: [] });
+}
+
+// ─── Admin Notification Email ─────────────────────────────────────────────────
+export function getAdminEmail() {
+  try {
+    return localStorage.getItem(STORAGE_KEYS.ADMIN_EMAIL) || '';
+  } catch {
+    return '';
+  }
+}
+
+export function saveAdminEmail(email) {
+  const safe = String(email || '').trim();
+  localStorage.setItem(STORAGE_KEYS.ADMIN_EMAIL, safe);
+  pushToDisk({ adminEmail: safe });
+  return safe;
 }

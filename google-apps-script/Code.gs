@@ -1,16 +1,96 @@
 /**
- * Smart Entrepreneurs Directory — 2-Way Sync Webhook
- * 
+ * Smart Entrepreneurs Directory — 2-Way Sync Webhook + Email Notifications
+ *
  * Instructions:
  * 1. Open your Google Sheet linked to your Google Form.
  * 2. Click "Extensions" > "Apps Script".
  * 3. Replace all code in Code.gs with this script.
  * 4. Click "Deploy" > "New deployment".
- * 5. Select type "Web app".
- * 6. Set "Execute as": "Me", and "Who has access": "Anyone".
- * 7. Click "Deploy", authorize access, and copy the Web App URL.
- * 8. Paste the Web App URL into the Smart Directory Admin Portal!
+ * 5. Select type "Web app". Execute as: "Me". Who has access: "Anyone".
+ * 6. Click "Deploy", authorize access, and copy the Web App URL.
+ * 7. Paste the Web App URL into the Smart Directory Admin Portal.
+ * 8. In Admin Portal → enter your email → click "Save & Push to Apps Script".
+ * 9. Back in Apps Script: Triggers (clock icon) > "+ Add Trigger":
+ *    Function: onFormSubmit | Source: From spreadsheet | Event: On form submit
+ *    Save & authorize → you'll now get email alerts on every new submission!
  */
+
+// ─── PropertiesService Config Helpers ─────────────────────────────────────────
+function setAdminConfig(config) {
+  var props = PropertiesService.getScriptProperties();
+  if (config.adminEmail) props.setProperty('ADMIN_EMAIL', config.adminEmail);
+  if (config.adminPortalUrl) props.setProperty('ADMIN_PORTAL_URL', config.adminPortalUrl);
+}
+
+function getAdminConfig() {
+  var props = PropertiesService.getScriptProperties();
+  return {
+    adminEmail: props.getProperty('ADMIN_EMAIL') || '',
+    adminPortalUrl: props.getProperty('ADMIN_PORTAL_URL') || 'https://smart-entrepreneurs-directory.vercel.app/admin.html'
+  };
+}
+
+// ─── Form Submit Trigger — Email Notification to Admin ────────────────────────
+// Set up: Apps Script > Triggers > + Add Trigger > onFormSubmit > On form submit
+function onFormSubmit(e) {
+  var config = getAdminConfig();
+  if (!config.adminEmail) return;
+
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    var values = e.values;
+
+    var member = {};
+    for (var i = 0; i < headers.length; i++) {
+      var key = normalizeHeader(String(headers[i]));
+      member[key] = values[i] !== undefined ? String(values[i]) : '';
+    }
+
+    var name       = member.name       || 'Unknown';
+    var role       = member.role       || '';
+    var business   = member.business   || '';
+    var city       = member.city       || '';
+    var phone      = member.phone      || '';
+    var linkedin   = member.linkedin   || '';
+    var stage      = member.stage      || '';
+    var lookingFor = member.lookingFor || '';
+    var canHelp    = member.canHelp    || '';
+    var submitted  = new Date().toLocaleString('en-GB', { timeZone: 'Africa/Cairo' });
+
+    var subject = '🔔 New Member Pending Approval: ' + name;
+
+    var htmlBody = '<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px;background:#f9fafb;border-radius:12px">'
+      + '<div style="background:linear-gradient(135deg,#059669,#047857);padding:20px;border-radius:10px;margin-bottom:20px">'
+      + '<h2 style="color:white;margin:0;font-size:20px">🔔 New Member Pending Approval</h2>'
+      + '<p style="color:#d1fae5;margin:4px 0 0;font-size:13px">Smart Entrepreneurs Directory</p></div>'
+      + '<table style="width:100%;border-collapse:collapse;background:white;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08)">'
+      + '<tr style="background:#f0fdf4"><td style="padding:10px 14px;font-weight:700;color:#065f46;width:35%">👤 Name</td><td style="padding:10px 14px">' + name + '</td></tr>'
+      + '<tr><td style="padding:10px 14px;font-weight:700;color:#065f46">💼 Role</td><td style="padding:10px 14px">' + role + '</td></tr>'
+      + '<tr style="background:#f0fdf4"><td style="padding:10px 14px;font-weight:700;color:#065f46">🚀 Business</td><td style="padding:10px 14px">' + business + '</td></tr>'
+      + '<tr><td style="padding:10px 14px;font-weight:700;color:#065f46">📍 Location</td><td style="padding:10px 14px">' + city + '</td></tr>'
+      + '<tr style="background:#f0fdf4"><td style="padding:10px 14px;font-weight:700;color:#065f46">📱 Phone</td><td style="padding:10px 14px">' + phone + '</td></tr>'
+      + '<tr><td style="padding:10px 14px;font-weight:700;color:#065f46">🔗 LinkedIn</td><td style="padding:10px 14px">' + linkedin + '</td></tr>'
+      + '<tr style="background:#f0fdf4"><td style="padding:10px 14px;font-weight:700;color:#065f46">📊 Stage</td><td style="padding:10px 14px">' + stage + '</td></tr>'
+      + '<tr><td style="padding:10px 14px;font-weight:700;color:#065f46">🤝 Looking For</td><td style="padding:10px 14px">' + lookingFor + '</td></tr>'
+      + '<tr style="background:#f0fdf4"><td style="padding:10px 14px;font-weight:700;color:#065f46">💡 Can Help</td><td style="padding:10px 14px">' + canHelp + '</td></tr>'
+      + '<tr><td style="padding:10px 14px;font-weight:700;color:#065f46">🕐 Submitted</td><td style="padding:10px 14px">' + submitted + '</td></tr>'
+      + '</table>'
+      + '<div style="margin-top:20px;text-align:center">'
+      + '<a href="' + config.adminPortalUrl + '" style="display:inline-block;background:#059669;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px">✅ Review &amp; Approve in Admin Portal →</a>'
+      + '</div>'
+      + '<p style="text-align:center;color:#9ca3af;font-size:11px;margin-top:16px">Smart Entrepreneurs Directory · Automated Notification</p></div>';
+
+    GmailApp.sendEmail(
+      config.adminEmail,
+      subject,
+      name + ' submitted a form and is pending approval. Visit: ' + config.adminPortalUrl,
+      { htmlBody: htmlBody, name: 'Smart Directory' }
+    );
+  } catch (err) {
+    console.log('Email notification error: ' + err.toString());
+  }
+}
 
 function doGet(e) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
@@ -102,6 +182,16 @@ function doPost(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
+    if (action === 'setConfig') {
+      var configData = payload.config || {};
+      setAdminConfig(configData);
+      return ContentService.createTextOutput(JSON.stringify({
+        success: true,
+        action: 'setConfig',
+        message: 'Admin configuration saved to Apps Script'
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
     return ContentService.createTextOutput(JSON.stringify({ success: true, message: 'Action processed' }))
       .setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
@@ -138,19 +228,30 @@ function findColIndex(headers, aliases) {
 function normalizeHeader(header) {
   var h = String(header || '').toLowerCase().trim();
   if (h.indexOf('timestamp') > -1) return 'formTimestamp';
-  if (h.indexOf('name') > -1 && h.indexOf('company') === -1 && h.indexOf('business') === -1) return 'name';
-  if (h.indexOf('role') > -1 || h.indexOf('do you do') > -1 || h.indexOf('title') > -1) return 'role';
-  if (h.indexOf('business') > -1 || h.indexOf('project') > -1 || h.indexOf('company') > -1 || h.indexOf('venture') > -1) return 'business';
-  if (h.indexOf('stage') > -1 || h.indexOf('currently') > -1 || h.indexOf('where are you') > -1) return 'stage';
-  if (h.indexOf('looking for') > -1 || h.indexOf('seeking') > -1 || h.indexOf('need') > -1) return 'lookingFor';
-  if (h.indexOf('can help') > -1 || h.indexOf('offering') > -1 || h.indexOf('offer') > -1) return 'canHelp';
-  if (h.indexOf('country') > -1) return 'country';
-  if (h.indexOf('city') > -1 || h.indexOf('governorate') > -1) return 'city';
+  if (h.indexOf('email') > -1) return 'email';
   if (h.indexOf('phone') > -1 || h.indexOf('whatsapp') > -1 || h.indexOf('mobile') > -1) return 'phone';
   if (h.indexOf('linkedin') > -1) return 'linkedin';
-  if (h.indexOf('tag') > -1 || h.indexOf('industry') > -1 || h.indexOf('sector') > -1) return 'tags';
+  // Q9: "How long have you been running your business?" — MUST come before business check
+  if (h.indexOf('how long') > -1 || h.indexOf('been running') > -1 || h.indexOf('been in') > -1 ||
+      h.indexOf('duration') > -1 || h.indexOf('years in') > -1 || h.indexOf('business age') > -1 ||
+      h.indexOf('stage') > -1) return 'stage';
+  if (h.indexOf('name') > -1 && h.indexOf('company') === -1 && h.indexOf('business') === -1) return 'name';
+  if (h.indexOf('role') > -1 || h.indexOf('profession') > -1 || h.indexOf('title') > -1 || h.indexOf('do you do') > -1) return 'role';
+  // Q5: "What are you currently looking for?" — MUST come before city check ("where are you")
+  if (h.indexOf('looking for') > -1 || h.indexOf('seeking') > -1) return 'lookingFor';
+  // Q6: "What can you offer to other members?"
+  if (h.indexOf('offer') > -1 || h.indexOf('can help') > -1 || h.indexOf('offering') > -1) return 'canHelp';
+  // Q7: "Business or Project Pitch"
+  if (h.indexOf('business') > -1 || h.indexOf('project') > -1 || h.indexOf('pitch') > -1 || h.indexOf('venture') > -1 || h.indexOf('company') > -1) return 'business';
+  if (h.indexOf('country') > -1) return 'country';
+  // Q8: "Where are you based?"
+  if (h.indexOf('city') > -1 || h.indexOf('governorate') > -1 || h.indexOf('district') > -1 ||
+      h.indexOf('where are you') > -1 || h.indexOf('based') > -1 || h.indexOf('location') > -1) return 'city';
+  // Q10: "Industry (...)"
+  if (h.indexOf('industry') > -1 || h.indexOf('tag') > -1 || h.indexOf('sector') > -1) return 'tags';
   if (h.indexOf('app_status') > -1) return 'appStatus';
   if (h.indexOf('last_app_sync_at') > -1) return 'lastAppSyncAt';
   if (h.indexOf('app_notes') > -1) return 'appNotes';
   return h.replace(/[^a-z0-9]/gi, '_');
 }
+

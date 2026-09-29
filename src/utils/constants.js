@@ -82,6 +82,7 @@ export const STORAGE_KEYS = {
   MAP_CONFIG: 'sed_map_config',
   SHEETS_CONFIG: 'sed_sheets_config',
   TOMBSTONES: 'sed_tombstones',
+  ADMIN_EMAIL: 'sed_admin_email',
 };
 
 // ─── Map Tile Providers & API Configuration ────────────────────────────────────

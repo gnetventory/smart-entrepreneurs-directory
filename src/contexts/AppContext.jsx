@@ -14,6 +14,7 @@ import {
 } from '../utils/storage';
 import { STORAGE_KEYS } from '../utils/constants';
 import { initGemini } from '../utils/gemini';
+import { syncFromGoogleSheets } from '../utils/sheetsSync';
 
 // ─── Context Definitions ──────────────────────────────────────────────────────
 const MembersContext = createContext(null);
@@ -43,6 +44,13 @@ export function AppProvider({ children }) {
     setMembersState(getMembers());
   }, []);
 
+  // Public-facing members: only show approved/active ones.
+  // Members without a status field (legacy data, seed data) are treated as active.
+  const activeMembers = useMemo(
+    () => members.filter((m) => !m.status || m.status === 'active'),
+    [members]
+  );
+
   // Initialize on mount & Fetch remote members from Google Sheets API
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
@@ -53,6 +61,19 @@ export function AppProvider({ children }) {
       if (diskData && Array.isArray(diskData.members)) {
         setMembersState(diskData.members);
       }
+      // After local data is loaded, silently pull new form submissions from Google Sheets.
+      // Uses smart delta sync — respects tombstones (deleted records stay deleted)
+      // and preserves locally edited records.
+      syncFromGoogleSheets()
+        .then((result) => {
+          if (result && result.added > 0) {
+            invalidateMembersCache();
+            setMembersState(getMembers());
+          }
+        })
+        .catch(() => {
+          // Sync failure is silent — app works fine from local data
+        });
     });
 
     // ── Real-time Cross-Tab & Same-Tab Storage Event Synchronization ─────────
@@ -111,11 +132,12 @@ export function AppProvider({ children }) {
   // ── Stable context values ────────────────────────────────────────────────
   const membersValue = useMemo(
     () => ({
-      members,
+      members, // ALL members (including pending) — for admin use
+      activeMembers, // Public-safe: only status='active' or no status (legacy)
       setMembersState,
       refreshMembers,
     }),
-    [members, refreshMembers]
+    [members, activeMembers, refreshMembers]
   );
 
   const uiValue = useMemo(

@@ -157,17 +157,29 @@ function findColIndex(headers, aliases) {
 function normalizeHeader(header) {
   var h = String(header || '').toLowerCase().trim();
   if (h.indexOf('timestamp') > -1) return 'formTimestamp';
-  if (h.indexOf('name') > -1 && h.indexOf('company') === -1 && h.indexOf('business') === -1) return 'name';
-  if (h.indexOf('role') > -1 || h.indexOf('do you do') > -1 || h.indexOf('title') > -1) return 'role';
-  if (h.indexOf('business') > -1 || h.indexOf('project') > -1 || h.indexOf('company') > -1 || h.indexOf('venture') > -1) return 'business';
-  if (h.indexOf('stage') > -1 || h.indexOf('currently') > -1 || h.indexOf('where are you') > -1) return 'stage';
-  if (h.indexOf('looking for') > -1 || h.indexOf('seeking') > -1 || h.indexOf('need') > -1) return 'lookingFor';
-  if (h.indexOf('can help') > -1 || h.indexOf('offering') > -1 || h.indexOf('offer') > -1) return 'canHelp';
-  if (h.indexOf('country') > -1) return 'country';
-  if (h.indexOf('city') > -1 || h.indexOf('governorate') > -1) return 'city';
+  if (h.indexOf('email') > -1) return 'email';
   if (h.indexOf('phone') > -1 || h.indexOf('whatsapp') > -1 || h.indexOf('mobile') > -1) return 'phone';
   if (h.indexOf('linkedin') > -1) return 'linkedin';
-  if (h.indexOf('tag') > -1 || h.indexOf('industry') > -1 || h.indexOf('sector') > -1) return 'tags';
+  // Q9: "How long have you been running your business?" — MUST come before business check
+  // because the header contains the word "business"
+  if (h.indexOf('how long') > -1 || h.indexOf('been running') > -1 || h.indexOf('been in') > -1 ||
+      h.indexOf('duration') > -1 || h.indexOf('years in') > -1 || h.indexOf('business age') > -1 ||
+      h.indexOf('stage') > -1) return 'stage';
+  if (h.indexOf('name') > -1 && h.indexOf('company') === -1 && h.indexOf('business') === -1) return 'name';
+  if (h.indexOf('role') > -1 || h.indexOf('profession') > -1 || h.indexOf('title') > -1 || h.indexOf('do you do') > -1) return 'role';
+  // Q5: "What are you currently looking for?" — MUST come before city check ("where are you")
+  // "currently" removed from stage check to avoid false match here
+  if (h.indexOf('looking for') > -1 || h.indexOf('seeking') > -1) return 'lookingFor';
+  // Q6: "What can you offer to other members?"
+  if (h.indexOf('offer') > -1 || h.indexOf('can help') > -1 || h.indexOf('offering') > -1) return 'canHelp';
+  // Q7: "Business or Project Pitch"
+  if (h.indexOf('business') > -1 || h.indexOf('project') > -1 || h.indexOf('pitch') > -1 || h.indexOf('venture') > -1 || h.indexOf('company') > -1) return 'business';
+  if (h.indexOf('country') > -1) return 'country';
+  // Q8: "Where are you based?" — "based" and "where are you" added
+  if (h.indexOf('city') > -1 || h.indexOf('governorate') > -1 || h.indexOf('district') > -1 ||
+      h.indexOf('where are you') > -1 || h.indexOf('based') > -1 || h.indexOf('location') > -1) return 'city';
+  // Q10: "Industry (...)"
+  if (h.indexOf('industry') > -1 || h.indexOf('tag') > -1 || h.indexOf('sector') > -1) return 'tags';
   if (h.indexOf('app_status') > -1) return 'appStatus';
   if (h.indexOf('last_app_sync_at') > -1) return 'lastAppSyncAt';
   if (h.indexOf('app_notes') > -1) return 'appNotes';
@@ -185,10 +197,31 @@ export function normalizeSheetRow(row = {}) {
   const name = String(row.name || row.founderName || row.full_name || '').trim();
   if (!name) return null;
 
-  // Determine stage
-  const rawStage = String(row.stage || '').toLowerCase();
+  // Determine stage — handles the actual Google Form Q9 answers:
+  // "💡 Idea" | "Less Than a year" | "1–3 years" | "3–5 years" | "5+ years"
+  // NOTE: Form uses en dashes (–), so we normalize before checking
+  const rawStageRaw = String(row.stage || row.businessAge || '');
+  const rawStage = rawStageRaw.toLowerCase().replace(/[–—]/g, '-'); // normalize en/em dash → hyphen
   let stage = 'idea';
-  if (rawStage.includes('grow') || rawStage.includes('scale') || rawStage.includes('series')) {
+  // Exact form answer patterns (checked first, most specific)
+  if (rawStage.includes('5+') || rawStage.includes('3-5') || rawStage.includes('3 to 5')) {
+    stage = 'growing';
+  } else if (rawStage.includes('1-3') || rawStage.includes('1 to 3')) {
+    stage = 'running';
+  } else if (
+    rawStage.includes('less than') ||
+    rawStage.includes('under 1') ||
+    rawStage.includes('under one')
+  ) {
+    stage = 'starting';
+  } else if (rawStage.includes('idea') || rawStage.includes('plan') || rawStage.includes('💡')) {
+    stage = 'idea';
+    // Generic maturity keywords (fallback)
+  } else if (
+    rawStage.includes('grow') ||
+    rawStage.includes('scale') ||
+    rawStage.includes('series')
+  ) {
     stage = 'growing';
   } else if (
     rawStage.includes('run') ||
@@ -204,8 +237,6 @@ export function normalizeSheetRow(row = {}) {
     rawStage.includes('launch')
   ) {
     stage = 'starting';
-  } else if (rawStage.includes('idea') || rawStage.includes('plan')) {
-    stage = 'idea';
   }
 
   // Tags
@@ -228,20 +259,47 @@ export function normalizeSheetRow(row = {}) {
   const sheetRowIndex = row.sheetRowIndex || null;
   const sheetId = `sheet-row-${sheetRowIndex || name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
 
+  // Helper: search row for a value by trying multiple key patterns
+  const pick = (...keys) => {
+    for (const k of keys) {
+      if (row[k] !== undefined && String(row[k]).trim()) return String(row[k]).trim();
+    }
+    // Also try searching all keys for partial matches
+    for (const k of keys) {
+      const found = Object.keys(row).find((rk) => rk.toLowerCase().includes(k.toLowerCase()));
+      if (found && String(row[found]).trim()) return String(row[found]).trim();
+    }
+    return '';
+  };
+
+  // Determine approval status:
+  // - New form submissions (no App_Status) → 'pending' (awaiting admin approval)
+  // - Previously approved/active → 'active' (visible in public directory)
+  const appStatusRaw = String(row.appStatus || '')
+    .toUpperCase()
+    .trim();
+  let status = 'pending'; // default for new form submissions
+  if (['APPROVED', 'ACTIVE', 'EDITED_IN_APP'].includes(appStatusRaw)) {
+    status = 'active';
+  } else if (['REJECTED', 'DELETED'].includes(appStatusRaw)) {
+    status = 'rejected';
+  }
+
   return {
     id: sheetId,
     sheetRowIndex,
     name,
-    role: String(row.role || 'Founder & CEO').trim(),
-    business: String(row.business || '').trim(),
+    role: pick('role', 'profession', 'title') || 'Founder & CEO',
+    business: pick('business', 'pitch', 'project', 'venture', 'company'),
     stage,
-    lookingFor: String(row.lookingFor || '').trim(),
-    canHelp: String(row.canHelp || '').trim(),
+    lookingFor: pick('lookingFor', 'looking_for', 'seeking'),
+    canHelp: pick('canHelp', 'can_help', 'what_can_you_help', '8__what_can_you_help'),
     location: { country, city },
-    phone: String(row.phone || '').trim(),
-    linkedin: String(row.linkedin || '').trim(),
+    phone: pick('phone', 'whatsapp', 'mobile'),
+    linkedin: pick('linkedin'),
     tags: tags.length > 0 ? tags : ['Startup'],
-    appStatus: String(row.appStatus || 'ACTIVE').trim(),
+    appStatus: appStatusRaw || 'PENDING',
+    status, // 'pending' | 'active' | 'rejected'
     formTimestamp,
     createdAt: formTimestamp ? new Date(formTimestamp).toISOString() : new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -465,5 +523,81 @@ export async function pushMemberUpdateToSheets(member, updates = {}) {
     });
   } catch (err) {
     console.warn('Failed to push update to Google Sheets webhook:', err);
+  }
+}
+
+/**
+ * ─── Push Admin Config (email) to Google Apps Script PropertiesService ─────────
+ * Called from Admin Panel when admin saves their notification email.
+ * The Apps Script onFormSubmit trigger reads this email to send notifications.
+ */
+export async function pushAdminConfigToSheets({ adminEmail }) {
+  const config = getSheetsConfig();
+  if (!config.apiUrl || !config.apiUrl.trim())
+    return { success: false, error: 'No Apps Script URL configured' };
+
+  try {
+    const res = await fetch(config.apiUrl.trim(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        action: 'setConfig',
+        config: {
+          adminEmail: adminEmail || '',
+          adminPortalUrl: 'https://smart-entrepreneurs-directory.vercel.app/admin.html',
+        },
+      }),
+    });
+    const data = await res.json();
+    return { success: true, data };
+  } catch (err) {
+    console.warn('Failed to push admin config to Apps Script:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * ─── Approve a Pending Member ─────────────────────────────────────────────────
+ * Sets status:'active', pushes APPROVED audit to Google Sheet.
+ */
+export async function approveMember(member) {
+  const config = getSheetsConfig();
+  if (!config.apiUrl || !config.apiUrl.trim()) return;
+  try {
+    await fetch(config.apiUrl.trim(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        action: 'update',
+        member: { id: member.id, name: member.name, sheetRowIndex: member.sheetRowIndex },
+        audit: { notes: 'APPROVED by Admin in Web App', timestamp: new Date().toISOString() },
+        appStatus: 'APPROVED',
+      }),
+    });
+  } catch (err) {
+    console.warn('Failed to push approval to Google Sheets:', err);
+  }
+}
+
+/**
+ * ─── Reject a Pending Member ──────────────────────────────────────────────────
+ * Tombstones the member and pushes REJECTED audit to Google Sheet.
+ */
+export async function rejectMember(member, reason = 'Rejected by Admin') {
+  const config = getSheetsConfig();
+  if (!config.apiUrl || !config.apiUrl.trim()) return;
+  try {
+    await fetch(config.apiUrl.trim(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        action: 'delete',
+        member: { id: member.id, name: member.name, sheetRowIndex: member.sheetRowIndex },
+        audit: { reason, timestamp: new Date().toISOString() },
+        appStatus: 'REJECTED',
+      }),
+    });
+  } catch (err) {
+    console.warn('Failed to push rejection to Google Sheets:', err);
   }
 }
