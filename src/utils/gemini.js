@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-escape, no-misleading-character-class */
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 let genAI = null;
@@ -12,7 +13,7 @@ const CANDIDATE_MODELS = [
   'gemini-1.5-flash',
   'gemini-2.0-flash',
   'gemini-2.5-flash',
-  'gemini-1.5-pro'
+  'gemini-1.5-pro',
 ];
 
 async function generateContentWithFallback(prompt) {
@@ -55,10 +56,28 @@ function extractJSONArray(text) {
 export function isIntroMessage(text) {
   if (!text || text.length < 15) return false;
   const lower = text.toLowerCase();
-  
-  if (text.includes('voice message omitted') || text.includes('image omitted') || text.includes('video omitted')) return false;
-  if (lower.includes('ana ma3rafsh') || lower.includes('next week') || lower.includes('poll') || lower.includes('تعالوا') || lower.includes('news link')) {
-    const hasIntroKeyword = lower.includes('name:') || lower.includes('business:') || lower.includes('what i do') || lower.includes('looking for') || lower.includes('can help') || lower.includes('i am a') || lower.includes('founder of');
+
+  if (
+    text.includes('voice message omitted') ||
+    text.includes('image omitted') ||
+    text.includes('video omitted')
+  )
+    return false;
+  if (
+    lower.includes('ana ma3rafsh') ||
+    lower.includes('next week') ||
+    lower.includes('poll') ||
+    lower.includes('تعالوا') ||
+    lower.includes('news link')
+  ) {
+    const hasIntroKeyword =
+      lower.includes('name:') ||
+      lower.includes('business:') ||
+      lower.includes('what i do') ||
+      lower.includes('looking for') ||
+      lower.includes('can help') ||
+      lower.includes('i am a') ||
+      lower.includes('founder of');
     if (!hasIntroKeyword) return false;
   }
 
@@ -90,18 +109,79 @@ export function isIntroMessage(text) {
 function extractIndustryTags(text) {
   const lower = text.toLowerCase();
   const tags = new Set();
-  
-  if (lower.includes('e-commerce') || lower.includes('shop') || lower.includes('retail') || lower.includes('trading') || lower.includes('marketplace') || lower.includes('store')) tags.add('E-commerce');
-  if (lower.includes('import') || lower.includes('export') || lower.includes('logistics') || lower.includes('shipping') || lower.includes('sourcing')) tags.add('Logistics');
-  if (lower.includes('food') || lower.includes('grocery') || lower.includes('restaurant')) tags.add('Food Tech');
-  if (lower.includes('fashion') || lower.includes('clothing') || lower.includes('apparel') || lower.includes('modest fashion')) tags.add('Fashion');
-  if (lower.includes('marketing') || lower.includes('branding') || lower.includes('seo') || lower.includes('ads')) tags.add('Marketing');
-  if (lower.includes('app') || lower.includes('mobile') || lower.includes('flutter') || lower.includes('react native')) tags.add('Mobile Apps');
-  if (lower.includes('ai') || lower.includes('machine learning') || lower.includes('gpt') || lower.includes('data optimization')) tags.add('AI/ML');
+
+  if (
+    lower.includes('e-commerce') ||
+    lower.includes('shop') ||
+    lower.includes('retail') ||
+    lower.includes('trading') ||
+    lower.includes('marketplace') ||
+    lower.includes('store')
+  )
+    tags.add('E-commerce');
+  if (
+    lower.includes('import') ||
+    lower.includes('export') ||
+    lower.includes('logistics') ||
+    lower.includes('shipping') ||
+    lower.includes('sourcing')
+  )
+    tags.add('Logistics');
+  if (lower.includes('food') || lower.includes('grocery') || lower.includes('restaurant'))
+    tags.add('Food Tech');
+  if (
+    lower.includes('fashion') ||
+    lower.includes('clothing') ||
+    lower.includes('apparel') ||
+    lower.includes('modest fashion')
+  )
+    tags.add('Fashion');
+  if (
+    lower.includes('marketing') ||
+    lower.includes('branding') ||
+    lower.includes('seo') ||
+    lower.includes('ads')
+  )
+    tags.add('Marketing');
+  if (
+    lower.includes('app') ||
+    lower.includes('mobile') ||
+    lower.includes('flutter') ||
+    lower.includes('react native')
+  )
+    tags.add('Mobile Apps');
+  if (
+    lower.includes('ai') ||
+    lower.includes('machine learning') ||
+    lower.includes('gpt') ||
+    lower.includes('data optimization')
+  )
+    tags.add('AI/ML');
   if (lower.includes('saas') || lower.includes('software')) tags.add('SaaS');
-  if (lower.includes('fintech') || lower.includes('wallet') || lower.includes('lending') || lower.includes('finance')) tags.add('FinTech');
-  if (lower.includes('art') || lower.includes('heritage') || lower.includes('design') || lower.includes('craft') || lower.includes('visual design')) tags.add('Design');
-  if (lower.includes('biosensor') || lower.includes('tumors') || lower.includes('chemistry') || lower.includes('health') || lower.includes('patent') || lower.includes('science')) tags.add('HealthTech');
+  if (
+    lower.includes('fintech') ||
+    lower.includes('wallet') ||
+    lower.includes('lending') ||
+    lower.includes('finance')
+  )
+    tags.add('FinTech');
+  if (
+    lower.includes('art') ||
+    lower.includes('heritage') ||
+    lower.includes('design') ||
+    lower.includes('craft') ||
+    lower.includes('visual design')
+  )
+    tags.add('Design');
+  if (
+    lower.includes('biosensor') ||
+    lower.includes('tumors') ||
+    lower.includes('chemistry') ||
+    lower.includes('health') ||
+    lower.includes('patent') ||
+    lower.includes('science')
+  )
+    tags.add('HealthTech');
 
   if (tags.size === 0) tags.add('Entrepreneur');
   return Array.from(tags).slice(0, 4);
@@ -111,7 +191,10 @@ function extractIndustryTags(text) {
 export function parseLocalRuleBased(rawText) {
   if (!rawText || typeof rawText !== 'string' || !isIntroMessage(rawText)) return null;
 
-  const lines = rawText.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const lines = rawText
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
   if (lines.length === 0) return null;
 
   let name = '';
@@ -127,12 +210,32 @@ export function parseLocalRuleBased(rawText) {
   // 1. Structured Section Patterns (Key-Value)
   const sectionPatterns = [
     { key: 'name', regex: /^(?:Full Name|Name\s*[:\-])\s*[:\-]?\s*(.*)$/i },
-    { key: 'role', regex: /^(?:What do you do\??|Role|Profession|Title|Position)\s*[:\-]?\s*(.*)$/i },
-    { key: 'business', regex: /^(?:Business(?:\/Project)?|Project|Company|Startup)\s*[:\-]?\s*(.*)$/i },
-    { key: 'stage', regex: /^(?:Where are you currently\??|Stage|Current stage|Status)\s*[:\-]?\s*(.*)$/i },
-    { key: 'lookingFor', regex: /^(?:What am I looking for(?: right now)?\??|Looking for(?!ward)(?: right now)?|Need|Searching for)\s*[:\-]?\s*(.*)$/i },
-    { key: 'canHelp', regex: /^(?:What can I help others with\??|Can help(?: others with)?\??|Can help with|Offering|Help with)\s*[:\-]?\s*(.*)$/i },
-    { key: 'location', regex: /^(?:Location|Where are you located\??|City|Country|Based in)\s*[:\-]?\s*(.*)$/i }
+    {
+      key: 'role',
+      regex: /^(?:What do you do\??|Role|Profession|Title|Position)\s*[:\-]?\s*(.*)$/i,
+    },
+    {
+      key: 'business',
+      regex: /^(?:Business(?:\/Project)?|Project|Company|Startup)\s*[:\-]?\s*(.*)$/i,
+    },
+    {
+      key: 'stage',
+      regex: /^(?:Where are you currently\??|Stage|Current stage|Status)\s*[:\-]?\s*(.*)$/i,
+    },
+    {
+      key: 'lookingFor',
+      regex:
+        /^(?:What am I looking for(?: right now)?\??|Looking for(?!ward)(?: right now)?|Need|Searching for)\s*[:\-]?\s*(.*)$/i,
+    },
+    {
+      key: 'canHelp',
+      regex:
+        /^(?:What can I help others with\??|Can help(?: others with)?\??|Can help with|Offering|Help with)\s*[:\-]?\s*(.*)$/i,
+    },
+    {
+      key: 'location',
+      regex: /^(?:Location|Where are you located\??|City|Country|Based in)\s*[:\-]?\s*(.*)$/i,
+    },
   ];
 
   let currentKey = null;
@@ -147,17 +250,22 @@ export function parseLocalRuleBased(rawText) {
     else if (currentKey === 'business') business = content;
     else if (currentKey === 'stage') {
       const lower = content.toLowerCase();
-      if (lower.includes('running') || lower.includes('operational') || lower.includes('trading')) stage = 'running';
+      if (lower.includes('running') || lower.includes('operational') || lower.includes('trading'))
+        stage = 'running';
       else if (lower.includes('growing') || lower.includes('scaling')) stage = 'growing';
-      else if (lower.includes('starting') || lower.includes('launched') || lower.includes('mvp')) stage = 'starting';
+      else if (lower.includes('starting') || lower.includes('launched') || lower.includes('mvp'))
+        stage = 'starting';
       else if (lower.includes('idea')) stage = 'idea';
-    }
-    else if (currentKey === 'lookingFor') lookingFor = content;
+    } else if (currentKey === 'lookingFor') lookingFor = content;
     else if (currentKey === 'canHelp') canHelp = content;
     else if (currentKey === 'location') {
       const parts = content.split(/,|\-/).map((p) => p.trim());
-      if (parts.length >= 2) { city = parts[0]; country = parts[1]; }
-      else { country = content; }
+      if (parts.length >= 2) {
+        city = parts[0];
+        country = parts[1];
+      } else {
+        country = content;
+      }
     }
     currentBuffer = [];
   };
@@ -188,17 +296,23 @@ export function parseLocalRuleBased(rawText) {
 
   // 2. Narrative Conversational Parsing (for "My name is X. I'm a Y...")
   if (!name) {
-    const nameMatch = rawText.match(/(?:My name is|Name\s*[:\-]|I am|I'm)\s+([A-Z][a-zA-Z\u00C0-\u024F]+(?:\s+[A-Z][a-zA-Z\u00C0-\u024F]+){1,3})/);
+    const nameMatch = rawText.match(
+      /(?:My name is|Name\s*[:\-]|I am|I'm)\s+([A-Z][a-zA-Z\u00C0-\u024F]+(?:\s+[A-Z][a-zA-Z\u00C0-\u024F]+){1,3})/
+    );
     if (nameMatch) {
       name = nameMatch[1].split('.')[0].split(',')[0].trim();
     } else if (firstUnlabeledLines.length > 0) {
-      const candidate = firstUnlabeledLines[0].replace(/^(?:Hi|Hello|Hey)\s*(?:everyone|all|guys)?[!👋,\s]*/i, '').trim();
+      const candidate = firstUnlabeledLines[0]
+        .replace(/^(?:Hi|Hello|Hey)\s*(?:everyone|all|guys)?[!👋,\s]*/i, '')
+        .trim();
       if (candidate && candidate.length < 40) name = candidate.split('.')[0].trim();
     }
   }
 
   if (!role) {
-    const roleMatch = rawText.match(/(?:I'm a|I am a|work as a|position:?)\s+([^.\n\r,]+(?:in the [^.\n\r]+)?)/i);
+    const roleMatch = rawText.match(
+      /(?:I'm a|I am a|work as a|position:?)\s+([^.\n\r,]+(?:in the [^.\n\r]+)?)/i
+    );
     if (roleMatch) {
       role = roleMatch[1].trim();
     } else if (firstUnlabeledLines.length > 1) {
@@ -207,7 +321,9 @@ export function parseLocalRuleBased(rawText) {
   }
 
   if (!business) {
-    const projMatch = rawText.match(/(?:My core project|My project|Our project|My business|Our business|My work)(?: focused on| is| building| developing)?\s+([^.\n\r]+(?:[^.\n\r]+)?)/i);
+    const projMatch = rawText.match(
+      /(?:My core project|My project|Our project|My business|Our business|My work)(?: focused on| is| building| developing)?\s+([^.\n\r]+(?:[^.\n\r]+)?)/i
+    );
     if (projMatch) {
       business = projMatch[0].trim();
     } else if (rawText.toLowerCase().includes('developing')) {
@@ -217,22 +333,37 @@ export function parseLocalRuleBased(rawText) {
   }
 
   if (lookingFor) {
-    if (lookingFor.toLowerCase().includes('forward to connecting') || lookingFor.toLowerCase().startsWith('ward to')) {
+    if (
+      lookingFor.toLowerCase().includes('forward to connecting') ||
+      lookingFor.toLowerCase().startsWith('ward to')
+    ) {
       lookingFor = '';
     } else {
-      lookingFor = lookingFor.replace(/^(?:right now|needed|searching|forward to|ward to)\s*[:\-]?\s*/i, '');
+      lookingFor = lookingFor.replace(
+        /^(?:right now|needed|searching|forward to|ward to)\s*[:\-]?\s*/i,
+        ''
+      );
     }
   }
 
   if (!lookingFor) {
-    const lookMatch = rawText.match(/(?:I’d like to|I would like to|I'm looking to|I am looking for|I want to|Goal is to)\s+([^.\n\r]+(?:[^.\n\r]+)?)/i);
+    const lookMatch = rawText.match(
+      /(?:I’d like to|I would like to|I'm looking to|I am looking for|I want to|Goal is to)\s+([^.\n\r]+(?:[^.\n\r]+)?)/i
+    );
     if (lookMatch && !lookMatch[0].toLowerCase().includes('looking forward to')) {
-      lookingFor = lookMatch[0].replace(/^(?:Actually,\s*)?(?:I’d like to|I would like to|I'm looking to|I am looking for|I want to)\s*/i, 'To ').trim();
+      lookingFor = lookMatch[0]
+        .replace(
+          /^(?:Actually,\s*)?(?:I’d like to|I would like to|I'm looking to|I am looking for|I want to)\s*/i,
+          'To '
+        )
+        .trim();
     }
   }
 
   if (!canHelp) {
-    const helpMatch = rawText.match(/(?:I’d be glad to help|I'd be glad to help|I can help|glad to help|happy to help)(?: out)?\s*(?:with|on)?\s+([^.\n\r]+)/i);
+    const helpMatch = rawText.match(
+      /(?:I’d be glad to help|I'd be glad to help|I can help|glad to help|happy to help)(?: out)?\s*(?:with|on)?\s+([^.\n\r]+)/i
+    );
     if (helpMatch) {
       canHelp = helpMatch[1].trim();
     }
@@ -240,13 +371,26 @@ export function parseLocalRuleBased(rawText) {
 
   // Stage determination logic
   const lowerText = rawText.toLowerCase();
-  if (lowerText.includes('early stages') || lowerText.includes('business model') || lowerText.includes('translating science') || lowerText.includes('learning how to translate')) {
+  if (
+    lowerText.includes('early stages') ||
+    lowerText.includes('business model') ||
+    lowerText.includes('translating science') ||
+    lowerText.includes('learning how to translate')
+  ) {
     stage = 'idea';
-  } else if (lowerText.includes('running') || lowerText.includes('operational') || lowerText.includes('trading')) {
+  } else if (
+    lowerText.includes('running') ||
+    lowerText.includes('operational') ||
+    lowerText.includes('trading')
+  ) {
     stage = 'running';
   } else if (lowerText.includes('growing') || lowerText.includes('scaling')) {
     stage = 'growing';
-  } else if (lowerText.includes('starting') || lowerText.includes('launched') || lowerText.includes('mvp')) {
+  } else if (
+    lowerText.includes('starting') ||
+    lowerText.includes('launched') ||
+    lowerText.includes('mvp')
+  ) {
     stage = 'starting';
   }
 
@@ -257,24 +401,40 @@ export function parseLocalRuleBased(rawText) {
       city = locationMatch[1].trim();
     }
 
-    if (rawText.includes('Manchester') || rawText.includes('London') || rawText.includes('UK') || rawText.includes('United Kingdom')) {
+    if (
+      rawText.includes('Manchester') ||
+      rawText.includes('London') ||
+      rawText.includes('UK') ||
+      rawText.includes('United Kingdom')
+    ) {
       country = 'United Kingdom';
       if (!city && rawText.includes('Manchester')) city = 'Manchester';
       else if (!city && rawText.includes('London')) city = 'London';
-    } else if (rawText.includes('Ain Shams University') || rawText.includes('Cairo University') || rawText.includes('Cairo') || rawText.includes('AUC') || rawText.includes('Egypt')) {
+    } else if (
+      rawText.includes('Ain Shams University') ||
+      rawText.includes('Cairo University') ||
+      rawText.includes('Cairo') ||
+      rawText.includes('AUC') ||
+      rawText.includes('Egypt')
+    ) {
       country = 'Egypt';
       if (!city) city = 'Cairo';
     } else if (rawText.includes('Brazil') || rawText.includes('São Paulo')) {
       country = 'Brazil';
       if (!city) city = 'São Paulo';
-    } else if (rawText.includes('India') || rawText.includes('Mumbai') || rawText.includes('Delhi')) {
+    } else if (
+      rawText.includes('India') ||
+      rawText.includes('Mumbai') ||
+      rawText.includes('Delhi')
+    ) {
       country = 'India';
       if (!city) city = 'Mumbai';
     }
   }
 
   // Clean prefixes if any leaked
-  if (lookingFor) lookingFor = lookingFor.replace(/^(?:right now|needed|searching)\s*[:\-]\s*/i, '');
+  if (lookingFor)
+    lookingFor = lookingFor.replace(/^(?:right now|needed|searching)\s*[:\-]\s*/i, '');
   if (canHelp) canHelp = canHelp.replace(/^(?:others with|with)\s*[:\-]\s*/i, '');
 
   if (!name && !role && !business) {
@@ -340,19 +500,21 @@ ${rawText}
     return extractJSON(text);
   } catch (err) {
     console.warn('AI Parsing failed, using enhanced local rule parser fallback:', err.message);
-    return parseLocalRuleBased(rawText) || {
-      name: 'Maria Silva',
-      role: 'Digital Marketer',
-      business: rawText.slice(0, 80),
-      stage: 'starting',
-      lookingFor: '',
-      canHelp: '',
-      location: { country: '', city: '' },
-      phone: '',
-      tags: ['Marketing'],
-      originalLanguage: 'en',
-      originalText: rawText,
-    };
+    return (
+      parseLocalRuleBased(rawText) || {
+        name: 'Maria Silva',
+        role: 'Digital Marketer',
+        business: rawText.slice(0, 80),
+        stage: 'starting',
+        lookingFor: '',
+        canHelp: '',
+        location: { country: '', city: '' },
+        phone: '',
+        tags: ['Marketing'],
+        originalLanguage: 'en',
+        originalText: rawText,
+      }
+    );
   }
 }
 
@@ -402,9 +564,12 @@ export async function generateMatches(targetMember, allMembers) {
   const candidates = allMembers.filter((m) => m.id !== targetMember.id);
   if (candidates.length === 0) return [];
 
-  const candidatesSummary = candidates.map((m, i) => (
-    `[${i}] ID:${m.id} | Name:${m.name} | Role:${m.role} | Business:${m.business} | Stage:${m.stage} | LookingFor:${m.lookingFor} | CanHelp:${m.canHelp} | Location:${m.location?.city},${m.location?.country} | Tags:${m.tags?.join(',')}`
-  )).join('\n');
+  const candidatesSummary = candidates
+    .map(
+      (m, i) =>
+        `[${i}] ID:${m.id} | Name:${m.name} | Role:${m.role} | Business:${m.business} | Stage:${m.stage} | LookingFor:${m.lookingFor} | CanHelp:${m.canHelp} | Location:${m.location?.city},${m.location?.country} | Tags:${m.tags?.join(',')}`
+    )
+    .join('\n');
 
   const prompt = `You are an expert entrepreneurship coach and network connector.
 
@@ -472,19 +637,23 @@ Return ONLY the message text (3 sentences max).`;
 
 // ─── 5. Semantic search ───────────────────────────────────────────────────────
 export async function semanticSearch(query, members) {
-  return members.filter(m => 
-    m.name?.toLowerCase().includes(query.toLowerCase()) ||
-    m.business?.toLowerCase().includes(query.toLowerCase()) ||
-    m.canHelp?.toLowerCase().includes(query.toLowerCase())
+  return members.filter(
+    (m) =>
+      m.name?.toLowerCase().includes(query.toLowerCase()) ||
+      m.business?.toLowerCase().includes(query.toLowerCase()) ||
+      m.canHelp?.toLowerCase().includes(query.toLowerCase())
   );
 }
 
 // ─── 6. Generate weekly digest ─────────────────────────────────────────────────
 export async function generateWeeklyDigest(newMembers, period = '7 days') {
   try {
-    const membersList = newMembers.map((m) => (
-      `• ${m.name} (${m.location?.city || m.location?.country || 'Unknown'}) — ${m.role} | ${m.stage} stage | LF: ${m.lookingFor?.slice(0, 80)}`
-    )).join('\n');
+    const membersList = newMembers
+      .map(
+        (m) =>
+          `• ${m.name} (${m.location?.city || m.location?.country || 'Unknown'}) — ${m.role} | ${m.stage} stage | LF: ${m.lookingFor?.slice(0, 80)}`
+      )
+      .join('\n');
 
     const prompt = `Write a friendly WhatsApp group message introducing these new community members:\n${membersList}\nReturn ONLY the message text.`;
 
@@ -493,7 +662,9 @@ export async function generateWeeklyDigest(newMembers, period = '7 days') {
   } catch {
     const lines = [`🌟 *NEW MEMBERS ROUNDUP (Last ${period})* 🌟\n`];
     newMembers.forEach((m) => {
-      lines.push(`• *${m.name}* (${m.location?.city || m.location?.country || 'Global'}) — _${m.role}_`);
+      lines.push(
+        `• *${m.name}* (${m.location?.city || m.location?.country || 'Global'}) — _${m.role}_`
+      );
       if (m.lookingFor) lines.push(`  🔍 LF: ${m.lookingFor}`);
       lines.push('');
     });

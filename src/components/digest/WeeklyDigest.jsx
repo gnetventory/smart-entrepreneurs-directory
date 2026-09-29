@@ -30,7 +30,9 @@ export default function WeeklyDigest() {
           `Welcome our newest entrepreneurs to the community! Take a moment to reach out:\n`,
         ];
         recentMembers.forEach((m) => {
-          lines.push(`• *${m.name}* (${m.location?.city || m.location?.country || 'Global'}) — _${m.role}_`);
+          lines.push(
+            `• *${m.name}* (${m.location?.city || m.location?.country || 'Global'}) — _${m.role}_`
+          );
           if (m.lookingFor) lines.push(`  🔍 LF: ${m.lookingFor}`);
           lines.push('');
         });
@@ -61,9 +63,12 @@ export default function WeeklyDigest() {
             <FileText size={24} />
           </div>
           <div>
-            <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">WhatsApp Weekly Digest Generator</h2>
+            <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+              WhatsApp Weekly Digest Generator
+            </h2>
             <p className="text-sm font-semibold text-slate-600 dark:text-slate-400 mt-0.5">
-              Auto-generate formatted WhatsApp announcement messages listing new community members for your group chat.
+              Auto-generate formatted WhatsApp announcement messages listing new community members
+              for your group chat.
             </p>
           </div>
         </div>
@@ -86,7 +91,11 @@ export default function WeeklyDigest() {
           </div>
 
           <div className="text-sm font-bold text-slate-600 dark:text-slate-400">
-            Found <strong className="text-emerald-600 dark:text-emerald-400">{recentMembers.length}</strong> new member(s)
+            Found{' '}
+            <strong className="text-emerald-600 dark:text-emerald-400">
+              {recentMembers.length}
+            </strong>{' '}
+            new member(s)
           </div>
         </div>
 

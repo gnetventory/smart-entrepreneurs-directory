@@ -1,11 +1,31 @@
 import React, { useState } from 'react';
-import { Sparkles, FileText, Upload, Check, AlertCircle, RefreshCw, UserPlus } from 'lucide-react';
+import {
+  Sparkles,
+  FileText,
+  Upload,
+  Check,
+  AlertCircle,
+  RefreshCw,
+  UserPlus,
+  Copy,
+  ArrowRight,
+} from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
 import { parseIntro, bulkParseChat } from '../../utils/gemini';
 import { addMembers } from '../../utils/storage';
-import IntroGuide from '../guide/IntroGuide';
 import ManualForm from './ManualForm';
 import LoadingSpinner from '../common/LoadingSpinner';
+
+const INTRO_TEMPLATE = `Name: Mohamed Ahmed
+Role: Co-Founder & CTO
+Business: BuildFlow — AI workflow automation for MENA contractors
+Location: Cairo, Egypt
+Stage: Running (Seed funded)
+Seeking: Series A Investors, Senior Python Engineer
+Offering: Tech architecture mentorship, Free API credits
+Tags: SaaS, AI, ConstructionTech
+LinkedIn: mohamed-ahmed-buildflow
+WhatsApp: +201012345678`;
 
 export default function AIParser() {
   const { apiKey, notify, refreshMembers, setActiveTab } = useApp();
@@ -25,7 +45,10 @@ export default function AIParser() {
       setParsedResult({ ...data, originalText: rawText });
     } catch (err) {
       console.error(err);
-      setError(err.message || 'Failed to parse text. Please check your Gemini API key in Settings or try manual entry.');
+      setError(
+        err.message ||
+          'Failed to parse text. Please check your Gemini API key in Settings or try manual entry.'
+      );
     } finally {
       setLoading(false);
     }
@@ -59,62 +82,80 @@ export default function AIParser() {
     setActiveTab('directory');
   };
 
-  const handleUseTemplate = (template) => {
-    setRawText(template);
+  const handleUseTemplate = () => {
+    setRawText(INTRO_TEMPLATE);
     setMode('single');
+    notify('Loaded sample template!');
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Top Intro Guide */}
-      <IntroGuide onUseTemplate={handleUseTemplate} />
-
+    <div className="space-y-6 animate-fade-in max-w-5xl">
       {/* Tabs & Form Card */}
       <div className="card p-6 sm:p-8 space-y-6">
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-4 overflow-x-auto">
+        <div className="flex items-center gap-2 border-b border-stone-200 dark:border-stone-800 pb-4 overflow-x-auto">
           <button
-            onClick={() => { setMode('single'); setParsedResult(null); setError(null); }}
-            className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-sm font-extrabold transition-all whitespace-nowrap ${
+            onClick={() => {
+              setMode('single');
+              setParsedResult(null);
+              setError(null);
+            }}
+            className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
               mode === 'single'
-                ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950 shadow-md shadow-emerald-500/20'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/20'
+                : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-900'
             }`}
           >
-            <Sparkles size={18} /> Single Intro AI Parser
+            <Sparkles size={16} /> Single Intro AI Parser
           </button>
           <button
-            onClick={() => { setMode('bulk'); setBulkResults([]); setError(null); }}
-            className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-sm font-extrabold transition-all whitespace-nowrap ${
+            onClick={() => {
+              setMode('bulk');
+              setBulkResults([]);
+              setError(null);
+            }}
+            className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
               mode === 'bulk'
-                ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950 shadow-md shadow-emerald-500/20'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/20'
+                : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-900'
             }`}
           >
-            <Upload size={18} /> Bulk Chat Import (AI)
+            <Upload size={16} /> Bulk Chat Import (AI)
           </button>
           <button
-            onClick={() => { setMode('manual'); setError(null); }}
-            className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-sm font-extrabold transition-all whitespace-nowrap ${
+            onClick={() => {
+              setMode('manual');
+              setError(null);
+            }}
+            className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
               mode === 'manual'
-                ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950 shadow-md shadow-emerald-500/20'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                ? 'bg-orange-500 text-white shadow-sm shadow-orange-500/20'
+                : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-900'
             }`}
           >
-            <UserPlus size={18} /> Manual Form
+            <UserPlus size={16} /> Manual Form
           </button>
         </div>
 
         {/* API Warning if not set */}
         {!apiKey && mode !== 'manual' && (
           <div className="p-5 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-2xl flex items-start gap-3.5">
-            <AlertCircle className="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" size={20} />
+            <AlertCircle
+              className="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5"
+              size={20}
+            />
             <div className="text-sm font-semibold text-amber-900 dark:text-amber-300 leading-relaxed">
               <strong>Gemini API Key Required for AI Features:</strong> Get a free key at{' '}
-              <a href="https://aistudio.google.com" target="_blank" rel="noopener noreferrer" className="underline font-extrabold">
+              <a
+                href="https://aistudio.google.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline font-extrabold"
+              >
                 aistudio.google.com
               </a>{' '}
-              and save it in <strong>Admin → Settings</strong>. Or use the <strong>Manual Form</strong> tab above offline without a key!
+              and save it in <strong>Admin Portal</strong>. Or use the <strong>Manual Form</strong>{' '}
+              tab above offline without a key!
             </div>
           </div>
         )}
@@ -129,12 +170,21 @@ export default function AIParser() {
         {mode === 'single' && (
           <div className="space-y-5">
             <div>
-              <label className="label">Paste WhatsApp Introduction Text</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="label mb-0">Paste WhatsApp Introduction Text</label>
+                <button
+                  type="button"
+                  onClick={handleUseTemplate}
+                  className="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1"
+                >
+                  <Copy size={12} /> Insert Sample Template
+                </button>
+              </div>
               <textarea
                 rows={7}
                 value={rawText}
                 onChange={(e) => setRawText(e.target.value)}
-                placeholder="Paste member introduction text here — even if grammar is broken, incomplete, or written in another language! AI will clean and translate it."
+                placeholder="Paste member introduction text here — even if grammar is broken, informal, or multilingual. AI will structure and clean it automatically."
                 className="input resize-none font-mono text-sm leading-relaxed p-4"
               />
             </div>
@@ -157,12 +207,14 @@ export default function AIParser() {
 
             {/* Parsed Result Review */}
             {parsedResult && (
-              <div className="mt-8 pt-8 border-t border-slate-200 dark:border-slate-800 space-y-4 animate-slide-up">
+              <div className="mt-8 pt-8 border-t border-stone-200 dark:border-stone-800 space-y-4 animate-slide-up">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-extrabold text-xl text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                  <h3 className="font-extrabold text-xl text-stone-900 dark:text-stone-100 flex items-center gap-2">
                     <Check className="text-emerald-500" size={22} /> Review AI Parsed Profile
                   </h3>
-                  <span className="text-xs font-semibold text-slate-500">Review & edit before adding</span>
+                  <span className="text-xs font-semibold text-stone-500">
+                    Review & edit before adding
+                  </span>
                 </div>
                 <ManualForm
                   initialData={parsedResult}
@@ -203,9 +255,9 @@ export default function AIParser() {
 
             {/* Bulk Results Preview */}
             {bulkResults.length > 0 && (
-              <div className="mt-8 pt-8 border-t border-slate-200 dark:border-slate-800 space-y-6 animate-slide-up">
+              <div className="mt-8 pt-8 border-t border-stone-200 dark:border-stone-800 space-y-6 animate-slide-up">
                 <div className="flex items-center justify-between flex-wrap gap-4">
-                  <h3 className="font-extrabold text-xl text-slate-900 dark:text-slate-100">
+                  <h3 className="font-extrabold text-xl text-stone-900 dark:text-stone-100">
                     Extracted {bulkResults.length} Member Profiles
                   </h3>
                   <button onClick={handleSaveBulk} className="btn-primary">
@@ -215,14 +267,25 @@ export default function AIParser() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto p-1">
                   {bulkResults.map((res, idx) => (
-                    <div key={idx} className="p-5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 text-sm space-y-2">
-                      <div className="font-extrabold text-slate-900 dark:text-slate-100 flex items-center justify-between">
+                    <div
+                      key={idx}
+                      className="p-5 bg-stone-50 dark:bg-stone-950 rounded-2xl border border-stone-200 dark:border-stone-800 text-sm space-y-2"
+                    >
+                      <div className="font-extrabold text-stone-900 dark:text-stone-100 flex items-center justify-between">
                         <span>{res.name || 'Unnamed Member'}</span>
-                        <span className="badge bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-400 font-bold">{res.stage}</span>
+                        <span className="badge bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-400 font-bold">
+                          {res.stage}
+                        </span>
                       </div>
                       <p className="text-emerald-600 dark:text-emerald-400 font-bold">{res.role}</p>
-                      <p className="text-slate-700 dark:text-slate-300 font-medium">💼 {res.business}</p>
-                      {res.location?.country && <p className="text-slate-500 font-semibold">📍 {res.location.city}, {res.location.country}</p>}
+                      <p className="text-stone-700 dark:text-stone-300 font-medium">
+                        💼 {res.business}
+                      </p>
+                      {res.location?.country && (
+                        <p className="text-stone-500 font-semibold">
+                          📍 {res.location.city}, {res.location.country}
+                        </p>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -232,11 +295,7 @@ export default function AIParser() {
         )}
 
         {/* Mode 3: Manual Form */}
-        {mode === 'manual' && (
-          <ManualForm
-            onSaved={() => setActiveTab('directory')}
-          />
-        )}
+        {mode === 'manual' && <ManualForm onSaved={() => setActiveTab('directory')} />}
       </div>
     </div>
   );

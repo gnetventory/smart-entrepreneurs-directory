@@ -1,239 +1,61 @@
-import React, { useState, useEffect } from 'react';
-import { Settings, Download, Upload, Shield, AlertTriangle, Key, Trash2, Check, Lock, Unlock, AlertCircle, Clock } from 'lucide-react';
+import React, { useState } from 'react';
+import {
+  Settings,
+  Download,
+  Upload,
+  Shield,
+  AlertTriangle,
+  Key,
+  Trash2,
+  Check,
+  Lock,
+  AlertCircle,
+  ExternalLink,
+  Sparkles,
+  RefreshCw,
+  Database,
+  Map,
+  FileSpreadsheet,
+  Copy,
+  Code2,
+  CheckCircle2,
+  Loader2,
+  ListFilter,
+  RotateCcw,
+} from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
-import { exportAllData, importAllData, clearAllData, getAdminPIN, saveAdminPIN, clearAdminPIN } from '../../utils/storage';
-import { isStale, downloadJSON, hashPIN, verifyPIN } from '../../utils/helpers';
+import {
+  exportAllData,
+  importAllData,
+  clearAllData,
+  getAdminPIN,
+  saveAdminPIN,
+  clearAdminPIN,
+  loadDemoSeedData,
+  getSheetsConfig,
+  saveSheetsConfig,
+  getTombstones,
+  removeTombstone,
+  clearTombstones,
+} from '../../utils/storage';
+import {
+  syncFromGoogleSheets,
+  testSheetsConnection,
+  getGoogleAppsScriptCode,
+} from '../../utils/sheetsSync';
+import { MAP_TILE_PRESETS } from '../../utils/constants';
+import { isStale, downloadJSON, hashPIN, copyToClipboard } from '../../utils/helpers';
+import { revokeAdminSession } from '../../utils/session';
 import Modal from '../common/Modal';
 
-// ─── Session & Rate-Limit Helpers ────────────────────────────────────────────
-const SESSION_KEY = 'sed_admin_session';
-const ATTEMPT_KEY = 'sed_admin_attempts';
-const SESSION_TTL_MS = 30 * 60 * 1000; // 30 minutes
-const MAX_ATTEMPTS = 5;
-const LOCKOUT_MS = 5 * 60 * 1000; // 5 minutes
-
-function getSessionState() {
-  try {
-    const raw = sessionStorage.getItem(SESSION_KEY);
-    if (!raw) return null;
-    const { grantedAt } = JSON.parse(raw);
-    if (Date.now() - grantedAt > SESSION_TTL_MS) {
-      sessionStorage.removeItem(SESSION_KEY);
-      return null;
-    }
-    return { grantedAt };
-  } catch {
-    return null;
-  }
-}
-
-function grantSession() {
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify({ grantedAt: Date.now() }));
-}
-
-function revokeSession() {
-  sessionStorage.removeItem(SESSION_KEY);
-}
-
-function getAttemptState() {
-  try {
-    const raw = sessionStorage.getItem(ATTEMPT_KEY);
-    return raw ? JSON.parse(raw) : { count: 0, lockedUntil: 0 };
-  } catch {
-    return { count: 0, lockedUntil: 0 };
-  }
-}
-
-function recordFailedAttempt() {
-  const state = getAttemptState();
-  const newCount = state.count + 1;
-  const lockedUntil = newCount >= MAX_ATTEMPTS ? Date.now() + LOCKOUT_MS : state.lockedUntil;
-  sessionStorage.setItem(ATTEMPT_KEY, JSON.stringify({ count: newCount, lockedUntil }));
-  return { count: newCount, lockedUntil };
-}
-
-function resetAttempts() {
-  sessionStorage.removeItem(ATTEMPT_KEY);
-}
-
-function getLockoutRemaining() {
-  const { lockedUntil } = getAttemptState();
-  const remaining = lockedUntil - Date.now();
-  return remaining > 0 ? Math.ceil(remaining / 1000) : 0;
-}
-
-// ─── PIN Gate Component ───────────────────────────────────────────────────────
-function PINGate({ onUnlocked, hasPIN }) {
-  const [pinInput, setPinInput] = useState('');
-  const [newPin, setNewPin] = useState('');
-  const [confirmPin, setConfirmPin] = useState('');
-  const [error, setError] = useState('');
-  const [lockdownSecs, setLockdownSecs] = useState(getLockoutRemaining());
-  const [loading, setLoading] = useState(false);
-
-  // Countdown timer
-  useEffect(() => {
-    if (lockdownSecs <= 0) return;
-    const timer = setInterval(() => {
-      const remaining = getLockoutRemaining();
-      setLockdownSecs(remaining);
-      if (remaining <= 0) clearInterval(timer);
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [lockdownSecs]);
-
-  const handleUnlock = async (e) => {
-    e.preventDefault();
-    if (lockdownSecs > 0) return;
-    setLoading(true);
-    setError('');
-    try {
-      const storedHash = getAdminPIN();
-      const ok = await verifyPIN(pinInput, storedHash);
-      if (ok) {
-        resetAttempts();
-        grantSession();
-        onUnlocked();
-      } else {
-        const { count, lockedUntil } = recordFailedAttempt();
-        if (lockedUntil > Date.now()) {
-          setLockdownSecs(Math.ceil((lockedUntil - Date.now()) / 1000));
-          setError(`Too many attempts. Locked for 5 minutes.`);
-        } else {
-          setError(`Incorrect PIN. ${MAX_ATTEMPTS - count} attempt(s) remaining.`);
-        }
-        setPinInput('');
-      }
-    } catch (err) {
-      console.error(err);
-      setError('Verification error: ' + (err.message || 'Error checking PIN'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSetPIN = async (e) => {
-    e.preventDefault();
-    if (newPin.length < 4) { setError('PIN must be at least 4 characters.'); return; }
-    if (newPin !== confirmPin) { setError('PINs do not match.'); return; }
-    setLoading(true);
-    setError('');
-    try {
-      const hash = await hashPIN(newPin);
-      saveAdminPIN(hash);
-      resetAttempts();
-      grantSession();
-      onUnlocked();
-    } catch (err) {
-      console.error(err);
-      setError('Failed to set PIN: ' + (err.message || 'Error creating PIN hash'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (!hasPIN) {
-    return (
-      <div className="max-w-md mx-auto">
-        <div className="card p-8 space-y-6 border-emerald-200 dark:border-emerald-500/30">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-emerald-100 dark:bg-emerald-900/40 rounded-xl">
-              <Shield size={22} className="text-emerald-600 dark:text-emerald-400" />
-            </div>
-            <div>
-              <h3 className="font-bold text-stone-900 dark:text-stone-100">Set Admin PIN</h3>
-              <p className="text-sm text-stone-500 dark:text-stone-400">Create a PIN to protect admin functions</p>
-            </div>
-          </div>
-          <form onSubmit={handleSetPIN} className="space-y-4">
-            <div>
-              <label className="label">New PIN (min 4 characters)</label>
-              <input
-                type="password"
-                value={newPin}
-                onChange={(e) => setNewPin(e.target.value)}
-                placeholder="Enter new PIN"
-                className="input"
-                autoFocus
-              />
-            </div>
-            <div>
-              <label className="label">Confirm PIN</label>
-              <input
-                type="password"
-                value={confirmPin}
-                onChange={(e) => setConfirmPin(e.target.value)}
-                placeholder="Repeat PIN"
-                className="input"
-              />
-            </div>
-            {error && (
-              <div className="flex items-center gap-2 text-sm text-rose-600 dark:text-rose-400 font-semibold">
-                <AlertCircle size={15} /> {error}
-              </div>
-            )}
-            <button type="submit" disabled={loading} className="btn-primary w-full">
-              {loading ? 'Securing...' : 'Set PIN & Enter Admin'}
-            </button>
-          </form>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="max-w-md mx-auto">
-      <div className="card p-8 space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-stone-100 dark:bg-stone-800 rounded-xl">
-            <Lock size={22} className="text-stone-600 dark:text-stone-400" />
-          </div>
-          <div>
-            <h3 className="font-bold text-stone-900 dark:text-stone-100">Admin Access Required</h3>
-            <p className="text-sm text-stone-500 dark:text-stone-400">Enter your admin PIN to continue</p>
-          </div>
-        </div>
-
-        {lockdownSecs > 0 ? (
-          <div className="p-4 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-500/30 rounded-xl flex items-center gap-3">
-            <Clock size={18} className="text-rose-600 dark:text-rose-400 flex-shrink-0" />
-            <div>
-              <p className="text-sm font-bold text-rose-700 dark:text-rose-300">Too many failed attempts</p>
-              <p className="text-xs text-rose-600 dark:text-rose-400">Locked for {lockdownSecs}s</p>
-            </div>
-          </div>
-        ) : (
-          <form onSubmit={handleUnlock} className="space-y-4">
-            <div>
-              <label className="label">Admin PIN</label>
-              <input
-                type="password"
-                value={pinInput}
-                onChange={(e) => setPinInput(e.target.value)}
-                placeholder="Enter PIN"
-                className="input"
-                autoFocus
-              />
-            </div>
-            {error && (
-              <div className="flex items-center gap-2 text-sm text-rose-600 dark:text-rose-400 font-semibold">
-                <AlertCircle size={15} /> {error}
-              </div>
-            )}
-            <button type="submit" disabled={loading || !pinInput} className="btn-primary w-full">
-              {loading ? 'Verifying...' : <><Unlock size={16} /> Unlock Admin Panel</>}
-            </button>
-          </form>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─── Main Admin Panel ─────────────────────────────────────────────────────────
-export default function AdminPanel() {
-  const { apiKey, updateApiKey, members, refreshMembers, notify } = useApp();
+export default function AdminPanel({ onLock }) {
+  const { apiKey, updateApiKey, mapConfig, updateMapConfig, members, refreshMembers, notify } =
+    useApp();
   const [keyInput, setKeyInput] = useState(apiKey);
+  const [mapProvider, setMapProvider] = useState(mapConfig?.provider || 'carto_voyager');
+  const [mapApiKey, setMapApiKey] = useState(mapConfig?.apiKey || '');
+  const [mapStyleId, setMapStyleId] = useState(mapConfig?.styleId || 'mapbox/streets-v12');
+  const [customTileUrl, setCustomTileUrl] = useState(mapConfig?.customTileUrl || '');
   const [importMode, setImportMode] = useState('merge');
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -242,30 +64,111 @@ export default function AdminPanel() {
   const [newPinInput, setNewPinInput] = useState('');
   const [confirmPinInput, setConfirmPinInput] = useState('');
   const [pinError, setPinError] = useState('');
-  const [unlocked, setUnlocked] = useState(!!getSessionState());
 
-  const hasPIN = !!getAdminPIN();
+  // ── Google Sheets Sync States ──────────────────────────────────────────────
+  const [sheetsConfig, setSheetsConfigState] = useState(getSheetsConfig());
+  const [apiUrlInput, setApiUrlInput] = useState(sheetsConfig?.apiUrl || '');
+  const [isTestingSheets, setIsTestingSheets] = useState(false);
+  const [isSyncingSheets, setIsSyncingSheets] = useState(false);
+  const [sheetsTestFeedback, setSheetsTestFeedback] = useState(null);
+  const [showAppsScriptModal, setShowAppsScriptModal] = useState(false);
+  const [showTombstonesModal, setShowTombstonesModal] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [tombstonesList, setTombstonesList] = useState(getTombstones());
+
   const staleMembers = members.filter((m) => isStale(m.updatedAt));
 
-  // Refresh session check on mount
-  useEffect(() => {
-    setUnlocked(!!getSessionState());
-  }, []);
-
   const handleLock = () => {
-    revokeSession();
-    setUnlocked(false);
+    revokeAdminSession();
+    onLock?.();
   };
 
   const handleSaveKey = (e) => {
     e.preventDefault();
     updateApiKey(keyInput.trim());
-    notify('Gemini API key saved!');
+    notify('Gemini API key saved to disk!');
   };
 
-  const handleExport = () => {
-    setShowExportWarning(true);
+  const handleSaveSheetsConfig = (e) => {
+    e?.preventDefault();
+    const updated = saveSheetsConfig({
+      ...sheetsConfig,
+      apiUrl: apiUrlInput.trim(),
+    });
+    setSheetsConfigState(updated);
+    notify('Google Sheets Webhook URL saved!');
   };
+
+  const handleTestSheets = async () => {
+    if (!apiUrlInput.trim()) {
+      notify('Please enter a Google Apps Script Web App URL', 'warning');
+      return;
+    }
+    setIsTestingSheets(true);
+    setSheetsTestFeedback(null);
+    try {
+      const res = await testSheetsConnection(apiUrlInput.trim());
+      setSheetsTestFeedback({
+        success: true,
+        message: `Connected! Found ${res.totalRows} submission row(s).`,
+      });
+      notify(`Connection successful! ${res.totalRows} row(s) detected.`);
+      handleSaveSheetsConfig();
+    } catch (err) {
+      setSheetsTestFeedback({ success: false, message: err.message });
+      notify('Connection failed — verify your Apps Script deployment', 'error');
+    } finally {
+      setIsTestingSheets(false);
+    }
+  };
+
+  const handleSyncSheetsNow = async () => {
+    if (!apiUrlInput.trim()) {
+      notify('Configure Google Sheets Web App URL first', 'warning');
+      return;
+    }
+    setIsSyncingSheets(true);
+    try {
+      handleSaveSheetsConfig();
+      const result = await syncFromGoogleSheets();
+      if (result.success) {
+        refreshMembers();
+        setSheetsConfigState(getSheetsConfig());
+        notify(
+          `Synced with Google Sheets: +${result.addedCount} new, ${result.updatedCount} updated, ${result.ignoredTombstoneCount} deleted ignored!`
+        );
+      } else {
+        notify(`Sync failed: ${result.error}`, 'error');
+      }
+    } catch (err) {
+      notify(`Sync error: ${err.message}`, 'error');
+    } finally {
+      setIsSyncingSheets(false);
+    }
+  };
+
+  const handleCopyAppsScript = () => {
+    const code = getGoogleAppsScriptCode();
+    copyToClipboard(code);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2500);
+    notify('Google Apps Script code copied to clipboard!');
+  };
+
+  const handleRemoveTombstone = (key) => {
+    removeTombstone(key);
+    const updated = getTombstones();
+    setTombstonesList(updated);
+    notify(`Restored "${key}" to allowed sync list`);
+  };
+
+  const handleClearAllTombstones = () => {
+    clearTombstones();
+    setTombstonesList([]);
+    notify('All deletion tombstones cleared');
+  };
+
+  const handleExport = () => setShowExportWarning(true);
 
   const doExport = () => {
     const data = exportAllData();
@@ -294,19 +197,31 @@ export default function AdminPanel() {
     reader.readAsText(file);
   };
 
+  const handleLoadDemoProfiles = () => {
+    loadDemoSeedData();
+    refreshMembers();
+    notify('Sample demo profiles loaded successfully!');
+  };
+
   const handleClearAll = () => {
-    if (deleteConfirmText !== 'DELETE') return;
+    if (deleteConfirmText.trim().toUpperCase() !== 'DELETE') return;
     clearAllData();
     refreshMembers();
-    notify('All directory data cleared', 'warning');
+    notify('All directory data permanently erased from disk and browser', 'warning');
     setShowDeleteConfirm(false);
     setDeleteConfirmText('');
   };
 
   const handleChangePIN = async (e) => {
     e.preventDefault();
-    if (newPinInput.length < 4) { setPinError('PIN must be at least 4 characters.'); return; }
-    if (newPinInput !== confirmPinInput) { setPinError('PINs do not match.'); return; }
+    if (newPinInput.length < 4) {
+      setPinError('PIN must be at least 4 characters.');
+      return;
+    }
+    if (newPinInput !== confirmPinInput) {
+      setPinError('PINs do not match.');
+      return;
+    }
     try {
       const hash = await hashPIN(newPinInput);
       saveAdminPIN(hash);
@@ -314,272 +229,714 @@ export default function AdminPanel() {
       setNewPinInput('');
       setConfirmPinInput('');
       setPinError('');
-      notify('Admin PIN updated successfully!');
+      notify('Admin PIN permanently updated on disk!');
     } catch (err) {
-      console.error(err);
       setPinError('Failed to change PIN: ' + err.message);
     }
   };
 
-  // Show PIN gate if not unlocked
-  if (!unlocked) {
-    return (
-      <div className="space-y-6 animate-fade-in max-w-5xl">
-        <div className="card p-6 sm:p-8 bg-gradient-to-r from-stone-900 to-stone-950 text-white border-stone-800">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-emerald-500 text-stone-950 rounded-2xl flex-shrink-0 shadow-lg">
-              <Settings size={24} />
-            </div>
-            <div>
-              <h2 className="text-2xl font-extrabold tracking-tight">Admin Settings & Data Management</h2>
-              <p className="text-sm font-semibold text-stone-400 mt-0.5">
-                Manage your API key, backups, and directory settings.
-              </p>
-            </div>
-          </div>
-        </div>
-        <PINGate hasPIN={hasPIN} onUnlocked={() => { setUnlocked(true); notify('Admin unlocked!', 'success'); }} />
-      </div>
-    );
-  }
+  const handleSaveMapConfig = (e) => {
+    e.preventDefault();
+    updateMapConfig({
+      provider: mapProvider,
+      apiKey: mapApiKey.trim(),
+      styleId: mapStyleId.trim(),
+      customTileUrl: customTileUrl.trim(),
+    });
+    notify('Map provider & API settings saved successfully!');
+  };
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-5xl">
-      {/* Header Banner */}
-      <div className="card p-6 sm:p-8 bg-gradient-to-r from-stone-900 to-stone-950 text-white border-stone-800">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-emerald-500 text-stone-950 rounded-2xl flex-shrink-0 shadow-lg">
-              <Settings size={24} />
+    <div className="space-y-6 animate-fade-in max-w-5xl mx-auto">
+      {/* ── Top Header Banner (Compact & High Impact) ────────────────────────── */}
+      <div className="card p-5 sm:p-6 bg-gradient-to-r from-stone-900 to-stone-950 text-white border-stone-800 shadow-lg flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-3.5">
+          <div className="p-3 bg-emerald-600 rounded-2xl flex-shrink-0 shadow-md shadow-emerald-600/30">
+            <Settings size={22} className="text-white" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-extrabold tracking-tight">Admin & Data Governance</h2>
+              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                Persistent Disk Storage
+              </span>
             </div>
-            <div>
-              <h2 className="text-2xl font-extrabold tracking-tight">Admin Settings & Data Management</h2>
-              <p className="text-sm font-semibold text-stone-400 mt-0.5">
-                {members.length} members · {staleMembers.length} stale profiles
-              </p>
+            <p className="text-xs text-stone-400 font-medium mt-0.5">
+              Manage database state, Google Sheets 2-way sync, security PIN, and backups.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2.5">
+          <a
+            href="/index.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-secondary text-xs py-2 px-3.5"
+          >
+            <ExternalLink size={13} /> Public Directory
+          </a>
+          <button onClick={handleLock} className="btn-accent text-xs py-2 px-3.5">
+            <Lock size={13} /> Lock Session
+          </button>
+        </div>
+      </div>
+
+      {/* ── 2-Column Administrative Grid ──────────────────────────────────────── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* Section 1: Google Sheets & Google Forms 2-Way Live Sync */}
+        <div className="card p-5 space-y-3.5 md:col-span-2 border-emerald-200/80 dark:border-emerald-900/50 bg-gradient-to-b from-emerald-50/20 to-transparent dark:from-emerald-950/10">
+          <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-2.5 flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <h3 className="section-title text-sm">
+                <FileSpreadsheet size={16} className="text-emerald-600 dark:text-emerald-400" />
+                Google Forms & Sheets 2-Way Live Sync
+              </h3>
+              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+                Audit Trail Active
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowAppsScriptModal(true)}
+                className="text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <Code2 size={13} /> Get Apps Script Code
+              </button>
+              <span className="text-stone-300 dark:text-stone-700">|</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setTombstonesList(getTombstones());
+                  setShowTombstonesModal(true);
+                }}
+                className="text-xs font-bold text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200 flex items-center gap-1 cursor-pointer"
+              >
+                <ListFilter size={13} /> Deleted Records ({getTombstones().length})
+              </button>
             </div>
           </div>
-          <button onClick={handleLock} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-sm font-semibold transition-colors">
-            <Lock size={15} /> Lock Panel
-          </button>
-        </div>
-      </div>
 
-      {/* 1. API Key Settings */}
-      <div className="card p-6 sm:p-8 space-y-4">
-        <h3 className="font-extrabold text-base text-stone-900 dark:text-stone-100 uppercase tracking-wider flex items-center gap-2">
-          <Key size={18} className="text-emerald-600 dark:text-emerald-400" /> Google Gemini API Key
-        </h3>
-        <p className="text-sm font-semibold text-stone-600 dark:text-stone-400">
-          Your key is saved only in your browser's local storage and never sent to any central database.
-        </p>
-        <form onSubmit={handleSaveKey} className="flex gap-3">
-          <input
-            type="password"
-            value={keyInput}
-            onChange={(e) => setKeyInput(e.target.value)}
-            placeholder="AIzaSy..."
-            className="input font-mono text-sm flex-1"
-          />
-          <button type="submit" className="btn-primary text-sm">
-            Save Key
-          </button>
-        </form>
-        {apiKey && (
-          <p className="text-xs text-stone-500 font-semibold">
-            Current key: <span className="font-mono">••••••••{apiKey.slice(-4)}</span>
+          <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed font-medium">
+            Live 2-way bridge between your Google Form submissions sheet and the directory. In-app
+            edits and deletions automatically record status (<code>EDITED_IN_APP</code> /{' '}
+            <code>DELETED</code>), timestamps, and audit notes in the Google Sheet, while deleted
+            profiles are permanently prevented from resurrecting.
           </p>
-        )}
-        <div className="text-xs font-bold text-stone-500">
-          Need a free key?{' '}
-          <a href="https://aistudio.google.com" target="_blank" rel="noopener noreferrer" className="text-emerald-600 dark:text-emerald-400 font-extrabold underline">
-            aistudio.google.com
-          </a>
+
+          <div className="space-y-3 pt-1">
+            <div>
+              <label className="label text-[10px]">Google Apps Script Web App URL</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={apiUrlInput}
+                  onChange={(e) => setApiUrlInput(e.target.value)}
+                  placeholder="https://script.google.com/macros/s/.../exec"
+                  className="input font-mono text-xs py-2 flex-1"
+                />
+                <button
+                  type="button"
+                  onClick={handleTestSheets}
+                  disabled={isTestingSheets || !apiUrlInput.trim()}
+                  className="btn-secondary text-xs py-2 px-3 font-bold"
+                >
+                  {isTestingSheets ? (
+                    <Loader2 size={13} className="animate-spin" />
+                  ) : (
+                    <RefreshCw size={13} />
+                  )}
+                  {isTestingSheets ? 'Testing...' : 'Test URL'}
+                </button>
+              </div>
+            </div>
+
+            {sheetsTestFeedback && (
+              <div
+                className={`p-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 ${
+                  sheetsTestFeedback.success
+                    ? 'bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300'
+                    : 'bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300'
+                }`}
+              >
+                {sheetsTestFeedback.success ? (
+                  <CheckCircle2 size={14} />
+                ) : (
+                  <AlertCircle size={14} />
+                )}
+                <span>{sheetsTestFeedback.message}</span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between flex-wrap gap-2 pt-1 border-t border-stone-100 dark:border-stone-800/80">
+              <div className="text-[11px] text-stone-500">
+                {sheetsConfig?.lastSyncAt ? (
+                  <span>
+                    Last synced:{' '}
+                    <strong>{new Date(sheetsConfig.lastSyncAt).toLocaleString()}</strong>
+                  </span>
+                ) : (
+                  <span>Never synced with Google Sheets</span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleSaveSheetsConfig}
+                  className="btn-secondary text-xs py-2 px-3 font-bold"
+                >
+                  Save URL
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSyncSheetsNow}
+                  disabled={isSyncingSheets || !apiUrlInput.trim()}
+                  className="btn-primary text-xs py-2 px-4 font-bold"
+                >
+                  {isSyncingSheets ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <RefreshCw size={14} />
+                  )}
+                  {isSyncingSheets ? 'Syncing Submissions...' : 'Sync Form Submissions Now'}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* 2. Backup & Restore */}
-      <div className="card p-6 sm:p-8 space-y-5">
-        <h3 className="font-extrabold text-base text-stone-900 dark:text-stone-100 uppercase tracking-wider flex items-center gap-2">
-          <Download size={18} className="text-sky-600 dark:text-sky-400" /> Backup & Restore (JSON)
-        </h3>
-        <p className="text-sm font-semibold text-stone-600 dark:text-stone-400">
-          Export all directory profiles to a JSON file or import backups.
-        </p>
+        {/* Section 2: Gemini AI API Key */}
+        <div className="card p-5 space-y-3.5">
+          <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-2.5">
+            <h3 className="section-title text-sm">
+              <Key size={15} className="text-orange-500" />
+              Gemini AI Integration
+            </h3>
+            <span
+              className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${apiKey ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300' : 'bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300'}`}
+            >
+              {apiKey ? 'Configured' : 'Missing'}
+            </span>
+          </div>
+          <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed font-medium">
+            Powers the WhatsApp chat parser and smart matchmaker. Free key from{' '}
+            <a
+              href="https://aistudio.google.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-emerald-600 font-bold underline"
+            >
+              aistudio.google.com
+            </a>
+            .
+          </p>
+          <form onSubmit={handleSaveKey} className="space-y-3 pt-1">
+            <input
+              type="password"
+              value={keyInput}
+              onChange={(e) => setKeyInput(e.target.value)}
+              placeholder="Paste Gemini API Key (AIzaSy...)"
+              className="input font-mono text-xs py-2"
+            />
+            <div className="flex gap-2">
+              <button type="submit" className="btn-primary text-xs flex-1 py-2 font-bold">
+                <Check size={14} /> Save Gemini Key
+              </button>
+              {apiKey && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateApiKey('');
+                    setKeyInput('');
+                    notify('API key removed');
+                  }}
+                  className="btn-secondary text-xs py-2"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          </form>
+        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
-          <div className="p-6 bg-stone-50 dark:bg-stone-950 rounded-2xl border border-stone-200 dark:border-stone-800 space-y-4">
-            <h4 className="font-extrabold text-sm text-stone-900 dark:text-stone-100 uppercase">Export Backup</h4>
-            <p className="text-xs font-semibold text-stone-500">Download complete directory dataset as JSON.</p>
-            <button onClick={handleExport} className="btn-primary w-full justify-center text-sm">
-              <Download size={16} /> Download JSON Backup
+        {/* Section 3: Map Provider & Tile API Configuration */}
+        <div className="card p-5 space-y-3.5">
+          <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-2.5">
+            <h3 className="section-title text-sm">
+              <Map size={15} className="text-orange-500" />
+              Alliance Atlas Cartography
+            </h3>
+            <span
+              className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${mapApiKey || mapProvider === 'esri_world' || mapProvider === 'osm_standard' ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300' : 'bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300'}`}
+            >
+              {mapApiKey ? 'API Key Active' : 'Key Optional'}
+            </span>
+          </div>
+          <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed font-medium">
+            Configure map tile styling for the Alliance Atlas. 100% free Esri and OSM layers
+            included.
+          </p>
+          <form onSubmit={handleSaveMapConfig} className="space-y-2.5 pt-1">
+            <div>
+              <label className="label text-[10px]">Tile Provider / Style</label>
+              <select
+                value={mapProvider}
+                onChange={(e) => setMapProvider(e.target.value)}
+                className="input py-1.5 text-xs font-semibold cursor-pointer"
+              >
+                {MAP_TILE_PRESETS.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* CartoDB API Key Input */}
+            {mapProvider.startsWith('carto_') && (
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="label text-[10px] mb-0">CARTO API Key</label>
+                  <a
+                    href="https://carto.com/basemaps/apikey/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold underline"
+                  >
+                    Get Free CARTO Key ➔
+                  </a>
+                </div>
+                <input
+                  type="text"
+                  value={mapApiKey}
+                  onChange={(e) => setMapApiKey(e.target.value)}
+                  placeholder="Paste your CARTO API Key here..."
+                  className="input font-mono text-xs py-1.5"
+                />
+              </div>
+            )}
+
+            {/* Mapbox Custom Options */}
+            {mapProvider === 'mapbox_custom' && (
+              <>
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="label text-[10px] mb-0">Mapbox Access Token (pk...)</label>
+                    <a
+                      href="https://account.mapbox.com/access-tokens/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold underline"
+                    >
+                      Get Free Token ➔
+                    </a>
+                  </div>
+                  <input
+                    type="password"
+                    value={mapApiKey}
+                    onChange={(e) => setMapApiKey(e.target.value)}
+                    placeholder="pk.eyJ1Ijo..."
+                    className="input font-mono text-xs py-1.5"
+                  />
+                </div>
+                <div>
+                  <label className="label text-[10px]">Mapbox Style ID</label>
+                  <input
+                    type="text"
+                    value={mapStyleId}
+                    onChange={(e) => setMapStyleId(e.target.value)}
+                    placeholder="mapbox/streets-v12"
+                    className="input font-mono text-xs py-1.5"
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Free Provider Notice */}
+            {(mapProvider === 'esri_world' || mapProvider === 'osm_standard') && (
+              <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-[11px] text-emerald-700 dark:text-emerald-300 font-semibold">
+                ✓ 100% Free worldwide tiles with zero API key required and no watermarks.
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="btn-accent text-xs w-full py-2 font-bold justify-center cursor-pointer"
+            >
+              <Check size={14} /> Save Map Configuration
+            </button>
+          </form>
+        </div>
+
+        {/* Section 4: Security & Admin PIN */}
+        <div className="card p-5 space-y-3.5">
+          <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-2.5">
+            <h3 className="section-title text-sm">
+              <Shield size={15} className="text-orange-500" />
+              Admin Security PIN
+            </h3>
+            <span className="text-[10px] font-black uppercase text-stone-400">SHA-256 Hashed</span>
+          </div>
+          <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed font-medium">
+            Your PIN protects the admin module. Sessions auto-expire after 30 minutes of inactivity.
+          </p>
+          <div className="flex gap-2.5 pt-2">
+            <button
+              onClick={() => setShowChangePIN(true)}
+              className="btn-secondary text-xs flex-1 py-2 font-bold cursor-pointer"
+            >
+              <Shield size={14} /> Change Admin PIN
+            </button>
+            <button
+              onClick={() => {
+                clearAdminPIN();
+                notify('Admin PIN reset to default: 1234');
+              }}
+              className="btn-ghost text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 text-xs py-2 cursor-pointer"
+            >
+              Reset to 1234
             </button>
           </div>
+        </div>
 
-          <div className="p-6 bg-stone-50 dark:bg-stone-950 rounded-2xl border border-stone-200 dark:border-stone-800 space-y-4">
-            <h4 className="font-extrabold text-sm text-stone-900 dark:text-stone-100 uppercase">Import Data</h4>
-            <div className="flex gap-4 mb-2">
-              <label className="flex items-center gap-2 text-xs font-bold text-stone-700 dark:text-stone-300 cursor-pointer">
-                <input type="radio" name="mode" checked={importMode === 'merge'} onChange={() => setImportMode('merge')} /> Merge
-              </label>
-              <label className="flex items-center gap-2 text-xs font-bold text-stone-700 dark:text-stone-300 cursor-pointer">
-                <input type="radio" name="mode" checked={importMode === 'replace'} onChange={() => setImportMode('replace')} /> Replace All
-              </label>
-            </div>
-            <label className="btn-secondary w-full justify-center cursor-pointer text-sm">
-              <Upload size={16} /> Select JSON File
+        {/* Section 5: Data Management & Backups */}
+        <div className="card p-5 space-y-3.5">
+          <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-2.5">
+            <h3 className="section-title text-sm">
+              <Database size={15} className="text-orange-500" />
+              Backup & JSON Migration
+            </h3>
+            <span className="text-xs font-mono font-bold text-stone-500">
+              {members.length} records
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-2.5 pt-1">
+            <button
+              onClick={handleExport}
+              className="btn-secondary text-xs py-2.5 flex-1 font-bold"
+            >
+              <Download size={14} /> Export Backup
+            </button>
+            <label className="btn-secondary text-xs py-2.5 flex-1 font-bold justify-center cursor-pointer">
+              <Upload size={14} /> Import Backup
               <input type="file" accept=".json" onChange={handleImportFile} className="hidden" />
             </label>
           </div>
+          <div className="flex items-center gap-3 text-[11px] text-stone-500 pt-1">
+            <span>Import Mode:</span>
+            <label className="inline-flex items-center gap-1 cursor-pointer">
+              <input
+                type="radio"
+                name="mode"
+                checked={importMode === 'merge'}
+                onChange={() => setImportMode('merge')}
+              />{' '}
+              Merge
+            </label>
+            <label className="inline-flex items-center gap-1 cursor-pointer">
+              <input
+                type="radio"
+                name="mode"
+                checked={importMode === 'replace'}
+                onChange={() => setImportMode('replace')}
+              />{' '}
+              Replace All
+            </label>
+          </div>
         </div>
-      </div>
 
-      {/* 3. PIN Management */}
-      <div className="card p-6 sm:p-8 space-y-4">
-        <h3 className="font-extrabold text-base text-stone-900 dark:text-stone-100 uppercase tracking-wider flex items-center gap-2">
-          <Shield size={18} className="text-violet-600 dark:text-violet-400" /> Admin PIN Management
-        </h3>
-        <p className="text-sm font-semibold text-stone-600 dark:text-stone-400">
-          Your PIN is hashed and stored locally in your browser.
-          Sessions expire after 30 minutes of inactivity.
-        </p>
-        <div className="flex gap-3 flex-wrap">
-          <button onClick={() => setShowChangePIN(true)} className="btn-secondary text-sm">
-            <Shield size={15} /> Change PIN
-          </button>
+        {/* Section 6: Sample Demo Data & Seeding */}
+        <div className="card p-5 space-y-3.5 md:col-span-2">
+          <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-2.5">
+            <h3 className="section-title text-sm">
+              <Sparkles size={15} className="text-orange-500" />
+              Demo Data Seeding
+            </h3>
+            <span className="text-[10px] font-bold text-stone-400">Optional</span>
+          </div>
+          <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed font-medium">
+            Populate sample Egyptian startup founders into the directory to test the Map, Radar, and
+            Matchmaker.
+          </p>
           <button
-            onClick={() => { clearAdminPIN(); revokeSession(); setUnlocked(false); notify('Admin PIN removed', 'warning'); }}
-            className="btn-ghost text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 text-sm"
+            onClick={handleLoadDemoProfiles}
+            className="btn-secondary text-xs py-2.5 w-full font-bold justify-center text-emerald-700 dark:text-emerald-400"
           >
-            <Trash2 size={15} /> Remove PIN
+            <Sparkles size={14} /> Load Sample Demo Profiles
           </button>
         </div>
       </div>
 
-      {/* 4. Staleness Monitoring */}
-      <div className="card p-6 sm:p-8 space-y-5">
-        <div className="flex items-center justify-between">
-          <h3 className="font-extrabold text-base text-stone-900 dark:text-stone-100 uppercase tracking-wider flex items-center gap-2">
-            <AlertTriangle size={18} className="text-amber-500" /> Profile Staleness Alerts (90+ Days)
-          </h3>
-          <span className="badge bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-400 font-extrabold text-xs px-3.5 py-1">
-            {staleMembers.length} Outdated
-          </span>
+      {/* ── Section 7: Danger Zone (Erase All) ─────────────────────────────────── */}
+      <div className="card p-5 border-rose-200 dark:border-rose-900/50 bg-rose-50/40 dark:bg-rose-950/20 space-y-3">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h3 className="text-sm font-black text-rose-700 dark:text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
+              <AlertTriangle size={15} /> Danger Zone — Permanent Database Wipe
+            </h3>
+            <p className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">
+              Irrevocably erases all {members.length} founder profiles from persistent disk storage
+              and browser cache.
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              setDeleteConfirmText('');
+              setShowDeleteConfirm(true);
+            }}
+            className="btn-danger text-xs py-2 px-4 font-bold"
+          >
+            <Trash2 size={13} /> Clear All Directory Data
+          </button>
         </div>
-
-        {staleMembers.length === 0 ? (
-          <div className="p-5 bg-emerald-50 dark:bg-emerald-500/10 rounded-2xl text-sm font-bold text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/20 flex items-center gap-2">
-            <Check size={16} /> All directory profiles are fresh and up to date!
-          </div>
-        ) : (
-          <div className="space-y-3 max-h-56 overflow-y-auto">
-            {staleMembers.map((m) => (
-              <div key={m.id} className="p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-2xl flex items-center justify-between text-sm">
-                <div>
-                  <span className="font-extrabold text-stone-900 dark:text-stone-100">{m.name}</span>
-                  <span className="text-stone-500 font-semibold ml-2">({m.role})</span>
-                </div>
-                <span className="text-amber-700 dark:text-amber-400 font-mono text-xs font-bold">
-                  {new Date(m.updatedAt).toLocaleDateString()}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
-      {/* 5. Danger Zone */}
-      <div className="card p-6 sm:p-8 border-rose-300 dark:border-rose-500/30 space-y-4">
-        <h3 className="font-extrabold text-base text-rose-600 dark:text-rose-400 uppercase tracking-wider flex items-center gap-2">
-          <Trash2 size={18} /> Danger Zone
-        </h3>
-        <p className="text-sm font-semibold text-stone-600 dark:text-stone-400">
-          Reset browser local storage and erase all stored member profiles. This cannot be undone.
-        </p>
-        <button onClick={() => setShowDeleteConfirm(true)} className="btn-danger text-sm">
-          Clear All Directory Data
-        </button>
-      </div>
+      {/* ── Modals ───────────────────────────────────────────────────────────── */}
+      {/* Google Apps Script Modal */}
+      <Modal
+        isOpen={showAppsScriptModal}
+        onClose={() => setShowAppsScriptModal(false)}
+        title="Google Apps Script 2-Way Sync Setup"
+        size="lg"
+      >
+        <div className="space-y-4 text-xs">
+          <div className="p-3 bg-stone-100 dark:bg-stone-800 rounded-xl space-y-1.5 text-stone-700 dark:text-stone-300 font-medium">
+            <p className="font-extrabold text-stone-900 dark:text-stone-100">
+              Step-by-Step Deployment Guide:
+            </p>
+            <ol className="list-decimal list-inside space-y-1">
+              <li>
+                Open the <strong>Google Sheet</strong> connected to your Google Form.
+              </li>
+              <li>
+                Click <strong>Extensions</strong> &gt; <strong>Apps Script</strong>.
+              </li>
+              <li>
+                Replace existing code in <code>Code.gs</code> with the snippet below.
+              </li>
+              <li>
+                Click <strong>Deploy</strong> &gt; <strong>New deployment</strong>.
+              </li>
+              <li>
+                Select type: <strong>Web app</strong>. Execute as: <strong>Me</strong>. Who has
+                access: <strong>Anyone</strong>.
+              </li>
+              <li>
+                Click <strong>Deploy</strong>, grant permission, and paste the generated{' '}
+                <strong>Web App URL</strong> into the Admin Portal above.
+              </li>
+            </ol>
+          </div>
 
-      {/* Export PII Warning Modal */}
-      <Modal isOpen={showExportWarning} onClose={() => setShowExportWarning(false)} title="Export Data — Privacy Notice" size="sm">
-        <div className="space-y-4">
-          <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-500/30 rounded-xl flex items-start gap-3">
-            <AlertCircle size={18} className="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-amber-900 dark:text-amber-200">
-              <p className="font-bold mb-1">This file contains personal information</p>
-              <p className="font-semibold">The exported JSON includes names, phone numbers, business details, and locations of community members. Please store this file securely and do not share it publicly.</p>
+          <div className="relative">
+            <div className="flex items-center justify-between bg-stone-900 text-stone-300 px-3 py-1.5 rounded-t-xl text-[11px] font-mono">
+              <span>Code.gs</span>
+              <button
+                type="button"
+                onClick={handleCopyAppsScript}
+                className="btn-accent text-[10px] py-1 px-2.5 font-bold flex items-center gap-1"
+              >
+                {copiedCode ? <Check size={12} /> : <Copy size={12} />}
+                {copiedCode ? 'Copied Script!' : 'Copy Code.gs'}
+              </button>
             </div>
+            <textarea
+              readOnly
+              rows={12}
+              value={getGoogleAppsScriptCode()}
+              className="w-full bg-stone-950 text-emerald-400 font-mono text-[11px] p-3 rounded-b-xl border border-stone-800 focus:outline-none select-all"
+            />
           </div>
-          <div className="flex gap-3 justify-end">
-            <button onClick={() => setShowExportWarning(false)} className="btn-secondary text-sm">Cancel</button>
-            <button onClick={doExport} className="btn-primary text-sm">
-              <Download size={15} /> I understand, export now
+
+          <div className="flex justify-end pt-1">
+            <button
+              onClick={() => setShowAppsScriptModal(false)}
+              className="btn-secondary text-xs py-1.5 px-4"
+            >
+              Done
             </button>
           </div>
         </div>
       </Modal>
 
-      {/* Delete Confirmation Modal */}
-      <Modal isOpen={showDeleteConfirm} onClose={() => { setShowDeleteConfirm(false); setDeleteConfirmText(''); }} title="Confirm Delete All Data" size="sm">
-        <div className="space-y-4">
-          <div className="p-4 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-500/30 rounded-xl">
-            <p className="text-sm font-bold text-rose-800 dark:text-rose-300">
-              This will permanently delete all {members.length} member profiles from browser storage. This action cannot be undone.
-            </p>
+      {/* Deleted Records / Tombstones Manager Modal */}
+      <Modal
+        isOpen={showTombstonesModal}
+        onClose={() => setShowTombstonesModal(false)}
+        title="Deleted Form Submissions (Tombstones)"
+        size="md"
+      >
+        <div className="space-y-4 text-xs">
+          <p className="text-stone-600 dark:text-stone-300 leading-relaxed font-medium">
+            These records were deleted in the web app and are permanently prevented from
+            resurrecting when pulling from Google Sheets.
+          </p>
+
+          {tombstonesList.length === 0 ? (
+            <div className="p-4 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl text-center text-stone-400">
+              No active tombstones. All Google Sheet rows will be imported.
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+              {tombstonesList.map((key) => (
+                <div
+                  key={key}
+                  className="p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl flex items-center justify-between gap-2"
+                >
+                  <span className="font-mono font-bold text-stone-800 dark:text-stone-200 truncate">
+                    {key}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTombstone(key)}
+                    className="btn-ghost text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-[11px] py-1 px-2 font-bold flex items-center gap-1"
+                    title="Allow re-importing this record"
+                  >
+                    <RotateCcw size={12} /> Allow Re-import
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex items-center justify-between pt-2 border-t border-stone-100 dark:border-stone-800">
+            {tombstonesList.length > 0 && (
+              <button
+                type="button"
+                onClick={handleClearAllTombstones}
+                className="btn-ghost text-rose-600 hover:bg-rose-50 text-xs font-bold"
+              >
+                Clear All Tombstones
+              </button>
+            )}
+            <div className="flex-1" />
+            <button
+              onClick={() => setShowTombstonesModal(false)}
+              className="btn-secondary text-xs py-1.5 px-4"
+            >
+              Close
+            </button>
           </div>
+        </div>
+      </Modal>
+
+      {/* Export Confirmation */}
+      <Modal
+        isOpen={showExportWarning}
+        onClose={() => setShowExportWarning(false)}
+        title="Export Full Database"
+        size="sm"
+      >
+        <div className="space-y-4 text-xs">
+          <p className="text-stone-600 dark:text-stone-300 leading-relaxed font-medium">
+            This will download a full unencrypted JSON backup containing all member profiles.
+          </p>
+          <div className="flex gap-2 justify-end">
+            <button
+              onClick={() => setShowExportWarning(false)}
+              className="btn-secondary text-xs py-1.5 px-3"
+            >
+              Cancel
+            </button>
+            <button onClick={doExport} className="btn-primary text-xs py-1.5 px-3">
+              Download JSON
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Clear All Confirmation Modal */}
+      <Modal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        title="Confirm Permanent Database Wipe"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-xs font-semibold text-rose-700 dark:text-rose-400">
+            This action will permanently delete all {members.length} members from persistent disk
+            storage.
+          </p>
           <div>
-            <label className="label">Type DELETE to confirm</label>
+            <label className="label text-[10px]">Type DELETE to confirm:</label>
             <input
               type="text"
               value={deleteConfirmText}
               onChange={(e) => setDeleteConfirmText(e.target.value)}
               placeholder="DELETE"
-              className="input font-mono"
+              className="input font-mono text-xs py-2"
               autoFocus
             />
           </div>
-          <div className="flex gap-3 justify-end">
-            <button onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(''); }} className="btn-secondary text-sm">Cancel</button>
-            <button onClick={handleClearAll} disabled={deleteConfirmText !== 'DELETE'} className="btn-danger text-sm">
-              Yes, Delete Everything
+          <div className="flex gap-2 justify-end">
+            <button
+              onClick={() => {
+                setShowDeleteConfirm(false);
+                setDeleteConfirmText('');
+              }}
+              className="btn-secondary text-xs py-1.5 px-3"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleClearAll}
+              disabled={deleteConfirmText.trim().toUpperCase() !== 'DELETE'}
+              className="btn-danger text-xs py-1.5 px-3 font-bold"
+            >
+              Yes, Erase Everything
             </button>
           </div>
         </div>
       </Modal>
 
       {/* Change PIN Modal */}
-      <Modal isOpen={showChangePIN} onClose={() => { setShowChangePIN(false); setNewPinInput(''); setConfirmPinInput(''); setPinError(''); }} title="Change Admin PIN" size="sm">
-        <form onSubmit={handleChangePIN} className="space-y-4">
+      <Modal
+        isOpen={showChangePIN}
+        onClose={() => {
+          setShowChangePIN(false);
+          setNewPinInput('');
+          setConfirmPinInput('');
+          setPinError('');
+        }}
+        title="Update Security PIN"
+        size="sm"
+      >
+        <form onSubmit={handleChangePIN} className="space-y-3">
           <div>
-            <label className="label">New PIN (min 4 characters)</label>
+            <label className="label text-[10px]">New PIN (min 4 characters)</label>
             <input
               type="password"
               value={newPinInput}
               onChange={(e) => setNewPinInput(e.target.value)}
               placeholder="New PIN"
-              className="input"
+              className="input text-xs py-2"
               autoFocus
             />
           </div>
           <div>
-            <label className="label">Confirm New PIN</label>
+            <label className="label text-[10px]">Confirm New PIN</label>
             <input
               type="password"
               value={confirmPinInput}
               onChange={(e) => setConfirmPinInput(e.target.value)}
-              placeholder="Repeat PIN"
-              className="input"
+              placeholder="Confirm PIN"
+              className="input text-xs py-2"
             />
           </div>
-          {pinError && (
-            <div className="flex items-center gap-2 text-sm text-rose-600 dark:text-rose-400 font-semibold">
-              <AlertCircle size={15} /> {pinError}
-            </div>
-          )}
-          <div className="flex gap-3 justify-end">
-            <button type="button" onClick={() => setShowChangePIN(false)} className="btn-secondary text-sm">Cancel</button>
-            <button type="submit" className="btn-primary text-sm">Update PIN</button>
+          {pinError && <p className="text-xs text-rose-600 font-bold">{pinError}</p>}
+          <div className="flex gap-2 justify-end pt-1">
+            <button
+              type="button"
+              onClick={() => setShowChangePIN(false)}
+              className="btn-secondary text-xs py-1.5 px-3"
+            >
+              Cancel
+            </button>
+            <button type="submit" className="btn-primary text-xs py-1.5 px-3">
+              Save PIN
+            </button>
           </div>
         </form>
       </Modal>

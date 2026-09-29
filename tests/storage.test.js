@@ -7,8 +7,9 @@ import {
   updateMember,
   deleteMember,
   clearAllData,
-  getExchangePosts,
-  addExchangePost,
+  loadDemoSeedData,
+  getAdminPIN,
+  saveAdminPIN,
 } from '../src/utils/storage';
 
 describe('storage.js unit tests', () => {
@@ -17,9 +18,16 @@ describe('storage.js unit tests', () => {
     clearAllData();
   });
 
-  it('getMembers initializes with seed members if empty', () => {
+  it('getMembers returns empty array when empty without ghost resurrection', () => {
     const members = getMembers();
-    expect(members.length).toBeGreaterThan(0);
+    expect(members).toEqual([]);
+    expect(members.length).toBe(0);
+  });
+
+  it('loadDemoSeedData populates demo seed profiles', () => {
+    const seed = loadDemoSeedData();
+    expect(seed.length).toBeGreaterThan(0);
+    expect(getMembers().length).toBe(seed.length);
   });
 
   it('addMember inserts new member at the top', () => {
@@ -46,16 +54,24 @@ describe('storage.js unit tests', () => {
     expect(updated.role).toBe('New Role');
   });
 
-  it('deleteMember removes member correctly', () => {
+  it('deleteMember removes member permanently', () => {
     const added = addMember({ name: 'Delete Target' });
     deleteMember(added.id);
     const members = getMembers();
     expect(members.find((m) => m.id === added.id)).toBeUndefined();
   });
 
-  it('addExchangePost adds post with 30-day expiry', () => {
-    const post = addExchangePost({ type: 'need', title: 'Need React Dev', contact: '12345' });
-    expect(post.expiresAt).toBeDefined();
-    expect(new Date(post.expiresAt).getTime()).toBeGreaterThan(Date.now());
+  it('clearAllData completely empties records', () => {
+    addMember({ name: 'Member A' });
+    addMember({ name: 'Member B' });
+    expect(getMembers().length).toBe(2);
+    clearAllData();
+    expect(getMembers().length).toBe(0);
+  });
+
+  it('saveAdminPIN persists custom PIN hash', () => {
+    const customHash = 'custom_hash_12345';
+    saveAdminPIN(customHash);
+    expect(getAdminPIN()).toBe(customHash);
   });
 });

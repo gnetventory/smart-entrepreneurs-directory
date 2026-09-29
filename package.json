@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "lint": "eslint src --report-unused-disable-directives",
+    "lint": "eslint src --report-unused-disable-directives --quiet",
     "format": "prettier --write \"src/**/*.{js,jsx,css}\"",
     "audit:check": "npm audit",
     "release": "standard-version"

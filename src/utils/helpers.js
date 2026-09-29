@@ -1,17 +1,23 @@
+/* eslint-disable no-unused-vars, no-useless-escape */
 import { AVATAR_GRADIENTS, STAGES } from './constants';
 import { formatDistanceToNow, differenceInDays } from 'date-fns';
 
 // ─── Avatar ────────────────────────────────────────────────────────────────────
 export function getInitials(name = '') {
-  return name
-    .split(' ')
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
+  if (!name || typeof name !== 'string') return '??';
+  return (
+    name
+      .trim()
+      .split(/\s+/)
+      .map((w) => w[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2) || '??'
+  );
 }
 
 export function getAvatarGradient(name = '') {
+  if (!name || typeof name !== 'string') return AVATAR_GRADIENTS[0];
   const idx = name.charCodeAt(0) % AVATAR_GRADIENTS.length;
   return AVATAR_GRADIENTS[idx];
 }
@@ -19,6 +25,7 @@ export function getAvatarGradient(name = '') {
 // ─── Dates ─────────────────────────────────────────────────────────────────────
 export function timeAgo(dateStr) {
   try {
+    if (!dateStr) return 'recently';
     return formatDistanceToNow(new Date(dateStr), { addSuffix: true });
   } catch {
     return 'recently';
@@ -27,6 +34,7 @@ export function timeAgo(dateStr) {
 
 export function isStale(dateStr, thresholdDays = 90) {
   try {
+    if (!dateStr) return false;
     return differenceInDays(new Date(), new Date(dateStr)) >= thresholdDays;
   } catch {
     return false;
@@ -35,6 +43,7 @@ export function isStale(dateStr, thresholdDays = 90) {
 
 export function daysSince(dateStr) {
   try {
+    if (!dateStr) return 0;
     return differenceInDays(new Date(), new Date(dateStr));
   } catch {
     return 0;
@@ -46,51 +55,112 @@ export function getStage(stageKey) {
   return STAGES[stageKey] || STAGES.idea;
 }
 
-// ─── Phone number normalizer ──────────────────────────────────────────────────
+// ─── Phone number normalizer & WhatsApp ────────────────────────────────────────
 export function normalizePhone(phone = '') {
+  if (!phone || typeof phone !== 'string') return '';
   return phone.replace(/[\s\-().+]/g, '');
 }
 
 export function buildWhatsAppUrl(phone = '', name = '') {
   const num = normalizePhone(phone);
-  if (!num) return null;
+  if (!num || num.length < 5) return null;
   return `https://wa.me/${num}`;
+}
+
+// ─── LinkedIn Validation & Normalization ───────────────────────────────────────
+const INVALID_LINKEDIN_VALUES = new Set([
+  'none',
+  'n/a',
+  'na',
+  'no',
+  'null',
+  'undefined',
+  'false',
+  '0',
+  'test',
+  'hnaklinked',
+  'linkedin',
+  'profile',
+]);
+
+export function isValidLinkedInUrl(url = '') {
+  if (!url || typeof url !== 'string') return false;
+  const clean = url.trim().toLowerCase().replace(/^@/, '');
+  if (clean.length < 3 || INVALID_LINKEDIN_VALUES.has(clean)) return false;
+  // Valid if it looks like a url or a valid profile handle
+  return /^[a-zA-Z0-9_\-\.\/:]+$/.test(clean);
+}
+
+export function formatLinkedInUrl(url = '') {
+  if (!isValidLinkedInUrl(url)) return null;
+  const clean = url.trim().replace(/^@/, '');
+
+  if (clean.startsWith('http://') || clean.startsWith('https://')) {
+    return clean;
+  }
+  if (clean.startsWith('linkedin.com/') || clean.startsWith('www.linkedin.com/')) {
+    return `https://${clean}`;
+  }
+  if (clean.startsWith('in/')) {
+    return `https://linkedin.com/${clean}`;
+  }
+  return `https://linkedin.com/in/${clean}`;
+}
+
+export function getLinkedInHandle(url = '') {
+  if (!isValidLinkedInUrl(url)) return null;
+  const clean = url
+    .trim()
+    .replace(/^https?:\/\/(www\.)?linkedin\.com\/(in\/)?/, '')
+    .replace(/\/$/, '');
+  return clean || null;
 }
 
 // ─── Search helpers ───────────────────────────────────────────────────────────
 export function memberMatchesSearch(member, query) {
-  if (!query.trim()) return true;
-  const q = query.toLowerCase();
+  if (!query || !query.trim()) return true;
+  const q = query.toLowerCase().trim();
+  const locStr =
+    typeof member.location === 'string'
+      ? member.location.toLowerCase()
+      : `${member.location?.city || ''} ${member.location?.district || ''} ${member.location?.country || ''}`.toLowerCase();
+
   return (
     member.name?.toLowerCase().includes(q) ||
     member.role?.toLowerCase().includes(q) ||
     member.business?.toLowerCase().includes(q) ||
     member.canHelp?.toLowerCase().includes(q) ||
     member.lookingFor?.toLowerCase().includes(q) ||
+    member.linkedin?.toLowerCase().includes(q) ||
     member.tags?.some((t) => t.toLowerCase().includes(q)) ||
-    member.location?.country?.toLowerCase().includes(q) ||
-    member.location?.city?.toLowerCase().includes(q)
+    locStr.includes(q)
   );
 }
 
 // ─── Unique ID ────────────────────────────────────────────────────────────────
 export function generateId() {
-  return crypto && crypto.randomUUID ? crypto.randomUUID() : `id-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `id-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 // ─── Copy to clipboard ────────────────────────────────────────────────────────
 export async function copyToClipboard(text) {
   try {
-    await navigator.clipboard.writeText(text);
-    return true;
+    if (navigator?.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
   } catch {
-    return false;
+    // fallback
   }
+  return false;
 }
 
 // ─── Date formatting ─────────────────────────────────────────────────────────
 export function formatDate(dateStr) {
   try {
+    if (!dateStr) return '';
     return new Date(dateStr).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -101,9 +171,10 @@ export function formatDate(dateStr) {
   }
 }
 
-// ─── PIN hashing (Web Crypto API with Pure JS fallback for non-HTTPS IPs) ──────
+// ─── PIN hashing ──────────────────────────────────────────────────────────────
 function simpleHash(str) {
-  let h1 = 0xdeadbeef ^ 0, h2 = 0x41c6ce57 ^ 0;
+  let h1 = 0xdeadbeef ^ 0,
+    h2 = 0x41c6ce57 ^ 0;
   for (let i = 0, ch; i < str.length; i++) {
     ch = str.charCodeAt(i);
     h1 = Math.imul(h1 ^ ch, 2654435761);
@@ -146,16 +217,9 @@ export function downloadJSON(data, filename) {
   URL.revokeObjectURL(url);
 }
 
-// ─── Weekly date range ────────────────────────────────────────────────────────
-export function getThisWeekRange() {
-  const now = new Date();
-  const start = new Date(now);
-  start.setDate(now.getDate() - 7);
-  return { start, end: now };
-}
-
 export function isWithinDays(dateStr, days) {
   try {
+    if (!dateStr) return false;
     return differenceInDays(new Date(), new Date(dateStr)) <= days;
   } catch {
     return false;

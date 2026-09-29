@@ -1,5 +1,18 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { getMembers, saveMembers, getAPIKey, saveAPIKey, getDarkMode, saveDarkMode, getExchangePosts } from '../utils/storage';
+import {
+  getMembers,
+  saveMembers,
+  getAPIKey,
+  saveAPIKey,
+  getDarkMode,
+  saveDarkMode,
+  invalidateMembersCache,
+  syncFromDisk,
+  getMapConfig,
+  saveMapConfig,
+} from '../utils/storage';
+import { STORAGE_KEYS } from '../utils/constants';
 import { initGemini } from '../utils/gemini';
 
 // ─── Context Definitions ──────────────────────────────────────────────────────
@@ -10,65 +23,63 @@ const FiltersContext = createContext(null);
 // ─── AppProvider (composes all three) ────────────────────────────────────────
 export function AppProvider({ children }) {
   // ── Data layer ───────────────────────────────────────────────────────────
-  const [members, setMembersState] = useState([]);
-  const [exchangePosts, setExchangePosts] = useState([]);
+  const [members, setMembersState] = useState(getMembers);
 
   // ── UI layer ─────────────────────────────────────────────────────────────
-  const [activeTab, setActiveTab] = useState('directory');
-  const [darkMode, setDarkMode] = useState(true);
-  const [apiKey, setApiKeyState] = useState('');
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [darkMode, setDarkMode] = useState(getDarkMode);
+  const [apiKey, setApiKeyState] = useState(getAPIKey);
+  const [mapConfig, setMapConfigState] = useState(getMapConfig);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notification, setNotification] = useState(null); // { type, message }
 
   // ── Filter layer ─────────────────────────────────────────────────────────
   const [searchQuery, setSearchQuery] = useState('');
   const [stageFilter, setStageFilter] = useState('all');
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'matchmaker'
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'radar' | 'table'
+
+  const refreshMembers = useCallback(() => {
+    invalidateMembersCache();
+    setMembersState(getMembers());
+  }, []);
 
   // Initialize on mount & Fetch remote members from Google Sheets API
   useEffect(() => {
-    const dm = getDarkMode();
-    setDarkMode(dm);
-    document.documentElement.classList.toggle('dark', dm);
+    document.documentElement.classList.toggle('dark', darkMode);
+    if (apiKey) initGemini(apiKey);
 
-    const key = getAPIKey();
-    setApiKeyState(key);
-    if (key) initGemini(key);
+    // Initial load from storage & background sync from disk
+    syncFromDisk().then((diskData) => {
+      if (diskData && Array.isArray(diskData.members)) {
+        setMembersState(diskData.members);
+      }
+    });
 
-    // Initial load: Local storage madhun instant display sathi data ghya
-    setMembersState(getMembers());
-    setExchangePosts(getExchangePosts());
-
-    // Step 2.2: Google Sheets API kadhun latest members fetch kara
-    const fetchMembersFromSheets = async () => {
-      const apiUrl = import.meta.env.VITE_SHEETS_API_URL;
-      if (!apiUrl) return;
-
-      try {
-        const response = await fetch(apiUrl);
-        const remoteMembers = await response.json();
-
-        if (Array.isArray(remoteMembers) && remoteMembers.length > 0) {
-          // Local storage update kara
-          saveMembers(remoteMembers);
-          // State update kara mhanje UI la fresh data disel
-          setMembersState(remoteMembers);
-        }
-      } catch (error) {
-        console.error("Google Sheets kadhun members fetch kartana error aala:", error);
+    // ── Real-time Cross-Tab & Same-Tab Storage Event Synchronization ─────────
+    const handleStorageEvent = (e) => {
+      if (!e.key || e.key === STORAGE_KEYS.MEMBERS) {
+        invalidateMembersCache();
+        setMembersState(getMembers());
+      }
+      if (e.key === STORAGE_KEYS.DARK_MODE) {
+        const newDm = getDarkMode();
+        setDarkMode(newDm);
+        document.documentElement.classList.toggle('dark', newDm);
       }
     };
 
-    fetchMembersFromSheets();
-  }, []);
+    const handleCustomStorageUpdate = () => {
+      invalidateMembersCache();
+      setMembersState(getMembers());
+    };
 
-  // ── Members actions ────────────────────────────────────────────────────
-  const refreshMembers = useCallback(() => {
-    setMembersState(getMembers());
-  }, []);
+    window.addEventListener('storage', handleStorageEvent);
+    window.addEventListener('sed_storage_updated', handleCustomStorageUpdate);
 
-  const refreshExchange = useCallback(() => {
-    setExchangePosts(getExchangePosts());
+    return () => {
+      window.removeEventListener('storage', handleStorageEvent);
+      window.removeEventListener('sed_storage_updated', handleCustomStorageUpdate);
+    };
   }, []);
 
   // ── UI actions ─────────────────────────────────────────────────────────
@@ -87,48 +98,71 @@ export function AppProvider({ children }) {
     initGemini(key);
   }, []);
 
+  const updateMapConfig = useCallback((config) => {
+    const saved = saveMapConfig(config);
+    setMapConfigState(saved);
+  }, []);
+
   const notify = useCallback((message, type = 'success') => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 3500);
   }, []);
 
-  // ── Stable context values (memoized to prevent unnecessary re-renders) ──
-  const membersValue = useMemo(() => ({
-    members,
-    setMembersState,
-    exchangePosts,
-    refreshMembers,
-    refreshExchange,
-  }), [members, exchangePosts, refreshMembers, refreshExchange]);
+  // ── Stable context values ────────────────────────────────────────────────
+  const membersValue = useMemo(
+    () => ({
+      members,
+      setMembersState,
+      refreshMembers,
+    }),
+    [members, refreshMembers]
+  );
 
-  const uiValue = useMemo(() => ({
-    activeTab,
-    setActiveTab,
-    darkMode,
-    toggleDarkMode,
-    apiKey,
-    updateApiKey,
-    sidebarOpen,
-    setSidebarOpen,
-    notification,
-    notify,
-  }), [activeTab, darkMode, toggleDarkMode, apiKey, updateApiKey, sidebarOpen, notification, notify]);
+  const uiValue = useMemo(
+    () => ({
+      activeTab,
+      setActiveTab,
+      darkMode,
+      toggleDarkMode,
+      apiKey,
+      updateApiKey,
+      mapConfig,
+      updateMapConfig,
+      sidebarOpen,
+      setSidebarOpen,
+      notification,
+      notify,
+    }),
+    [
+      activeTab,
+      darkMode,
+      toggleDarkMode,
+      apiKey,
+      updateApiKey,
+      mapConfig,
+      updateMapConfig,
+      sidebarOpen,
+      notification,
+      notify,
+    ]
+  );
 
-  const filtersValue = useMemo(() => ({
-    searchQuery,
-    setSearchQuery,
-    stageFilter,
-    setStageFilter,
-    viewMode,
-    setViewMode,
-  }), [searchQuery, stageFilter, viewMode]);
+  const filtersValue = useMemo(
+    () => ({
+      searchQuery,
+      setSearchQuery,
+      stageFilter,
+      setStageFilter,
+      viewMode,
+      setViewMode,
+    }),
+    [searchQuery, stageFilter, viewMode]
+  );
 
   return (
     <MembersContext.Provider value={membersValue}>
       <UIContext.Provider value={uiValue}>
-        <FiltersContext.Provider value={filtersValue}>
-          {children}
-        </FiltersContext.Provider>
+        <FiltersContext.Provider value={filtersValue}>{children}</FiltersContext.Provider>
       </UIContext.Provider>
     </MembersContext.Provider>
   );

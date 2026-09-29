@@ -11,7 +11,12 @@ export default function AIMatchmaker() {
   const [selectedMemberId, setSelectedMemberId] = useState('');
   const [loading, setLoading] = useState(false);
   const [matches, setMatches] = useState([]);
-  const [outreachModal, setOutreachModal] = useState({ isOpen: false, match: null, message: '', loading: false });
+  const [outreachModal, setOutreachModal] = useState({
+    isOpen: false,
+    match: null,
+    message: '',
+    loading: false,
+  });
 
   const targetMember = members.find((m) => m.id === selectedMemberId);
 
@@ -57,9 +62,12 @@ export default function AIMatchmaker() {
             <Sparkles size={24} />
           </div>
           <div>
-            <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white tracking-tight">AI Collaboration Matchmaker</h2>
+            <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white tracking-tight">
+              AI Collaboration Matchmaker
+            </h2>
             <p className="text-sm font-semibold text-stone-600 dark:text-stone-400 mt-0.5">
-              Select a member profile to generate top 5 personalized "You Should Meet..." peer recommendations.
+              Select a member profile to generate top 5 personalized "You Should Meet..." peer
+              recommendations.
             </p>
           </div>
         </div>
@@ -78,7 +86,10 @@ export default function AIMatchmaker() {
           <label className="label">Select Member to Match</label>
           <select
             value={selectedMemberId}
-            onChange={(e) => { setSelectedMemberId(e.target.value); setMatches([]); }}
+            onChange={(e) => {
+              setSelectedMemberId(e.target.value);
+              setMatches([]);
+            }}
             className="input text-base font-bold py-3.5"
           >
             <option value="">-- Choose a member profile --</option>
@@ -92,9 +103,17 @@ export default function AIMatchmaker() {
 
         {targetMember && (
           <div className="p-5 bg-stone-50 dark:bg-stone-950 rounded-2xl text-sm space-y-2 border border-stone-200 dark:border-stone-800">
-            <div className="font-extrabold text-stone-900 dark:text-stone-100 text-base">Selected Profile: {targetMember.name}</div>
-            <p className="text-stone-700 dark:text-stone-300 font-semibold"><strong className="text-sky-700 dark:text-sky-400">Looking For:</strong> {targetMember.lookingFor || 'Not specified'}</p>
-            <p className="text-stone-700 dark:text-stone-300 font-semibold"><strong className="text-emerald-700 dark:text-emerald-400">Can Help With:</strong> {targetMember.canHelp || 'Not specified'}</p>
+            <div className="font-extrabold text-stone-900 dark:text-stone-100 text-base">
+              Selected Profile: {targetMember.name}
+            </div>
+            <p className="text-stone-700 dark:text-stone-300 font-semibold">
+              <strong className="text-sky-700 dark:text-sky-400">Looking For:</strong>{' '}
+              {targetMember.lookingFor || 'Not specified'}
+            </p>
+            <p className="text-stone-700 dark:text-stone-300 font-semibold">
+              <strong className="text-emerald-700 dark:text-emerald-400">Can Help With:</strong>{' '}
+              {targetMember.canHelp || 'Not specified'}
+            </p>
           </div>
         )}
 
@@ -104,7 +123,9 @@ export default function AIMatchmaker() {
           className="btn-primary"
         >
           {loading ? <LoadingSpinner size="sm" /> : <Sparkles size={18} />}
-          {loading ? `Analyzing synergy across ${members.length - 1} profiles...` : 'Find Matches with AI'}
+          {loading
+            ? `Analyzing synergy across ${members.length - 1} profiles...`
+            : 'Find Matches with AI'}
         </button>
       </div>
 
@@ -112,7 +133,8 @@ export default function AIMatchmaker() {
       {matches.length > 0 && (
         <div className="space-y-4 animate-slide-up">
           <h3 className="font-extrabold text-xl text-stone-900 dark:text-stone-100 flex items-center gap-2">
-            <UserCheck className="text-emerald-600 dark:text-emerald-400" size={24} /> Top AI Matches for {targetMember.name}
+            <UserCheck className="text-emerald-600 dark:text-emerald-400" size={24} /> Top AI
+            Matches for {targetMember.name}
           </h3>
 
           <div className="space-y-4">
@@ -124,12 +146,18 @@ export default function AIMatchmaker() {
                 <div key={idx} className="card p-6 space-y-4 border-l-4 border-l-emerald-500">
                   <div className="flex items-start justify-between gap-4 flex-wrap">
                     <div className="flex items-center gap-4">
-                      <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${getAvatarGradient(m.name)} flex items-center justify-center text-white font-black text-xl flex-shrink-0 shadow-sm`}>
+                      <div
+                        className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${getAvatarGradient(m.name)} flex items-center justify-center text-white font-black text-xl flex-shrink-0 shadow-sm`}
+                      >
                         {getInitials(m.name)}
                       </div>
                       <div>
-                        <h4 className="font-extrabold text-xl text-stone-900 dark:text-stone-100">{m.name}</h4>
-                        <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">{m.role} · {m.location?.city}, {m.location?.country}</p>
+                        <h4 className="font-extrabold text-xl text-stone-900 dark:text-stone-100">
+                          {m.name}
+                        </h4>
+                        <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                          {m.role} · {m.location?.city}, {m.location?.country}
+                        </p>
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-1">
@@ -137,14 +165,21 @@ export default function AIMatchmaker() {
                         {item.score}/10 Match Score
                       </span>
                       <div className="w-24 h-1.5 bg-stone-200 dark:bg-stone-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${scorePercent}%` }} />
+                        <div
+                          className="h-full bg-emerald-500 rounded-full"
+                          style={{ width: `${scorePercent}%` }}
+                        />
                       </div>
                     </div>
                   </div>
 
                   <div className="p-4 bg-emerald-50 dark:bg-emerald-950/40 rounded-2xl text-sm space-y-1.5 border border-emerald-200 dark:border-emerald-500/20">
-                    <div className="font-extrabold text-emerald-900 dark:text-emerald-300">💡 Synergy: {item.headline}</div>
-                    <p className="text-emerald-950 dark:text-emerald-200 leading-relaxed font-semibold">{item.reason}</p>
+                    <div className="font-extrabold text-emerald-900 dark:text-emerald-300">
+                      💡 Synergy: {item.headline}
+                    </div>
+                    <p className="text-emerald-950 dark:text-emerald-200 leading-relaxed font-semibold">
+                      {item.reason}
+                    </p>
                   </div>
 
                   <div className="flex items-center justify-between pt-2 flex-wrap gap-3">
@@ -168,7 +203,9 @@ export default function AIMatchmaker() {
       {/* Outreach Modal */}
       <Modal
         isOpen={outreachModal.isOpen}
-        onClose={() => setOutreachModal({ isOpen: false, match: null, message: '', loading: false })}
+        onClose={() =>
+          setOutreachModal({ isOpen: false, match: null, message: '', loading: false })
+        }
         title={`Draft Intro Message to ${outreachModal.match?.name}`}
         size="md"
       >

@@ -5,10 +5,17 @@ import { addMember } from '../../utils/storage';
 import { useApp } from '../../contexts/AppContext';
 
 const EMPTY_FORM = {
-  name: '', role: '', business: '', stage: 'idea',
-  lookingFor: '', canHelp: '',
+  name: '',
+  role: '',
+  business: '',
+  stage: 'idea',
+  lookingFor: '',
+  canHelp: '',
   location: { country: '', city: '' },
-  phone: '', tags: [], originalLanguage: 'en', originalText: '',
+  phone: '',
+  tags: [],
+  originalLanguage: 'en',
+  originalText: '',
 };
 
 export default function ManualForm({ initialData = {}, onSaved, onCancel, isEdit = false }) {
@@ -18,7 +25,8 @@ export default function ManualForm({ initialData = {}, onSaved, onCancel, isEdit
   const [errors, setErrors] = useState({});
 
   const set = (field, val) => setForm((f) => ({ ...f, [field]: val }));
-  const setLocation = (field, val) => setForm((f) => ({ ...f, location: { ...f.location, [field]: val } }));
+  const setLocation = (field, val) =>
+    setForm((f) => ({ ...f, location: { ...f.location, [field]: val } }));
 
   const validate = () => {
     const e = {};
@@ -54,12 +62,22 @@ export default function ManualForm({ initialData = {}, onSaved, onCancel, isEdit
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
           <label className="label">Full Name *</label>
-          <input className={`input ${errors.name ? 'ring-2 ring-red-500' : ''}`} value={form.name} onChange={(e) => set('name', e.target.value)} placeholder="e.g. Maria Silva" />
+          <input
+            className={`input ${errors.name ? 'ring-2 ring-red-500' : ''}`}
+            value={form.name}
+            onChange={(e) => set('name', e.target.value)}
+            placeholder="e.g. Maria Silva"
+          />
           {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
         </div>
         <div>
           <label className="label">What do you do? *</label>
-          <input className={`input ${errors.role ? 'ring-2 ring-red-500' : ''}`} value={form.role} onChange={(e) => set('role', e.target.value)} placeholder="e.g. Digital marketer & startup advisor" />
+          <input
+            className={`input ${errors.role ? 'ring-2 ring-red-500' : ''}`}
+            value={form.role}
+            onChange={(e) => set('role', e.target.value)}
+            placeholder="e.g. Digital marketer & startup advisor"
+          />
           {errors.role && <p className="text-xs text-red-500 mt-1">{errors.role}</p>}
         </div>
       </div>
@@ -67,7 +85,13 @@ export default function ManualForm({ initialData = {}, onSaved, onCancel, isEdit
       {/* Business */}
       <div>
         <label className="label">Business / Project</label>
-        <textarea className="input resize-none" rows={2} value={form.business} onChange={(e) => set('business', e.target.value)} placeholder="e.g. EcoDeliver – Sustainable packaging delivery startup" />
+        <textarea
+          className="input resize-none"
+          rows={2}
+          value={form.business}
+          onChange={(e) => set('business', e.target.value)}
+          placeholder="e.g. EcoDeliver – Sustainable packaging delivery startup"
+        />
       </div>
 
       {/* Stage */}
@@ -98,11 +122,21 @@ export default function ManualForm({ initialData = {}, onSaved, onCancel, isEdit
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
           <label className="label">Country</label>
-          <input className="input" value={form.location.country} onChange={(e) => setLocation('country', e.target.value)} placeholder="e.g. Brazil" />
+          <input
+            className="input"
+            value={form.location.country}
+            onChange={(e) => setLocation('country', e.target.value)}
+            placeholder="e.g. Brazil"
+          />
         </div>
         <div>
           <label className="label">City</label>
-          <input className="input" value={form.location.city} onChange={(e) => setLocation('city', e.target.value)} placeholder="e.g. São Paulo" />
+          <input
+            className="input"
+            value={form.location.city}
+            onChange={(e) => setLocation('city', e.target.value)}
+            placeholder="e.g. São Paulo"
+          />
         </div>
       </div>
 
@@ -110,19 +144,39 @@ export default function ManualForm({ initialData = {}, onSaved, onCancel, isEdit
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
           <label className="label">🔍 Looking for right now</label>
-          <textarea className="input resize-none" rows={3} value={form.lookingFor} onChange={(e) => set('lookingFor', e.target.value)} placeholder="e.g. Co-founder with technical skills, beta testers, investors..." />
+          <textarea
+            className="input resize-none"
+            rows={3}
+            value={form.lookingFor}
+            onChange={(e) => set('lookingFor', e.target.value)}
+            placeholder="e.g. Co-founder with technical skills, beta testers, investors..."
+          />
         </div>
         <div>
           <label className="label">🤝 Can help others with</label>
-          <textarea className="input resize-none" rows={3} value={form.canHelp} onChange={(e) => set('canHelp', e.target.value)} placeholder="e.g. Social media ads, brand strategy, connecting with local suppliers..." />
+          <textarea
+            className="input resize-none"
+            rows={3}
+            value={form.canHelp}
+            onChange={(e) => set('canHelp', e.target.value)}
+            placeholder="e.g. Social media ads, brand strategy, connecting with local suppliers..."
+          />
         </div>
       </div>
 
       {/* Phone */}
       <div>
         <label className="label">WhatsApp Number (optional)</label>
-        <input className="input" value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="e.g. +5511999999999" type="tel" />
-        <p className="text-xs text-muted mt-1">Include country code. This enables the "Connect on WhatsApp" button.</p>
+        <input
+          className="input"
+          value={form.phone}
+          onChange={(e) => set('phone', e.target.value)}
+          placeholder="e.g. +5511999999999"
+          type="tel"
+        />
+        <p className="text-xs text-muted mt-1">
+          Include country code. This enables the "Connect on WhatsApp" button.
+        </p>
       </div>
 
       {/* Tags */}
@@ -130,17 +184,28 @@ export default function ManualForm({ initialData = {}, onSaved, onCancel, isEdit
         <label className="label">Industry Tags</label>
         <div className="flex flex-wrap gap-1.5 mb-2">
           {form.tags.map((t) => (
-            <span key={t} className="badge bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 cursor-pointer hover:bg-red-100 dark:hover:bg-red-500/20 hover:text-red-600 group" onClick={() => removeTag(t)}>
+            <span
+              key={t}
+              className="badge bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 cursor-pointer hover:bg-red-100 dark:hover:bg-red-500/20 hover:text-red-600 group"
+              onClick={() => removeTag(t)}
+            >
               {t} <X size={10} className="opacity-50 group-hover:opacity-100" />
             </span>
           ))}
         </div>
         <div className="flex flex-wrap gap-1">
-          {INDUSTRY_TAGS.filter((t) => !form.tags.includes(t)).slice(0, 18).map((t) => (
-            <button key={t} type="button" onClick={() => addTag(t)} className="badge bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors cursor-pointer">
-              + {t}
-            </button>
-          ))}
+          {INDUSTRY_TAGS.filter((t) => !form.tags.includes(t))
+            .slice(0, 18)
+            .map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => addTag(t)}
+                className="badge bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors cursor-pointer"
+              >
+                + {t}
+              </button>
+            ))}
         </div>
       </div>
 

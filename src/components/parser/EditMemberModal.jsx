@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Modal from '../common/Modal';
 import ManualForm from './ManualForm';
 import { updateMember } from '../../utils/storage';
+import { pushMemberUpdateToSheets } from '../../utils/sheetsSync';
 import { useApp } from '../../contexts/AppContext';
 
 export default function EditMemberModal({ member, isOpen, onClose, onSaved }) {
@@ -9,6 +10,7 @@ export default function EditMemberModal({ member, isOpen, onClose, onSaved }) {
 
   const handleSave = (formValues) => {
     const updated = updateMember(member.id, formValues);
+    pushMemberUpdateToSheets(member, formValues);
     refreshMembers();
     notify(`Updated ${formValues.name}'s profile`);
     onSaved?.(updated);

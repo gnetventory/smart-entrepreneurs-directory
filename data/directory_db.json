@@ -1,0 +1,19 @@
+{
+  "members": [],
+  "tombstones": [],
+  "sheetsConfig": {
+    "apiUrl": "",
+    "autoSync": false,
+    "lastSyncAt": null,
+    "lastSyncStatus": null
+  },
+  "adminPIN": "0ad56b7d42b80f306a24b61853ecb571e83411f6c0dd5c06c998d9e1c3eecf87",
+  "apiKey": "",
+  "mapConfig": {
+    "provider": "esri_world",
+    "apiKey": "",
+    "styleId": "mapbox/streets-v12"
+  },
+  "darkMode": true,
+  "updatedAt": "2026-09-28T16:11:00.000Z"
+}

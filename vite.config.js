@@ -1,12 +1,20 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import directoryStoragePlugin from './vite-plugin-storage';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    directoryStoragePlugin(),
+  ],
 
   build: {
     // Chunk splitting for better caching
     rollupOptions: {
+      input: {
+        main:  'index.html',
+        admin: 'admin.html',
+      },
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom'],
