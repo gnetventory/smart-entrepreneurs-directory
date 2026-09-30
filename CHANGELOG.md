@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.6.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.5.0...v1.6.0) (2026-09-30)
+
+
+### Features
+
+* automated deployment update ([f1b0785](https://github.com/gnetventory/smart-entrepreneurs-directory/commit/f1b0785d2335dc048aa49edd353eb7c8f7229d7c))
+
 ## [1.5.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.4.0...v1.5.0) (2026-09-30)
 
 
