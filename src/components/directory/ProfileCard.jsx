@@ -121,224 +121,152 @@ export default function ProfileCard({
 
   return (
     <>
-      {/* ── Main Executive Bento Profile Card Container ─────────────────────── */}
+      {/* ── Compact Space-Optimized Profile Card ────────────────────────────── */}
       <div
         onClick={() => setShowDetail(true)}
-        className="group relative bg-white dark:bg-[#141722] rounded-3xl border-2 border-stone-300/90 dark:border-stone-800 transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-md hover:shadow-2xl hover:-translate-y-1 cursor-pointer"
+        className="group relative bg-white dark:bg-[#141722] rounded-2xl border border-stone-200/90 dark:border-stone-800 hover:border-emerald-500/60 dark:hover:border-emerald-500/60 p-4 space-y-3 transition-all duration-200 flex flex-col justify-between shadow-xs hover:shadow-md cursor-pointer"
       >
-        {/* Top Ambient Glow Aura */}
-        <div className="absolute -top-16 -right-16 w-36 h-36 bg-emerald-500/10 dark:bg-emerald-500/15 rounded-full blur-2xl pointer-events-none" />
-        <div className="absolute -bottom-16 -left-16 w-36 h-36 bg-amber-500/10 dark:bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
-
-        {/* Top Accent Gradient Line */}
-        <div className={`h-2 w-full bg-gradient-to-r ${accentGradient}`} />
-
-        <div className="p-6 space-y-5 flex-1 relative z-10">
-          {/* ── 1. Top Ribbon: Stage Pill + Location Micro-Badge + Fast Channels ── */}
-          <div className="flex items-center justify-between gap-3 border-b border-stone-200 dark:border-stone-800 pb-3.5 flex-wrap">
-            <div className="flex items-center gap-2.5 flex-wrap">
-              {/* Stage Badge with Pulse Dot */}
-              <span
-                className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider ${stage.bg} ${stage.text} border border-stone-400 dark:border-stone-700 shadow-xs`}
+        <div className="space-y-2.5">
+          {/* ── Row 1: Avatar + Founder Info + Stage Pill ───────────────────── */}
+          <div className="flex items-start justify-between gap-2.5">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div
+                className={`w-11 h-11 rounded-xl bg-gradient-to-br ${gradient} text-white font-extrabold text-base flex items-center justify-center shrink-0 shadow-xs`}
               >
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                {stage.icon} {stage.label}
-              </span>
-
-              {/* Location Micro-Badge */}
-              {locationLabel && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold uppercase bg-stone-100 dark:bg-stone-800/90 text-stone-700 dark:text-stone-300 border border-stone-400 dark:border-stone-700">
-                  <span>{flag}</span>
-                  <span className="truncate max-w-[150px]">{locationLabel}</span>
-                </span>
-              )}
+                {initials}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <h3 className="text-base font-extrabold text-stone-900 dark:text-stone-100 truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                    {member.name}
+                  </h3>
+                  <span title="Verified Member" className="text-emerald-500 shrink-0">
+                    <CheckCircle2 size={15} />
+                  </span>
+                  {synergyScore !== null && (
+                    <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-orange-100 dark:bg-orange-950/60 text-orange-700 dark:text-orange-400 shrink-0">
+                      ⚡ {synergyScore}%
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs font-semibold text-stone-500 dark:text-stone-400 truncate">
+                  {member.role || 'Founder'}
+                  {locationLabel ? ` · ${flag} ${locationLabel}` : ''}
+                </p>
+              </div>
             </div>
 
-            {/* Quick Primary Channels in Header */}
-            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-              {/* LinkedIn Button */}
-              {isLinkedInValid && (
-                <a
-                  href={linkedInHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-2.5 rounded-xl bg-blue-500/15 hover:bg-blue-600 hover:text-white text-blue-600 dark:text-blue-400 border border-stone-300 dark:border-stone-700 transition-all shadow-xs"
-                  title={`Open LinkedIn (in/${linkedInHandle})`}
-                >
-                  <Linkedin size={15} />
-                </a>
-              )}
-
-              {/* Direct WhatsApp Button */}
-              {waUrl && (
-                <a
-                  href={waUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-600 hover:text-white text-emerald-600 dark:text-emerald-400 border border-stone-300 dark:border-stone-700 transition-all shadow-xs"
-                  title="Direct WhatsApp Chat"
-                >
-                  <MessageCircle size={15} />
-                </a>
-              )}
-
-              {/* Matchmaker Synergy Badge */}
-              {synergyScore !== null && (
-                <span className="text-xs font-black font-mono px-3 py-1.5 rounded-full bg-orange-100 dark:bg-orange-950/60 text-orange-700 dark:text-orange-400 border border-stone-400 dark:border-stone-700">
-                  ⚡ {synergyScore}% Match
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* ── 2. The Identity Bento Tile ─────────────────────────────────── */}
-          <div className="flex items-center gap-4">
-            <div
-              className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-emerald-500/25 border-2 border-stone-800 shrink-0`}
+            {/* Compact Stage Pill */}
+            <span
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold ${stage.bg} ${stage.text} border border-stone-200 dark:border-stone-700/80 shrink-0`}
             >
-              {initials}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <h3 className="font-black text-stone-900 dark:text-stone-100 text-xl sm:text-2xl leading-tight truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                  {member.name}
-                </h3>
-                <span title="Verified Member" className="text-emerald-500 shrink-0">
-                  <CheckCircle2 size={18} />
-                </span>
-              </div>
-              <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 truncate">
-                {member.role || 'Founder & Leader'}
-              </p>
-            </div>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              {stage.label}
+            </span>
           </div>
 
-          {/* ── 3. Pitch Container with Dark Grey Outliner ───────────────── */}
+          {/* ── Row 2: Compact Pitch Quote ──────────────────────────────────── */}
           {member.business ? (
-            <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-transparent border-2 border-stone-300 dark:border-stone-700/80 relative shadow-xs space-y-1">
-              <span className="text-xs font-black uppercase tracking-wider text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
-                <span>🚀</span> VENTURE PITCH
-              </span>
-              <p className="text-sm sm:text-[15px] text-stone-800 dark:text-stone-200 italic font-medium leading-relaxed line-clamp-3">
-                "{member.business}"
-              </p>
-            </div>
+            <p className="text-xs text-stone-700 dark:text-stone-300 font-medium leading-relaxed italic bg-stone-50/80 dark:bg-stone-800/50 px-3 py-2 rounded-xl border border-stone-100 dark:border-stone-800 line-clamp-2">
+              "{member.business}"
+            </p>
           ) : (
-            <div className="p-4 rounded-2xl bg-stone-50 dark:bg-stone-800/40 border-2 border-stone-300 dark:border-stone-700/80">
-              <p className="text-xs text-stone-400 italic">
-                Ready to collaborate and build alliances.
-              </p>
-            </div>
+            <p className="text-xs text-stone-400 italic bg-stone-50/50 dark:bg-stone-800/30 px-3 py-1.5 rounded-xl">
+              Open to network and explore synergies.
+            </p>
           )}
 
-          {/* ── 4. Bento Dual Value Modules (Offering & Seeking) ──────────── */}
-          {!compact && (offeringItems.length > 0 || seekingItems.length > 0) && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {/* Offering Tile */}
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-500/15 via-teal-500/10 to-emerald-500/5 dark:from-emerald-950/50 dark:to-teal-950/30 border-2 border-stone-300 dark:border-stone-700/80 space-y-2 shadow-xs">
-                <div className="flex items-center gap-2">
-                  <span className="p-1.5 rounded-lg bg-emerald-500 text-white shadow-xs">
-                    <Handshake size={13} />
+          {/* ── Row 3: Inline Compact Offers & Needs ────────────────────────── */}
+          {(offeringItems.length > 0 || seekingItems.length > 0) && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+              {offeringItems.length > 0 && (
+                <div className="flex items-center gap-1.5 bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-200 px-2.5 py-1.5 rounded-lg border border-emerald-200/50 dark:border-emerald-800/40 min-w-0">
+                  <span className="font-bold text-emerald-700 dark:text-emerald-400 shrink-0">
+                    Offers:
                   </span>
-                  <span className="text-xs font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
-                    Offering
-                  </span>
+                  <span className="truncate font-medium">{offeringItems.join(', ')}</span>
                 </div>
-                {offeringItems.length > 0 ? (
-                  <ul className="text-xs sm:text-sm text-emerald-950 dark:text-emerald-200 font-bold space-y-1.5 leading-snug">
-                    {offeringItems.map((item, idx) => (
-                      <li key={idx} className="flex items-center gap-2 truncate">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                        <span className="truncate">{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-xs text-stone-400 italic">General expertise</p>
-                )}
-              </div>
-
-              {/* Seeking Tile */}
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-sky-500/15 via-indigo-500/10 to-sky-500/5 dark:from-sky-950/50 dark:to-indigo-950/30 border-2 border-stone-300 dark:border-stone-700/80 space-y-2 shadow-xs">
-                <div className="flex items-center gap-2">
-                  <span className="p-1.5 rounded-lg bg-sky-500 text-white shadow-xs">
-                    <Search size={13} />
-                  </span>
-                  <span className="text-xs font-black uppercase tracking-wider text-sky-800 dark:text-sky-300">
-                    Seeking
-                  </span>
+              )}
+              {seekingItems.length > 0 && (
+                <div className="flex items-center gap-1.5 bg-sky-50/70 dark:bg-sky-950/40 text-sky-950 dark:text-sky-200 px-2.5 py-1.5 rounded-lg border border-sky-200/50 dark:border-sky-800/40 min-w-0">
+                  <span className="font-bold text-sky-700 dark:text-sky-400 shrink-0">Needs:</span>
+                  <span className="truncate font-medium">{seekingItems.join(', ')}</span>
                 </div>
-                {seekingItems.length > 0 ? (
-                  <ul className="text-xs sm:text-sm text-sky-950 dark:text-sky-200 font-bold space-y-1.5 leading-snug">
-                    {seekingItems.map((item, idx) => (
-                      <li key={idx} className="flex items-center gap-2 truncate">
-                        <span className="w-2 h-2 rounded-full bg-sky-500 shrink-0" />
-                        <span className="truncate">{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-xs text-stone-400 italic">Strategic alliances</p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* ── 5. Tag Pills with Dark Grey Outliners ─────────────────────── */}
-          {Array.isArray(member.tags) && member.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {member.tags.slice(0, 3).map((tag) => (
-                <span
-                  key={tag}
-                  className="px-3.5 py-1.5 rounded-xl text-xs font-extrabold bg-stone-100 dark:bg-stone-800 text-stone-800 dark:text-stone-200 border border-stone-300 dark:border-stone-700"
-                >
-                  {tag}
-                </span>
-              ))}
-              {member.tags.length > 3 && (
-                <span className="px-2.5 py-1.5 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-500 text-xs font-bold border border-stone-300 dark:border-stone-700">
-                  +{member.tags.length - 3}
-                </span>
               )}
             </div>
           )}
         </div>
 
-        {/* ── 6. Digital Card Action Footer with Dark Grey Top Border ─────── */}
+        {/* ── Row 4 / Footer: Tags + Fast Actions ─────────────────────────── */}
         <div
-          className="p-4 bg-gradient-to-r from-stone-50 to-stone-100 dark:from-[#10121a] dark:to-[#171a26] border-t-2 border-stone-200 dark:border-stone-800 flex items-center justify-between gap-3 relative z-10"
+          className="pt-2.5 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between gap-2"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Scan QR Code Button */}
-          <button
-            type="button"
-            onClick={handleOpenQR}
-            className="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold text-stone-700 dark:text-stone-300 hover:bg-orange-500/10 hover:text-orange-600 dark:hover:text-orange-400 border border-stone-300 dark:border-stone-700 transition-all flex items-center gap-2 cursor-pointer shadow-xs"
-            title="Scan Phone QR Code"
-          >
-            <QrCode size={16} className="text-orange-500" />
-            <span>Scan QR</span>
-          </button>
+          {/* Primary Tag or Count */}
+          <div className="flex items-center gap-1.5 min-w-0">
+            {Array.isArray(member.tags) && member.tags.length > 0 ? (
+              <span className="text-[10px] font-bold text-stone-600 dark:text-stone-400 bg-stone-100 dark:bg-stone-800/90 px-2.5 py-1 rounded-md truncate max-w-[130px]">
+                {member.tags[0]}
+              </span>
+            ) : (
+              <span className="text-[10px] font-bold text-stone-400 dark:text-stone-500">
+                Directory Member
+              </span>
+            )}
+            {Array.isArray(member.tags) && member.tags.length > 1 && (
+              <span className="text-[10px] font-bold text-stone-400 dark:text-stone-500 bg-stone-50 dark:bg-stone-800/50 px-1.5 py-1 rounded-md">
+                +{member.tags.length - 1}
+              </span>
+            )}
+          </div>
 
-          <div className="flex items-center gap-2">
-            {/* Full Digital Pass Modal */}
+          {/* Quick Action Buttons */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* Direct WhatsApp */}
+            {waUrl && (
+              <a
+                href={waUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-600 hover:text-white text-emerald-600 dark:text-emerald-400 transition-all"
+                title="Direct WhatsApp"
+              >
+                <MessageCircle size={14} />
+              </a>
+            )}
+
+            {/* LinkedIn */}
+            {isLinkedInValid && (
+              <a
+                href={linkedInHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-600 hover:text-white text-blue-600 dark:text-blue-400 transition-all"
+                title="LinkedIn Profile"
+              >
+                <Linkedin size={14} />
+              </a>
+            )}
+
+            {/* Quick QR Code modal trigger */}
             <button
               type="button"
-              onClick={() => setShowCard(true)}
-              className="p-2.5 rounded-xl text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white border border-stone-300 dark:border-stone-700 hover:bg-stone-200 dark:hover:bg-stone-800 transition-all cursor-pointer"
-              title="Open Digital Business Card Pass"
+              onClick={handleOpenQR}
+              className="p-1.5 rounded-lg bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 transition-all"
+              title="Show Phone QR"
             >
-              <CreditCard size={16} />
+              <QrCode size={14} />
             </button>
 
-            {/* 1-Click Save Contact (.vcf) Button */}
+            {/* 1-Click Save Contact (.vcf) */}
             <button
               type="button"
               onClick={handleDownloadVCard}
-              className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white border border-emerald-400/40 transition-all flex items-center gap-2 shadow-md shadow-emerald-600/20 cursor-pointer"
+              className="px-2.5 py-1.5 rounded-lg bg-stone-900 hover:bg-black dark:bg-stone-100 dark:hover:bg-white dark:text-stone-900 text-white text-[11px] font-bold transition-all flex items-center gap-1 shadow-xs"
+              title="Save Contact (.vcf)"
             >
-              <Download size={15} />
-              <span>Save Contact</span>
+              <Download size={12} />
+              <span className="hidden sm:inline">Save</span>
             </button>
           </div>
         </div>
