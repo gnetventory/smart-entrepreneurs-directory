@@ -13,7 +13,7 @@ import {
   QrCode,
 } from 'lucide-react';
 import Modal from '../common/Modal';
-import { getInitials, getAvatarGradient } from '../../utils/helpers';
+import { getInitials, getAvatarGradient, downloadVCardFile } from '../../utils/helpers';
 import { STAGES, getCountryFlag } from '../../utils/constants';
 import { useApp } from '../../contexts/AppContext';
 import { isAdminSession } from '../../utils/session';
@@ -455,16 +455,23 @@ export default function BusinessCardModal({ member, isOpen, onClose }) {
         </div>
 
         {/* ── Download Actions ──────────────────────────────────────────────── */}
-        <div className="flex justify-center gap-3 pt-2">
+        <div className="flex flex-wrap justify-center gap-3 pt-2">
+          <button
+            onClick={() => {
+              downloadVCardFile(member);
+              notify(`Saved ${member.name}'s contact card (.vcf)`);
+            }}
+            className="btn-primary px-6 py-3 text-xs font-bold shadow-md flex items-center gap-2"
+          >
+            <Download size={15} /> Save Contact (.vcf)
+          </button>
           <button
             onClick={handleDownload}
             disabled={downloading}
-            className="btn-accent px-8 py-3 text-sm font-bold shadow-lg"
+            className="btn-accent px-6 py-3 text-xs font-bold shadow-lg flex items-center gap-2"
           >
-            <Download size={17} />
-            {downloading
-              ? 'Exporting High-Res PNG...'
-              : `Download ${currentTheme.name.split('/')[0]} (${cardSide.toUpperCase()})`}
+            <Download size={15} />
+            {downloading ? 'Exporting High-Res PNG...' : `Export PNG (${cardSide.toUpperCase()})`}
           </button>
         </div>
       </div>

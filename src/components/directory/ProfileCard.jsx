@@ -4,8 +4,6 @@ import {
   Trash2,
   Edit2,
   MapPin,
-  Copy,
-  Check,
   Building2,
   Search,
   Handshake,
@@ -13,10 +11,14 @@ import {
   CreditCard,
   Sparkles,
   ExternalLink,
-  ArrowRight,
   ShieldCheck,
   CheckCircle2,
-  AlertCircle,
+  QrCode,
+  Download,
+  Share2,
+  Phone,
+  Mail,
+  UserCheck,
 } from 'lucide-react';
 import {
   getInitials,
@@ -28,12 +30,14 @@ import {
   isValidLinkedInUrl,
   formatLinkedInUrl,
   getLinkedInHandle,
+  downloadVCardFile,
 } from '../../utils/helpers';
 import { STAGES, getCountryFlag } from '../../utils/constants';
 import { deleteMember } from '../../utils/storage';
 import { pushMemberDeleteToSheets } from '../../utils/sheetsSync';
 import { useApp } from '../../contexts/AppContext';
 import { isAdminSession } from '../../utils/session';
+import { QRCodeSVG } from '../common/QRCodeSVG';
 import Modal from '../common/Modal';
 import BusinessCardModal from '../businesscard/BusinessCardModal';
 import EditMemberModal from '../parser/EditMemberModal';
@@ -49,19 +53,28 @@ export default function ProfileCard({
   const [showDetail, setShowDetail] = useState(false);
   const [showCard, setShowCard] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   const isAdmin = isAdminSession();
   const stage = STAGES[member.stage] || STAGES.idea;
   const initials = getInitials(member.name);
   const gradient = getAvatarGradient(member.name);
-  const waUrl = isAdmin ? buildWhatsAppUrl(member.phone) : null;
+  const waUrl = member.phone ? buildWhatsAppUrl(member.phone) : null;
   const flag = getCountryFlag(member.location?.country);
 
   const isLinkedInValid = isValidLinkedInUrl(member.linkedin);
   const linkedInHref = isLinkedInValid ? formatLinkedInUrl(member.linkedin) : null;
   const linkedInHandle = getLinkedInHandle(member.linkedin);
+
+  // Stage Header Gradient Accent Bar Palette
+  const stageHeaderGradients = {
+    idea: 'from-amber-500 via-yellow-400 to-orange-500',
+    starting: 'from-emerald-500 via-teal-400 to-cyan-500',
+    running: 'from-emerald-500 via-teal-400 to-amber-500',
+    growing: 'from-indigo-500 via-purple-500 to-pink-500',
+  };
+  const accentGradient = stageHeaderGradients[member.stage] || stageHeaderGradients.starting;
 
   const handleDelete = () => {
     deleteMember(member.id);
@@ -71,12 +84,15 @@ export default function ProfileCard({
     setConfirmDelete(false);
   };
 
-  const handleCopyName = (e) => {
+  const handleDownloadVCard = (e) => {
     e.stopPropagation();
-    copyToClipboard(member.name);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-    notify(`Copied "${member.name}" to clipboard`);
+    downloadVCardFile(member);
+    notify(`Saved ${member.name}'s contact card (.vcf)`);
+  };
+
+  const handleOpenQR = (e) => {
+    e.stopPropagation();
+    setShowQRModal(true);
   };
 
   // Split comma or newline separated items into clean executive bullet points
@@ -100,30 +116,38 @@ export default function ProfileCard({
           .join(', ')
           .toUpperCase();
 
+  // QR Value payload (direct vCard or profile deep link)
+  const qrContactPayload = `MECARD:N:${member.name};ORG:${member.business || 'Alliance Network'};TEL:${member.phone || ''};EMAIL:${member.email || ''};URL:${linkedInHref || ''};;`;
+
   return (
     <>
-      {/* ── Main Executive Profile Card Container ─────────────────────────────── */}
+      {/* ── Main Executive Bento Profile Card Container ─────────────────────── */}
       <div
         onClick={() => setShowDetail(true)}
-        className="group relative bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/90 dark:border-stone-800 shadow-card hover:shadow-card-hover hover:-translate-y-1 hover:border-orange-300 dark:hover:border-orange-800/60 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden"
+        className="group relative bg-white dark:bg-[#141722] rounded-3xl border-2 border-stone-300/90 dark:border-stone-800 transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-md hover:shadow-2xl hover:-translate-y-1 cursor-pointer"
       >
-        {/* Top Accent Line */}
-        <div className="h-1 w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-orange-400 group-hover:h-1.5 transition-all duration-200" />
+        {/* Top Ambient Glow Aura */}
+        <div className="absolute -top-16 -right-16 w-36 h-36 bg-emerald-500/10 dark:bg-emerald-500/15 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-16 -left-16 w-36 h-36 bg-amber-500/10 dark:bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
 
-        <div className="p-5 space-y-4 flex-1">
-          {/* ── 1. Top Ribbon: Stage Pill + Location Micro-Badge + Quick Channels ── */}
-          <div className="flex items-center justify-between gap-2 border-b border-stone-100 dark:border-stone-800/80 pb-3 flex-wrap">
-            <div className="flex items-center gap-2">
-              {/* Stage Badge */}
+        {/* Top Accent Gradient Line */}
+        <div className={`h-2 w-full bg-gradient-to-r ${accentGradient}`} />
+
+        <div className="p-5 space-y-4 flex-1 relative z-10">
+          {/* ── 1. Top Ribbon: Stage Pill + Location Micro-Badge + Fast Channels ── */}
+          <div className="flex items-center justify-between gap-2 border-b border-stone-200 dark:border-stone-800/80 pb-3 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Stage Badge with Pulse Dot */}
               <span
-                className={`badge ${stage.bg} ${stage.text} border ${stage.border} text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 shadow-2xs`}
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${stage.bg} ${stage.text} border border-stone-400 dark:border-stone-700 shadow-xs`}
               >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 {stage.icon} {stage.label}
               </span>
 
               {/* Location Micro-Badge */}
               {locationLabel && (
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-stone-500 dark:text-stone-400 flex items-center gap-1 bg-stone-100 dark:bg-stone-800/80 px-2 py-0.5 rounded-md">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] font-extrabold uppercase bg-stone-100 dark:bg-stone-800/90 text-stone-700 dark:text-stone-300 border border-stone-400 dark:border-stone-700">
                   <span>{flag}</span>
                   <span className="truncate max-w-[130px]">{locationLabel}</span>
                 </span>
@@ -132,132 +156,152 @@ export default function ProfileCard({
 
             {/* Quick Primary Channels in Header */}
             <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-              {/* LinkedIn Button (Active or Shaded) */}
-              {isLinkedInValid ? (
+              {/* LinkedIn Button */}
+              {isLinkedInValid && (
                 <a
                   href={linkedInHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 dark:hover:text-white transition-all shadow-2xs"
+                  className="p-2 rounded-xl bg-blue-500/15 hover:bg-blue-600 hover:text-white text-blue-600 dark:text-blue-400 border border-stone-300 dark:border-stone-700 transition-all shadow-xs"
                   title={`Open LinkedIn (in/${linkedInHandle})`}
                 >
                   <Linkedin size={13} />
                 </a>
-              ) : member.linkedin ? (
-                <span
-                  className="p-1.5 rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-400 dark:text-stone-600 cursor-not-allowed opacity-60"
-                  title="LinkedIn link is improperly formatted"
-                >
-                  <Linkedin size={13} />
-                </span>
-              ) : null}
+              )}
 
-              {/* WhatsApp Button */}
+              {/* Direct WhatsApp Button */}
               {waUrl && (
                 <a
                   href={waUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white transition-all shadow-2xs"
+                  className="p-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-600 hover:text-white text-emerald-600 dark:text-emerald-400 border border-stone-300 dark:border-stone-700 transition-all shadow-xs"
                   title="Direct WhatsApp Chat"
                 >
                   <MessageCircle size={13} />
                 </a>
               )}
 
+              {/* Matchmaker Synergy Badge */}
               {synergyScore !== null && (
-                <span className="text-[10px] font-black font-mono px-2 py-0.5 rounded-full bg-orange-100 dark:bg-orange-950/50 text-orange-700 dark:text-orange-400 border border-orange-200 dark:border-orange-800">
+                <span className="text-[10px] font-black font-mono px-2.5 py-1 rounded-full bg-orange-100 dark:bg-orange-950/60 text-orange-700 dark:text-orange-400 border border-stone-400 dark:border-stone-700">
                   ⚡ {synergyScore}% Match
                 </span>
               )}
             </div>
           </div>
 
-          {/* ── 2. The Executive Identity Block ─────────────────────────────────── */}
-          <div className="space-y-1">
-            <div className="flex items-center gap-3">
-              <div
-                className={`w-11 h-11 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white font-black text-sm flex-shrink-0 shadow-sm border border-stone-200/50 dark:border-stone-700`}
-              >
-                {initials}
-              </div>
-              <div className="min-w-0 flex-1">
-                <h3 className="font-black text-stone-900 dark:text-stone-100 text-base leading-tight truncate group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
+          {/* ── 2. The Identity Bento Tile ─────────────────────────────────── */}
+          <div className="flex items-start gap-3.5">
+            <div
+              className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white font-extrabold text-xl shadow-md shadow-emerald-500/20 border-2 border-stone-800 shrink-0`}
+            >
+              {initials}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5">
+                <h3 className="font-extrabold text-stone-900 dark:text-stone-100 text-lg leading-snug truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                   {member.name}
                 </h3>
-                <p className="text-xs font-bold text-stone-600 dark:text-stone-300 truncate">
-                  {member.role || 'Founder & CEO'}{' '}
-                  {member.business ? `@ ${member.business.split(' ')[0]}` : ''}
-                </p>
+                <span title="Verified Member" className="text-emerald-500 shrink-0">
+                  <CheckCircle2 size={15} />
+                </span>
               </div>
-            </div>
-
-            {/* 1-Line Pitch (Clean clamp with uniform height) */}
-            {member.business ? (
-              <p className="text-xs text-stone-700 dark:text-stone-300 font-medium italic pt-1.5 leading-relaxed line-clamp-2 min-h-[34px]">
-                "{member.business}"
+              <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 truncate">
+                {member.role || 'Founder & Leader'}
               </p>
-            ) : (
-              <div className="min-h-[34px]" />
-            )}
+              {member.business && (
+                <p className="text-xs font-semibold text-stone-500 dark:text-stone-400 truncate">
+                  {member.business.split('\n')[0]}
+                </p>
+              )}
+            </div>
           </div>
 
-          {/* ── 3. Dual-Tone Value Blocks ("Offer vs. Seek") ────────────────────── */}
+          {/* ── 3. Pitch Container with Dark Grey Outliner ───────────────── */}
+          {member.business ? (
+            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-transparent border-2 border-stone-300 dark:border-stone-700/80 relative shadow-xs">
+              <span className="text-[10px] font-black uppercase tracking-wider text-amber-700 dark:text-amber-400 flex items-center gap-1 mb-1">
+                <span>🚀</span> VENTURE PITCH
+              </span>
+              <p className="text-xs text-stone-800 dark:text-stone-200 italic font-medium leading-relaxed line-clamp-2">
+                "{member.business}"
+              </p>
+            </div>
+          ) : (
+            <div className="p-3 rounded-2xl bg-stone-50 dark:bg-stone-800/40 border-2 border-stone-300 dark:border-stone-700/80">
+              <p className="text-xs text-stone-400 italic">
+                Ready to collaborate and build alliances.
+              </p>
+            </div>
+          )}
+
+          {/* ── 4. Bento Dual Value Modules (Offering & Seeking) ──────────── */}
           {!compact && (offeringItems.length > 0 || seekingItems.length > 0) && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-              {/* OFFERING (Green Tint Box) */}
-              <div className="bg-emerald-50/70 dark:bg-emerald-950/25 border border-emerald-200/70 dark:border-emerald-900/40 rounded-xl p-2.5 space-y-1">
-                <span className="text-[9px] font-black uppercase tracking-widest text-emerald-800 dark:text-emerald-400 flex items-center gap-1">
-                  <Handshake size={11} className="text-emerald-600" /> OFFERING
-                </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {/* Offering Tile */}
+              <div className="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-500/15 via-teal-500/10 to-emerald-500/5 dark:from-emerald-950/50 dark:to-teal-950/30 border-2 border-stone-300 dark:border-stone-700/80 space-y-1.5 shadow-xs">
+                <div className="flex items-center gap-1.5">
+                  <span className="p-1 rounded-lg bg-emerald-500 text-white shadow-xs">
+                    <Handshake size={11} />
+                  </span>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
+                    Offering
+                  </span>
+                </div>
                 {offeringItems.length > 0 ? (
-                  <ul className="text-[11px] text-emerald-950 dark:text-emerald-200 font-medium space-y-0.5 leading-snug">
+                  <ul className="text-[11px] text-emerald-950 dark:text-emerald-200 font-semibold space-y-1 leading-snug">
                     {offeringItems.map((item, idx) => (
-                      <li key={idx} className="truncate flex items-start gap-1">
-                        <span className="text-emerald-500 font-bold">•</span>
+                      <li key={idx} className="flex items-center gap-1.5 truncate">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
                         <span className="truncate">{item}</span>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-[10px] text-stone-400 italic">General mentorship</p>
+                  <p className="text-[10px] text-stone-400 italic">General expertise</p>
                 )}
               </div>
 
-              {/* SEEKING (Blue/Amber Tint Box) */}
-              <div className="bg-sky-50/70 dark:bg-sky-950/25 border border-sky-200/70 dark:border-sky-900/40 rounded-xl p-2.5 space-y-1">
-                <span className="text-[9px] font-black uppercase tracking-widest text-sky-800 dark:text-sky-400 flex items-center gap-1">
-                  <Search size={11} className="text-sky-600" /> SEEKING
-                </span>
+              {/* Seeking Tile */}
+              <div className="p-3.5 rounded-2xl bg-gradient-to-br from-sky-500/15 via-indigo-500/10 to-sky-500/5 dark:from-sky-950/50 dark:to-indigo-950/30 border-2 border-stone-300 dark:border-stone-700/80 space-y-1.5 shadow-xs">
+                <div className="flex items-center gap-1.5">
+                  <span className="p-1 rounded-lg bg-sky-500 text-white shadow-xs">
+                    <Search size={11} />
+                  </span>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-sky-800 dark:text-sky-300">
+                    Seeking
+                  </span>
+                </div>
                 {seekingItems.length > 0 ? (
-                  <ul className="text-[11px] text-sky-950 dark:text-sky-200 font-medium space-y-0.5 leading-snug">
+                  <ul className="text-[11px] text-sky-950 dark:text-sky-200 font-semibold space-y-1 leading-snug">
                     {seekingItems.map((item, idx) => (
-                      <li key={idx} className="truncate flex items-start gap-1">
-                        <span className="text-sky-500 font-bold">•</span>
+                      <li key={idx} className="flex items-center gap-1.5 truncate">
+                        <span className="w-1.5 h-1.5 rounded-full bg-sky-500 shrink-0" />
                         <span className="truncate">{item}</span>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-[10px] text-stone-400 italic">Strategic connections</p>
+                  <p className="text-[10px] text-stone-400 italic">Strategic alliances</p>
                 )}
               </div>
             </div>
           )}
 
-          {/* ── 4. Tag Footer (Rounded Industry Pills) ──────────────────────────── */}
+          {/* ── 5. Tag Pills with Dark Grey Outliners ─────────────────────── */}
           {Array.isArray(member.tags) && member.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 pt-1">
+            <div className="flex flex-wrap gap-1.5">
               {member.tags.slice(0, 3).map((tag) => (
                 <span
                   key={tag}
-                  className="px-2 py-0.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 text-[10px] font-bold border border-stone-200/80 dark:border-stone-700"
+                  className="px-3 py-1 rounded-xl text-[10px] font-extrabold bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-300 dark:border-stone-700"
                 >
                   {tag}
                 </span>
               ))}
               {member.tags.length > 3 && (
-                <span className="px-1.5 py-0.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-500 text-[10px] font-bold">
+                <span className="px-2 py-1 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-500 text-[10px] font-bold border border-stone-300 dark:border-stone-700">
                   +{member.tags.length - 3}
                 </span>
               )}
@@ -265,38 +309,96 @@ export default function ProfileCard({
           )}
         </div>
 
-        {/* ── 5. Action Bar at Bottom ─────────────────────────────────────────── */}
+        {/* ── 6. Digital Card Action Footer with Dark Grey Top Border ─────── */}
         <div
-          className="px-4 py-3 border-t border-stone-100 dark:border-stone-800 bg-[#FAFAF7] dark:bg-stone-950/60 flex items-center justify-between gap-2"
+          className="p-3.5 bg-gradient-to-r from-stone-50 to-stone-100 dark:from-[#10121a] dark:to-[#171a26] border-t-2 border-stone-200 dark:border-stone-800 flex items-center justify-between gap-2 relative z-10"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowCard(true)}
-              className="text-xs font-bold text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white flex items-center gap-1.5 transition-colors"
-            >
-              <CreditCard size={14} className="text-orange-500" /> Digital Card
-            </button>
-          </div>
+          {/* Scan QR Code Button */}
+          <button
+            type="button"
+            onClick={handleOpenQR}
+            className="px-3 py-2 rounded-xl text-xs font-extrabold text-stone-700 dark:text-stone-300 hover:bg-orange-500/10 hover:text-orange-600 dark:hover:text-orange-400 border border-stone-300 dark:border-stone-700 transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            title="Scan Phone QR Code"
+          >
+            <QrCode size={14} className="text-orange-500" />
+            <span>Scan QR</span>
+          </button>
 
           <div className="flex items-center gap-2">
+            {/* Full Digital Pass Modal */}
             <button
-              onClick={handleCopyName}
-              className="btn-accent text-xs py-1.5 px-3 rounded-lg font-bold flex items-center gap-1"
+              type="button"
+              onClick={() => setShowCard(true)}
+              className="p-2 rounded-xl text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white border border-stone-300 dark:border-stone-700 hover:bg-stone-200 dark:hover:bg-stone-800 transition-all cursor-pointer"
+              title="Open Digital Business Card Pass"
             >
-              {copied ? <Check size={12} /> : <Copy size={12} />}
-              {copied ? 'Copied' : 'Copy Contact'}
+              <CreditCard size={14} />
+            </button>
+
+            {/* 1-Click Save Contact (.vcf) Button */}
+            <button
+              type="button"
+              onClick={handleDownloadVCard}
+              className="px-4 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white border border-emerald-400/40 transition-all flex items-center gap-1.5 shadow-md shadow-emerald-600/20 cursor-pointer"
+            >
+              <Download size={13} />
+              <span>Save Contact</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* ── Detailed Modal ────────────────────────────────────────────────────── */}
+      {/* ── Interactive QR Code Modal Dialog ─────────────────────────────────── */}
+      {showQRModal && (
+        <Modal
+          isOpen={showQRModal}
+          onClose={() => setShowQRModal(false)}
+          title="Instant Phone Contact QR"
+          size="sm"
+        >
+          <div className="text-center space-y-4 p-2">
+            <div className="p-4 bg-white rounded-2xl inline-block border-2 border-stone-800 shadow-xl mx-auto">
+              <QRCodeSVG value={qrContactPayload} size={180} />
+            </div>
+            <div>
+              <h4 className="font-extrabold text-base text-stone-900 dark:text-stone-100">
+                {member.name}
+              </h4>
+              <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                {member.role}
+              </p>
+              <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">
+                Scan with your iPhone or Android camera to instantly add this founder to your
+                address book.
+              </p>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={handleDownloadVCard}
+                className="btn-primary text-xs flex-1 py-2 font-bold justify-center"
+              >
+                <Download size={13} /> Download .vcf
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowQRModal(false)}
+                className="btn-secondary text-xs px-4 py-2 font-bold"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Detailed Dossier Modal ─────────────────────────────────────────── */}
       <Modal isOpen={showDetail} onClose={() => setShowDetail(false)} title={member.name} size="md">
         <div className="space-y-6">
           <div className="flex items-start gap-4">
             <div
-              className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white font-black text-2xl flex-shrink-0 shadow-md`}
+              className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white font-black text-2xl flex-shrink-0 shadow-md border-2 border-stone-800`}
             >
               {initials}
             </div>
@@ -324,8 +426,8 @@ export default function ProfileCard({
           </div>
 
           {member.business && (
-            <div className="card p-4 space-y-1 bg-[#FAF8F5] dark:bg-stone-950">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+            <div className="card p-4 space-y-1 bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-transparent border-2 border-stone-300 dark:border-stone-700/80">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
                 <Building2 size={13} /> Executive Pitch & Project
               </span>
               <p className="text-sm text-stone-800 dark:text-stone-200 leading-relaxed font-medium">
@@ -337,7 +439,7 @@ export default function ProfileCard({
           {(member.lookingFor || member.canHelp) && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {member.lookingFor && (
-                <div className="bg-sky-50/80 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800/60 rounded-xl p-3.5 space-y-1">
+                <div className="bg-sky-50/80 dark:bg-sky-950/30 border-2 border-stone-300 dark:border-stone-700/80 rounded-xl p-3.5 space-y-1">
                   <span className="text-[10px] font-extrabold uppercase tracking-widest text-sky-700 dark:text-sky-400 flex items-center gap-1">
                     <Search size={12} /> Seeking / Looking For
                   </span>
@@ -347,7 +449,7 @@ export default function ProfileCard({
                 </div>
               )}
               {member.canHelp && (
-                <div className="bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 rounded-xl p-3.5 space-y-1">
+                <div className="bg-emerald-50/80 dark:bg-emerald-950/30 border-2 border-stone-300 dark:border-stone-700/80 rounded-xl p-3.5 space-y-1">
                   <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
                     <Handshake size={12} /> Offering / Can Help With
                   </span>
@@ -366,7 +468,7 @@ export default function ProfileCard({
                 {member.tags.map((t) => (
                   <span
                     key={t}
-                    className="badge bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-bold border border-stone-200 dark:border-stone-700 text-xs"
+                    className="badge bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-bold border border-stone-300 dark:border-stone-700 text-xs"
                   >
                     #{t}
                   </span>
@@ -377,7 +479,10 @@ export default function ProfileCard({
 
           {/* Action Bar inside Modal */}
           <div className="pt-4 border-t border-stone-200 dark:border-stone-800 flex items-center justify-between flex-wrap gap-3">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <button onClick={handleDownloadVCard} className="btn-primary text-xs font-bold">
+                <Download size={13} /> Save Contact (.vcf)
+              </button>
               <button onClick={() => setShowCard(true)} className="btn-secondary text-xs font-bold">
                 <CreditCard size={14} /> Open Digital Pass
               </button>
@@ -388,7 +493,7 @@ export default function ProfileCard({
                   rel="noopener noreferrer"
                   className="btn-secondary text-xs font-bold text-blue-600 dark:text-blue-400"
                 >
-                  <Linkedin size={14} /> LinkedIn Profile
+                  <Linkedin size={14} /> LinkedIn
                 </a>
               )}
             </div>
@@ -413,7 +518,7 @@ export default function ProfileCard({
         </div>
       </Modal>
 
-      {/* Business Card Modal */}
+      {/* Full Business Card Modal */}
       {showCard && (
         <BusinessCardModal member={member} isOpen={showCard} onClose={() => setShowCard(false)} />
       )}

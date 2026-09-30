@@ -225,3 +225,53 @@ export function isWithinDays(dateStr, days) {
     return false;
   }
 }
+
+// ─── Digital Business Card & vCard Generation ─────────────────────────────────
+export function generateVCard(member) {
+  if (!member) return '';
+  const name = member.name || 'Founder';
+  const role = member.role || 'Entrepreneur';
+  const business = member.business ? member.business.split('\n')[0] : 'Alliance Network';
+  const phone = member.phone || '';
+  const email = member.email || '';
+  const linkedin = member.linkedin || '';
+  const city =
+    typeof member.location === 'string'
+      ? member.location
+      : member.location?.city || member.location?.district || '';
+  const country = typeof member.location === 'object' ? member.location?.country || '' : '';
+  const location = [city, country].filter(Boolean).join(', ');
+
+  const vcard = [
+    'BEGIN:VCARD',
+    'VERSION:3.0',
+    `FN:${name}`,
+    `TITLE:${role}`,
+    `ORG:${business}`,
+    phone ? `TEL;TYPE=CELL:${phone}` : '',
+    email ? `EMAIL:${email}` : '',
+    linkedin ? `URL:${linkedin}` : '',
+    location ? `ADR;TYPE=WORK:;;${city};;;;${country}` : '',
+    `NOTE:Member of Smart Entrepreneurs Directory`,
+    'END:VCARD',
+  ]
+    .filter(Boolean)
+    .join('\r\n');
+
+  return vcard;
+}
+
+export function downloadVCardFile(member) {
+  if (!member) return;
+  const vcardText = generateVCard(member);
+  const blob = new Blob([vcardText], { type: 'text/vcard;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  const safeName = (member.name || 'Member').replace(/[^a-zA-Z0-9_\-]/g, '_');
+  link.href = url;
+  link.setAttribute('download', `${safeName}_Contact.vcf`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
