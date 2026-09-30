@@ -133,39 +133,39 @@ export default function ProfileCard({
         {/* Top Accent Gradient Line */}
         <div className={`h-2 w-full bg-gradient-to-r ${accentGradient}`} />
 
-        <div className="p-5 space-y-4 flex-1 relative z-10">
+        <div className="p-6 space-y-5 flex-1 relative z-10">
           {/* ── 1. Top Ribbon: Stage Pill + Location Micro-Badge + Fast Channels ── */}
-          <div className="flex items-center justify-between gap-2 border-b border-stone-200 dark:border-stone-800/80 pb-3 flex-wrap">
-            <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center justify-between gap-3 border-b border-stone-200 dark:border-stone-800 pb-3.5 flex-wrap">
+            <div className="flex items-center gap-2.5 flex-wrap">
               {/* Stage Badge with Pulse Dot */}
               <span
-                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${stage.bg} ${stage.text} border border-stone-400 dark:border-stone-700 shadow-xs`}
+                className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider ${stage.bg} ${stage.text} border border-stone-400 dark:border-stone-700 shadow-xs`}
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
                 {stage.icon} {stage.label}
               </span>
 
               {/* Location Micro-Badge */}
               {locationLabel && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] font-extrabold uppercase bg-stone-100 dark:bg-stone-800/90 text-stone-700 dark:text-stone-300 border border-stone-400 dark:border-stone-700">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold uppercase bg-stone-100 dark:bg-stone-800/90 text-stone-700 dark:text-stone-300 border border-stone-400 dark:border-stone-700">
                   <span>{flag}</span>
-                  <span className="truncate max-w-[130px]">{locationLabel}</span>
+                  <span className="truncate max-w-[150px]">{locationLabel}</span>
                 </span>
               )}
             </div>
 
             {/* Quick Primary Channels in Header */}
-            <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
               {/* LinkedIn Button */}
               {isLinkedInValid && (
                 <a
                   href={linkedInHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 rounded-xl bg-blue-500/15 hover:bg-blue-600 hover:text-white text-blue-600 dark:text-blue-400 border border-stone-300 dark:border-stone-700 transition-all shadow-xs"
+                  className="p-2.5 rounded-xl bg-blue-500/15 hover:bg-blue-600 hover:text-white text-blue-600 dark:text-blue-400 border border-stone-300 dark:border-stone-700 transition-all shadow-xs"
                   title={`Open LinkedIn (in/${linkedInHandle})`}
                 >
-                  <Linkedin size={13} />
+                  <Linkedin size={15} />
                 </a>
               )}
 
@@ -175,16 +175,16 @@ export default function ProfileCard({
                   href={waUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-600 hover:text-white text-emerald-600 dark:text-emerald-400 border border-stone-300 dark:border-stone-700 transition-all shadow-xs"
+                  className="p-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-600 hover:text-white text-emerald-600 dark:text-emerald-400 border border-stone-300 dark:border-stone-700 transition-all shadow-xs"
                   title="Direct WhatsApp Chat"
                 >
-                  <MessageCircle size={13} />
+                  <MessageCircle size={15} />
                 </a>
               )}
 
               {/* Matchmaker Synergy Badge */}
               {synergyScore !== null && (
-                <span className="text-[10px] font-black font-mono px-2.5 py-1 rounded-full bg-orange-100 dark:bg-orange-950/60 text-orange-700 dark:text-orange-400 border border-stone-400 dark:border-stone-700">
+                <span className="text-xs font-black font-mono px-3 py-1.5 rounded-full bg-orange-100 dark:bg-orange-950/60 text-orange-700 dark:text-orange-400 border border-stone-400 dark:border-stone-700">
                   ⚡ {synergyScore}% Match
                 </span>
               )}
@@ -192,44 +192,39 @@ export default function ProfileCard({
           </div>
 
           {/* ── 2. The Identity Bento Tile ─────────────────────────────────── */}
-          <div className="flex items-start gap-3.5">
+          <div className="flex items-center gap-4">
             <div
-              className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white font-extrabold text-xl shadow-md shadow-emerald-500/20 border-2 border-stone-800 shrink-0`}
+              className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-emerald-500/25 border-2 border-stone-800 shrink-0`}
             >
               {initials}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5">
-                <h3 className="font-extrabold text-stone-900 dark:text-stone-100 text-lg leading-snug truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+              <div className="flex items-center gap-2">
+                <h3 className="font-black text-stone-900 dark:text-stone-100 text-xl sm:text-2xl leading-tight truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                   {member.name}
                 </h3>
                 <span title="Verified Member" className="text-emerald-500 shrink-0">
-                  <CheckCircle2 size={15} />
+                  <CheckCircle2 size={18} />
                 </span>
               </div>
-              <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 truncate">
+              <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 truncate">
                 {member.role || 'Founder & Leader'}
               </p>
-              {member.business && (
-                <p className="text-xs font-semibold text-stone-500 dark:text-stone-400 truncate">
-                  {member.business.split('\n')[0]}
-                </p>
-              )}
             </div>
           </div>
 
           {/* ── 3. Pitch Container with Dark Grey Outliner ───────────────── */}
           {member.business ? (
-            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-transparent border-2 border-stone-300 dark:border-stone-700/80 relative shadow-xs">
-              <span className="text-[10px] font-black uppercase tracking-wider text-amber-700 dark:text-amber-400 flex items-center gap-1 mb-1">
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-transparent border-2 border-stone-300 dark:border-stone-700/80 relative shadow-xs space-y-1">
+              <span className="text-xs font-black uppercase tracking-wider text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
                 <span>🚀</span> VENTURE PITCH
               </span>
-              <p className="text-xs text-stone-800 dark:text-stone-200 italic font-medium leading-relaxed line-clamp-2">
+              <p className="text-sm sm:text-[15px] text-stone-800 dark:text-stone-200 italic font-medium leading-relaxed line-clamp-3">
                 "{member.business}"
               </p>
             </div>
           ) : (
-            <div className="p-3 rounded-2xl bg-stone-50 dark:bg-stone-800/40 border-2 border-stone-300 dark:border-stone-700/80">
+            <div className="p-4 rounded-2xl bg-stone-50 dark:bg-stone-800/40 border-2 border-stone-300 dark:border-stone-700/80">
               <p className="text-xs text-stone-400 italic">
                 Ready to collaborate and build alliances.
               </p>
@@ -238,52 +233,52 @@ export default function ProfileCard({
 
           {/* ── 4. Bento Dual Value Modules (Offering & Seeking) ──────────── */}
           {!compact && (offeringItems.length > 0 || seekingItems.length > 0) && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {/* Offering Tile */}
-              <div className="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-500/15 via-teal-500/10 to-emerald-500/5 dark:from-emerald-950/50 dark:to-teal-950/30 border-2 border-stone-300 dark:border-stone-700/80 space-y-1.5 shadow-xs">
-                <div className="flex items-center gap-1.5">
-                  <span className="p-1 rounded-lg bg-emerald-500 text-white shadow-xs">
-                    <Handshake size={11} />
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-500/15 via-teal-500/10 to-emerald-500/5 dark:from-emerald-950/50 dark:to-teal-950/30 border-2 border-stone-300 dark:border-stone-700/80 space-y-2 shadow-xs">
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 rounded-lg bg-emerald-500 text-white shadow-xs">
+                    <Handshake size={13} />
                   </span>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
+                  <span className="text-xs font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
                     Offering
                   </span>
                 </div>
                 {offeringItems.length > 0 ? (
-                  <ul className="text-[11px] text-emerald-950 dark:text-emerald-200 font-semibold space-y-1 leading-snug">
+                  <ul className="text-xs sm:text-sm text-emerald-950 dark:text-emerald-200 font-bold space-y-1.5 leading-snug">
                     {offeringItems.map((item, idx) => (
-                      <li key={idx} className="flex items-center gap-1.5 truncate">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                      <li key={idx} className="flex items-center gap-2 truncate">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
                         <span className="truncate">{item}</span>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-[10px] text-stone-400 italic">General expertise</p>
+                  <p className="text-xs text-stone-400 italic">General expertise</p>
                 )}
               </div>
 
               {/* Seeking Tile */}
-              <div className="p-3.5 rounded-2xl bg-gradient-to-br from-sky-500/15 via-indigo-500/10 to-sky-500/5 dark:from-sky-950/50 dark:to-indigo-950/30 border-2 border-stone-300 dark:border-stone-700/80 space-y-1.5 shadow-xs">
-                <div className="flex items-center gap-1.5">
-                  <span className="p-1 rounded-lg bg-sky-500 text-white shadow-xs">
-                    <Search size={11} />
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-sky-500/15 via-indigo-500/10 to-sky-500/5 dark:from-sky-950/50 dark:to-indigo-950/30 border-2 border-stone-300 dark:border-stone-700/80 space-y-2 shadow-xs">
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 rounded-lg bg-sky-500 text-white shadow-xs">
+                    <Search size={13} />
                   </span>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-sky-800 dark:text-sky-300">
+                  <span className="text-xs font-black uppercase tracking-wider text-sky-800 dark:text-sky-300">
                     Seeking
                   </span>
                 </div>
                 {seekingItems.length > 0 ? (
-                  <ul className="text-[11px] text-sky-950 dark:text-sky-200 font-semibold space-y-1 leading-snug">
+                  <ul className="text-xs sm:text-sm text-sky-950 dark:text-sky-200 font-bold space-y-1.5 leading-snug">
                     {seekingItems.map((item, idx) => (
-                      <li key={idx} className="flex items-center gap-1.5 truncate">
-                        <span className="w-1.5 h-1.5 rounded-full bg-sky-500 shrink-0" />
+                      <li key={idx} className="flex items-center gap-2 truncate">
+                        <span className="w-2 h-2 rounded-full bg-sky-500 shrink-0" />
                         <span className="truncate">{item}</span>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-[10px] text-stone-400 italic">Strategic alliances</p>
+                  <p className="text-xs text-stone-400 italic">Strategic alliances</p>
                 )}
               </div>
             </div>
@@ -291,17 +286,17 @@ export default function ProfileCard({
 
           {/* ── 5. Tag Pills with Dark Grey Outliners ─────────────────────── */}
           {Array.isArray(member.tags) && member.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {member.tags.slice(0, 3).map((tag) => (
                 <span
                   key={tag}
-                  className="px-3 py-1 rounded-xl text-[10px] font-extrabold bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-300 dark:border-stone-700"
+                  className="px-3.5 py-1.5 rounded-xl text-xs font-extrabold bg-stone-100 dark:bg-stone-800 text-stone-800 dark:text-stone-200 border border-stone-300 dark:border-stone-700"
                 >
                   {tag}
                 </span>
               ))}
               {member.tags.length > 3 && (
-                <span className="px-2 py-1 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-500 text-[10px] font-bold border border-stone-300 dark:border-stone-700">
+                <span className="px-2.5 py-1.5 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-500 text-xs font-bold border border-stone-300 dark:border-stone-700">
                   +{member.tags.length - 3}
                 </span>
               )}
@@ -311,17 +306,17 @@ export default function ProfileCard({
 
         {/* ── 6. Digital Card Action Footer with Dark Grey Top Border ─────── */}
         <div
-          className="p-3.5 bg-gradient-to-r from-stone-50 to-stone-100 dark:from-[#10121a] dark:to-[#171a26] border-t-2 border-stone-200 dark:border-stone-800 flex items-center justify-between gap-2 relative z-10"
+          className="p-4 bg-gradient-to-r from-stone-50 to-stone-100 dark:from-[#10121a] dark:to-[#171a26] border-t-2 border-stone-200 dark:border-stone-800 flex items-center justify-between gap-3 relative z-10"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Scan QR Code Button */}
           <button
             type="button"
             onClick={handleOpenQR}
-            className="px-3 py-2 rounded-xl text-xs font-extrabold text-stone-700 dark:text-stone-300 hover:bg-orange-500/10 hover:text-orange-600 dark:hover:text-orange-400 border border-stone-300 dark:border-stone-700 transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            className="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold text-stone-700 dark:text-stone-300 hover:bg-orange-500/10 hover:text-orange-600 dark:hover:text-orange-400 border border-stone-300 dark:border-stone-700 transition-all flex items-center gap-2 cursor-pointer shadow-xs"
             title="Scan Phone QR Code"
           >
-            <QrCode size={14} className="text-orange-500" />
+            <QrCode size={16} className="text-orange-500" />
             <span>Scan QR</span>
           </button>
 
@@ -330,19 +325,19 @@ export default function ProfileCard({
             <button
               type="button"
               onClick={() => setShowCard(true)}
-              className="p-2 rounded-xl text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white border border-stone-300 dark:border-stone-700 hover:bg-stone-200 dark:hover:bg-stone-800 transition-all cursor-pointer"
+              className="p-2.5 rounded-xl text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white border border-stone-300 dark:border-stone-700 hover:bg-stone-200 dark:hover:bg-stone-800 transition-all cursor-pointer"
               title="Open Digital Business Card Pass"
             >
-              <CreditCard size={14} />
+              <CreditCard size={16} />
             </button>
 
             {/* 1-Click Save Contact (.vcf) Button */}
             <button
               type="button"
               onClick={handleDownloadVCard}
-              className="px-4 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white border border-emerald-400/40 transition-all flex items-center gap-1.5 shadow-md shadow-emerald-600/20 cursor-pointer"
+              className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white border border-emerald-400/40 transition-all flex items-center gap-2 shadow-md shadow-emerald-600/20 cursor-pointer"
             >
-              <Download size={13} />
+              <Download size={15} />
               <span>Save Contact</span>
             </button>
           </div>
