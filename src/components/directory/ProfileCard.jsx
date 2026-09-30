@@ -184,7 +184,9 @@ export default function ProfileCard({
               <span>🚀</span> VENTURE PITCH
             </span>
             <p className="text-xs sm:text-[13px] text-stone-800 dark:text-white font-semibold italic leading-relaxed line-clamp-2">
-              {member.business ? `"${member.business}"` : 'Open to explore strategic alliances and collaborations.'}
+              {member.business
+                ? `"${member.business}"`
+                : 'Open to explore strategic alliances and collaborations.'}
             </p>
           </div>
 
@@ -441,7 +443,10 @@ export default function ProfileCard({
               <button onClick={handleDownloadVCard} className="btn-primary text-xs font-bold py-2">
                 <Download size={13} /> Save Contact (.vcf)
               </button>
-              <button onClick={() => setShowCard(true)} className="btn-secondary text-xs font-bold py-2">
+              <button
+                onClick={() => setShowCard(true)}
+                className="btn-secondary text-xs font-bold py-2"
+              >
                 <CreditCard size={13} /> Open Pass
               </button>
               {isLinkedInValid && (
