@@ -66,7 +66,7 @@ export function AppProvider({ children }) {
       // and preserves locally edited records.
       syncFromGoogleSheets()
         .then((result) => {
-          if (result && result.added > 0) {
+          if (result && result.success) {
             invalidateMembersCache();
             setMembersState(getMembers());
           }
