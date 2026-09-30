@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.11.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.10.0...v1.11.0) (2026-09-30)
+
+
+### Features
+
+* automated deployment update ([eff4c22](https://github.com/gnetventory/smart-entrepreneurs-directory/commit/eff4c223647c74eff96a3e34076f16e0a290e282))
+
+
+### Bug Fixes
+
+* **ui:** resolve dark mode pitch box contrast, streamline detail modal layout, and sync member listings ([6dbe6dc](https://github.com/gnetventory/smart-entrepreneurs-directory/commit/6dbe6dcaa0ff6a0341c27f8a92dcdc4ef0acc28f))
+
 ## [1.10.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.9.0...v1.10.0) (2026-09-30)
 
 
