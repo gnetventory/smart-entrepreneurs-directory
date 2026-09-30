@@ -139,14 +139,14 @@ export default function ProfileCard({
               {stage.label} · {stage.tenure || 'Active'}
             </span>
             {locationLabel && (
-              <span className="text-[11px] font-bold text-stone-500 dark:text-stone-400 flex items-center gap-1">
+              <span className="text-[11px] font-bold text-stone-500 dark:text-stone-300 flex items-center gap-1">
                 <span>{flag}</span> {locationLabel}
               </span>
             )}
           </div>
 
           {/* ── 1. Founder Identity Box (Editorial Fintech) ───────────────── */}
-          <div className="bg-[#F8FAFC] dark:bg-white/[0.035] border border-[#E2E8F0] dark:border-white/10 rounded-2xl p-4 flex items-center gap-4">
+          <div className="bg-[#F8FAFC] dark:bg-white/[0.04] border border-[#E2E8F0] dark:border-white/12 rounded-2xl p-4 flex items-center gap-4">
             {/* Circular Avatar with crisp depth shadow */}
             <div
               className={`w-12 h-12 rounded-full aspect-square bg-gradient-to-br ${gradient} text-white font-black text-xl flex items-center justify-center shrink-0 shadow-md ring-2 ring-emerald-500/30`}
@@ -169,10 +169,9 @@ export default function ProfileCard({
               </div>
               <p className="text-xs font-bold text-stone-600 dark:text-emerald-400 truncate">
                 {member.role || 'Founder & Leader'}
-                {member.business ? ` · ${member.business.split(/[-–—,]/)[0].trim()}` : ''}
               </p>
               {Array.isArray(member.tags) && member.tags.length > 0 && (
-                <span className="inline-block text-[10px] font-extrabold uppercase tracking-wider text-stone-700 dark:text-stone-300 bg-stone-200/80 dark:bg-white/10 px-2 py-0.5 rounded-md mt-0.5 truncate max-w-[200px]">
+                <span className="inline-block text-[10px] font-extrabold uppercase tracking-wider text-stone-700 dark:text-stone-200 bg-stone-200/80 dark:bg-white/10 border border-stone-300/80 dark:border-white/15 px-2 py-0.5 rounded-md mt-0.5 truncate max-w-[200px]">
                   {member.tags[0]}
                 </span>
               )}
@@ -180,26 +179,24 @@ export default function ProfileCard({
           </div>
 
           {/* ── 2. Warm Amber Pitch Box (with Vertical Gold Accent Border) ── */}
-          <div className="bg-gradient-to-r from-amber-50/90 via-amber-50/40 to-transparent dark:from-amber-500/12 dark:via-orange-500/5 dark:to-transparent border border-amber-200 dark:border-amber-500/30 border-l-4 border-l-amber-500 rounded-2xl p-3.5 space-y-1 min-h-[64px] flex flex-col justify-center">
+          <div className="bg-amber-50/70 dark:bg-amber-950/25 border border-amber-200/80 dark:border-amber-500/30 border-l-4 border-l-amber-500 rounded-2xl p-3.5 space-y-1 min-h-[58px] flex flex-col justify-center">
             <span className="text-[10px] font-black uppercase tracking-widest text-amber-700 dark:text-amber-400 flex items-center gap-1">
               <span>🚀</span> VENTURE PITCH
             </span>
-            <p className="text-xs sm:text-[13px] text-stone-800 dark:text-amber-100 font-semibold italic leading-relaxed line-clamp-2">
-              {member.business
-                ? `"${member.business}"`
-                : 'Open to explore strategic alliances and collaborations.'}
+            <p className="text-xs sm:text-[13px] text-stone-800 dark:text-white font-semibold italic leading-relaxed line-clamp-2">
+              {member.business ? `"${member.business}"` : 'Open to explore strategic alliances and collaborations.'}
             </p>
           </div>
 
           {/* ── 3. Lower 3-Box Sub-grid: [Tenure] [Offering] [Looking For] ─── */}
           <div className="grid grid-cols-3 gap-2 text-left items-stretch">
             {/* Box 1: Violet Stage / Tenure */}
-            <div className="bg-gradient-to-br from-purple-50 to-indigo-50/60 dark:from-purple-500/15 dark:to-indigo-500/5 border border-purple-200 dark:border-purple-500/35 rounded-2xl p-3 flex flex-col justify-between min-h-[84px]">
+            <div className="bg-gradient-to-br from-purple-50 to-indigo-50/60 dark:from-purple-500/16 dark:to-indigo-500/6 border border-purple-200 dark:border-purple-500/40 rounded-2xl p-3 flex flex-col justify-between min-h-[84px]">
               <span className="text-[9px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300">
                 TENURE
               </span>
               <div className="mt-auto pt-1">
-                <span className="text-[11px] font-black text-purple-950 dark:text-purple-100 block leading-tight">
+                <span className="text-[11px] font-black text-purple-950 dark:text-white block leading-tight">
                   {stage.tenure || 'Active'}
                 </span>
                 <span className="text-[9px] font-bold text-purple-700 dark:text-purple-300 block mt-0.5">
@@ -209,21 +206,21 @@ export default function ProfileCard({
             </div>
 
             {/* Box 2: Mint Offering */}
-            <div className="bg-gradient-to-br from-emerald-50 to-teal-50/60 dark:from-emerald-500/15 dark:to-teal-500/5 border border-emerald-200 dark:border-emerald-500/32 rounded-2xl p-3 flex flex-col justify-between min-h-[84px]">
+            <div className="bg-gradient-to-br from-emerald-50 to-teal-50/60 dark:from-emerald-500/16 dark:to-teal-500/6 border border-emerald-200 dark:border-emerald-500/38 rounded-2xl p-3 flex flex-col justify-between min-h-[84px]">
               <span className="text-[9px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
                 OFFERING
               </span>
-              <p className="text-[11px] text-emerald-950 dark:text-emerald-100 font-bold leading-snug mt-auto pt-1 line-clamp-2">
+              <p className="text-[11px] text-emerald-950 dark:text-white font-bold leading-snug mt-auto pt-1 line-clamp-2">
                 {offeringItems.length > 0 ? offeringItems.join(', ') : 'General Expertise'}
               </p>
             </div>
 
             {/* Box 3: Sky Looking For */}
-            <div className="bg-gradient-to-br from-sky-50 to-cyan-50/60 dark:from-sky-500/15 dark:to-sky-500/5 border border-sky-200 dark:border-sky-500/32 rounded-2xl p-3 flex flex-col justify-between min-h-[84px]">
+            <div className="bg-gradient-to-br from-sky-50 to-cyan-50/60 dark:from-sky-500/16 dark:to-sky-500/6 border border-sky-200 dark:border-sky-500/38 rounded-2xl p-3 flex flex-col justify-between min-h-[84px]">
               <span className="text-[9px] font-black uppercase tracking-wider text-sky-700 dark:text-sky-300">
                 LOOKING FOR
               </span>
-              <p className="text-[11px] text-sky-950 dark:text-sky-100 font-bold leading-snug mt-auto pt-1 line-clamp-2">
+              <p className="text-[11px] text-sky-950 dark:text-white font-bold leading-snug mt-auto pt-1 line-clamp-2">
                 {seekingItems.length > 0 ? seekingItems.join(', ') : 'Synergies'}
               </p>
             </div>
@@ -232,7 +229,7 @@ export default function ProfileCard({
 
         {/* ── 4. Bottom Action Bar: LinkedIn | Email | Save Contact ────────── */}
         <div
-          className="bg-[#F8FAFC] dark:bg-white/[0.035] border border-[#E2E8F0] dark:border-white/10 rounded-2xl p-1.5 grid grid-cols-3 gap-1 mt-1 relative z-10"
+          className="bg-[#F8FAFC] dark:bg-white/[0.04] border border-[#E2E8F0] dark:border-white/12 rounded-2xl p-1.5 grid grid-cols-3 gap-1 mt-1 relative z-10"
           onClick={(e) => e.stopPropagation()}
         >
           {/* LinkedIn */}
@@ -241,11 +238,11 @@ export default function ProfileCard({
               href={linkedInHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex flex-col items-center justify-center py-2 px-1 rounded-xl hover:bg-blue-500/15 text-blue-600 dark:text-blue-400 transition-all text-center group/btn"
+              className="flex flex-col items-center justify-center py-2 px-1 rounded-xl hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-all text-center group/btn"
               title={`Open LinkedIn (in/${linkedInHandle})`}
             >
               <Linkedin size={16} className="mb-1" />
-              <span className="text-[9px] font-black uppercase tracking-wider text-stone-600 dark:text-stone-400 group-hover/btn:text-blue-700 dark:group-hover/btn:text-blue-300">
+              <span className="text-[9px] font-black uppercase tracking-wider text-stone-600 dark:text-stone-300 group-hover/btn:text-blue-700 dark:group-hover/btn:text-white">
                 LINKEDIN
               </span>
             </a>
@@ -253,7 +250,7 @@ export default function ProfileCard({
             <button
               type="button"
               disabled
-              className="flex flex-col items-center justify-center py-2 px-1 rounded-xl text-stone-400 dark:text-stone-600 opacity-40 cursor-not-allowed text-center"
+              className="flex flex-col items-center justify-center py-2 px-1 rounded-xl text-stone-400 dark:text-stone-500 opacity-40 cursor-not-allowed text-center"
               title="LinkedIn not provided"
             >
               <Linkedin size={16} className="mb-1" />
@@ -265,11 +262,11 @@ export default function ProfileCard({
           {member.email ? (
             <a
               href={`mailto:${member.email}`}
-              className="flex flex-col items-center justify-center py-2 px-1 rounded-xl hover:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 transition-all text-center group/btn"
+              className="flex flex-col items-center justify-center py-2 px-1 rounded-xl hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 transition-all text-center group/btn"
               title={`Send Email to ${member.email}`}
             >
               <Mail size={16} className="mb-1" />
-              <span className="text-[9px] font-black uppercase tracking-wider text-stone-600 dark:text-stone-400 group-hover/btn:text-emerald-700 dark:group-hover/btn:text-white">
+              <span className="text-[9px] font-black uppercase tracking-wider text-stone-600 dark:text-stone-300 group-hover/btn:text-emerald-700 dark:group-hover/btn:text-white">
                 EMAIL
               </span>
             </a>
@@ -277,7 +274,7 @@ export default function ProfileCard({
             <button
               type="button"
               disabled
-              className="flex flex-col items-center justify-center py-2 px-1 rounded-xl text-stone-400 dark:text-stone-600 opacity-40 cursor-not-allowed text-center"
+              className="flex flex-col items-center justify-center py-2 px-1 rounded-xl text-stone-400 dark:text-stone-500 opacity-40 cursor-not-allowed text-center"
               title="Email not provided"
             >
               <Mail size={16} className="mb-1" />
@@ -289,11 +286,11 @@ export default function ProfileCard({
           <button
             type="button"
             onClick={handleDownloadVCard}
-            className="flex flex-col items-center justify-center py-2 px-1 rounded-xl hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 transition-all text-center group/btn cursor-pointer"
+            className="flex flex-col items-center justify-center py-2 px-1 rounded-xl hover:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 transition-all text-center group/btn cursor-pointer"
             title="Download .vcf Contact Card"
           >
             <Download size={16} className="mb-1" />
-            <span className="text-[9px] font-black uppercase tracking-wider text-stone-600 dark:text-stone-400 group-hover/btn:text-emerald-700 dark:group-hover/btn:text-white">
+            <span className="text-[9px] font-black uppercase tracking-wider text-stone-600 dark:text-stone-300 group-hover/btn:text-emerald-700 dark:group-hover/btn:text-white">
               SAVE CONTACT
             </span>
           </button>
@@ -344,31 +341,32 @@ export default function ProfileCard({
         </Modal>
       )}
 
-      {/* ── Detailed Dossier Modal ─────────────────────────────────────────── */}
+      {/* ── Space-Optimized Detailed Dossier Modal ───────────────────────────── */}
       <Modal isOpen={showDetail} onClose={() => setShowDetail(false)} title={member.name} size="md">
-        <div className="space-y-6">
-          <div className="flex items-start gap-4">
+        <div className="space-y-4">
+          {/* 1. Profile Identity Header */}
+          <div className="flex items-center gap-3.5 bg-stone-50 dark:bg-white/[0.03] p-3.5 rounded-2xl border border-stone-200 dark:border-white/10">
             <div
-              className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white font-black text-2xl flex-shrink-0 shadow-md border-2 border-stone-800`}
+              className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white font-black text-2xl flex-shrink-0 shadow-md ring-2 ring-emerald-500/30`}
             >
               {initials}
             </div>
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-1 space-y-0.5">
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-2xl font-black text-stone-900 dark:text-white tracking-tight">
+                <h2 className="text-xl font-black text-stone-900 dark:text-white tracking-tight">
                   {member.name}
                 </h2>
                 <span
-                  className={`badge ${stage.bg} ${stage.text} border ${stage.border} text-xs px-2.5 py-0.5 font-bold`}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold ${stage.bg} ${stage.text} border ${stage.border || 'border-stone-300 dark:border-stone-700'}`}
                 >
-                  {stage.icon} {stage.label}
+                  {stage.icon} {stage.label} · {stage.tenure || 'Active'}
                 </span>
               </div>
-              <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                {member.role}
+              <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                {member.role || 'Founder & Leader'}
               </p>
               {locationLabel && (
-                <p className="text-xs text-stone-500 dark:text-stone-400 mt-1 flex items-center gap-1 font-semibold">
+                <p className="text-xs text-stone-500 dark:text-stone-400 font-semibold flex items-center gap-1">
                   <MapPin size={12} />
                   {flag} {locationLabel}
                 </p>
@@ -376,50 +374,59 @@ export default function ProfileCard({
             </div>
           </div>
 
-          {member.business && (
-            <div className="card p-4 space-y-1 bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-transparent border-2 border-stone-300 dark:border-stone-700/80">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
-                <Building2 size={13} /> Executive Pitch & Project
+          {/* 2. Executive Pitch Box */}
+          {member.business ? (
+            <div className="bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-500/30 border-l-4 border-l-amber-500 rounded-2xl p-3.5 space-y-1">
+              <span className="text-[10px] font-black uppercase tracking-widest text-amber-700 dark:text-amber-400 flex items-center gap-1">
+                <span>🚀</span> Executive Pitch & Project
               </span>
-              <p className="text-sm text-stone-800 dark:text-stone-200 leading-relaxed font-medium">
-                {member.business}
+              <p className="text-xs sm:text-sm text-stone-800 dark:text-stone-100 italic font-medium leading-relaxed">
+                "{member.business}"
               </p>
+            </div>
+          ) : (
+            <div className="bg-stone-50 dark:bg-white/[0.02] border border-stone-200 dark:border-white/10 rounded-2xl p-3 text-xs text-stone-400 italic">
+              Ready to collaborate and build alliances.
             </div>
           )}
 
+          {/* 3. Dual Value Exchange Grid (Compact) */}
           {(member.lookingFor || member.canHelp) && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {member.lookingFor && (
-                <div className="bg-sky-50/80 dark:bg-sky-950/30 border-2 border-stone-300 dark:border-stone-700/80 rounded-xl p-3.5 space-y-1">
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-sky-700 dark:text-sky-400 flex items-center gap-1">
-                    <Search size={12} /> Seeking / Looking For
-                  </span>
-                  <p className="text-xs text-sky-950 dark:text-sky-200 leading-relaxed font-medium">
-                    {member.lookingFor}
-                  </p>
-                </div>
-              )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
               {member.canHelp && (
-                <div className="bg-emerald-50/80 dark:bg-emerald-950/30 border-2 border-stone-300 dark:border-stone-700/80 rounded-xl p-3.5 space-y-1">
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-                    <Handshake size={12} /> Offering / Can Help With
+                <div className="bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-500/30 rounded-2xl p-3 space-y-1">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300 flex items-center gap-1">
+                    <span>🤝</span> Offering / Can Help With
                   </span>
-                  <p className="text-xs text-emerald-950 dark:text-emerald-200 leading-relaxed font-medium">
+                  <p className="text-stone-800 dark:text-stone-200 font-medium leading-snug">
                     {member.canHelp}
                   </p>
                 </div>
               )}
+              {member.lookingFor && (
+                <div className="bg-sky-50/80 dark:bg-sky-950/20 border border-sky-200 dark:border-sky-500/30 rounded-2xl p-3 space-y-1">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-sky-800 dark:text-sky-300 flex items-center gap-1">
+                    <span>🔍</span> Seeking / Looking For
+                  </span>
+                  <p className="text-stone-800 dark:text-stone-200 font-medium leading-snug">
+                    {member.lookingFor}
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
+          {/* 4. Industry & Skills Tags */}
           {Array.isArray(member.tags) && member.tags.length > 0 && (
-            <div className="space-y-1.5">
-              <span className="label">Industry & Skills Tags</span>
+            <div className="space-y-1 pt-1">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-stone-500 dark:text-stone-400">
+                Industry & Skills
+              </span>
               <div className="flex flex-wrap gap-1.5">
                 {member.tags.map((t) => (
                   <span
                     key={t}
-                    className="badge bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-bold border border-stone-300 dark:border-stone-700 text-xs"
+                    className="px-2.5 py-1 rounded-lg bg-stone-100 dark:bg-white/5 text-stone-700 dark:text-stone-300 font-bold border border-stone-200 dark:border-white/10 text-xs"
                   >
                     #{t}
                   </span>
@@ -428,23 +435,23 @@ export default function ProfileCard({
             </div>
           )}
 
-          {/* Action Bar inside Modal */}
-          <div className="pt-4 border-t border-stone-200 dark:border-stone-800 flex items-center justify-between flex-wrap gap-3">
+          {/* 5. Modal Action Bar */}
+          <div className="pt-3 border-t border-stone-200 dark:border-white/10 flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2 flex-wrap">
-              <button onClick={handleDownloadVCard} className="btn-primary text-xs font-bold">
+              <button onClick={handleDownloadVCard} className="btn-primary text-xs font-bold py-2">
                 <Download size={13} /> Save Contact (.vcf)
               </button>
-              <button onClick={() => setShowCard(true)} className="btn-secondary text-xs font-bold">
-                <CreditCard size={14} /> Open Digital Pass
+              <button onClick={() => setShowCard(true)} className="btn-secondary text-xs font-bold py-2">
+                <CreditCard size={13} /> Open Pass
               </button>
               {isLinkedInValid && (
                 <a
                   href={linkedInHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn-secondary text-xs font-bold text-blue-600 dark:text-blue-400"
+                  className="btn-secondary text-xs font-bold py-2 text-blue-600 dark:text-blue-400"
                 >
-                  <Linkedin size={14} /> LinkedIn
+                  <Linkedin size={13} /> LinkedIn
                 </a>
               )}
             </div>
@@ -453,13 +460,13 @@ export default function ProfileCard({
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowEdit(true)}
-                  className="btn-secondary text-xs font-bold"
+                  className="btn-secondary text-xs font-bold py-2"
                 >
                   <Edit2 size={13} /> Edit
                 </button>
                 <button
                   onClick={() => setConfirmDelete(true)}
-                  className="btn-ghost text-rose-600 hover:bg-rose-50 text-xs font-bold"
+                  className="btn-ghost text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs font-bold py-2"
                 >
                   <Trash2 size={13} /> Delete
                 </button>

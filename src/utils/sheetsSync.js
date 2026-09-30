@@ -348,7 +348,10 @@ export async function syncFromGoogleSheets() {
 
     const rawRows = Array.isArray(data.rows) ? data.rows : [];
     const tombstones = new Set(getTombstones());
-    const existingMembers = getMembers();
+    // Filter out legacy mock seed data so Google Sheets is the source of truth
+    const existingMembers = getMembers().filter(
+      (m) => m && !String(m.id || '').startsWith('seed-') && !m.isDemoSeed
+    );
 
     // Map existing members by Name (normalized) and sheetRowIndex for lookup
     const existingByName = new Map();
