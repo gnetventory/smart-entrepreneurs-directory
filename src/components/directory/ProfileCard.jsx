@@ -121,154 +121,173 @@ export default function ProfileCard({
 
   return (
     <>
-      {/* ── Compact Space-Optimized Profile Card ────────────────────────────── */}
+      {/* ── Glassmorphic Bento Profile Card Container ──────────────────────── */}
       <div
         onClick={() => setShowDetail(true)}
-        className="group relative bg-white dark:bg-[#141722] rounded-2xl border border-stone-200/90 dark:border-stone-800 hover:border-emerald-500/60 dark:hover:border-emerald-500/60 p-4 space-y-3 transition-all duration-200 flex flex-col justify-between shadow-xs hover:shadow-md cursor-pointer"
+        className="group relative bg-white dark:bg-gradient-to-b dark:from-[#161A23] dark:to-[#0D1017] rounded-3xl border border-stone-300 dark:border-white/10 hover:border-emerald-600 dark:hover:border-emerald-500/50 p-4.5 space-y-3.5 transition-all duration-300 flex flex-col justify-between shadow-md hover:shadow-xl dark:shadow-2xl cursor-pointer overflow-hidden"
       >
-        <div className="space-y-2.5">
-          {/* ── Row 1: Avatar + Founder Info + Stage Pill ───────────────────── */}
-          <div className="flex items-start justify-between gap-2.5">
-            <div className="flex items-center gap-3 min-w-0 flex-1">
-              <div
-                className={`w-11 h-11 rounded-xl bg-gradient-to-br ${gradient} text-white font-extrabold text-base flex items-center justify-center shrink-0 shadow-xs`}
-              >
-                {initials}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  <h3 className="text-base font-extrabold text-stone-900 dark:text-stone-100 truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                    {member.name}
-                  </h3>
-                  <span title="Verified Member" className="text-emerald-500 shrink-0">
-                    <CheckCircle2 size={15} />
+        {/* Subtle Ambient Emerald Glow (Dark Mode) */}
+        <div className="absolute -top-12 -right-12 w-40 h-40 bg-emerald-500/10 dark:bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="space-y-3 relative z-10">
+          {/* ── 1. Top Identity Tile ──────────────────────────────────────── */}
+          <div className="bg-[#F8FAFC] dark:bg-white/[0.03] border border-[#E2E8F0] dark:border-white/10 rounded-2xl p-3.5 flex items-center gap-3.5 relative">
+            {/* Circular Avatar */}
+            <div
+              className={`w-13 h-13 rounded-full bg-gradient-to-br ${gradient} text-white font-black text-xl flex items-center justify-center shrink-0 shadow-md ring-2 ring-emerald-500/40`}
+            >
+              {initials}
+            </div>
+            <div className="min-w-0 flex-1 space-y-0.5">
+              <div className="flex items-center gap-1.5">
+                <h3 className="text-base font-black uppercase tracking-wide text-stone-900 dark:text-white truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                  {member.name}
+                </h3>
+                <span title="Verified Member" className="text-emerald-500 shrink-0">
+                  <CheckCircle2 size={16} />
+                </span>
+                {synergyScore !== null && (
+                  <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-orange-100 dark:bg-orange-950/60 text-orange-700 dark:text-orange-400 shrink-0">
+                    ⚡ {synergyScore}%
                   </span>
-                  {synergyScore !== null && (
-                    <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-orange-100 dark:bg-orange-950/60 text-orange-700 dark:text-orange-400 shrink-0">
-                      ⚡ {synergyScore}%
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs font-semibold text-stone-500 dark:text-stone-400 truncate">
-                  {member.role || 'Founder'}
-                  {locationLabel ? ` · ${flag} ${locationLabel}` : ''}
-                </p>
+                )}
+              </div>
+              <p className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400 truncate">
+                {member.role || 'Founder & Leader'}
+              </p>
+              <div className="flex items-center gap-1.5 pt-1 flex-wrap">
+                {Array.isArray(member.tags) && member.tags.length > 0 && (
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-stone-200/80 dark:bg-white/5 text-stone-700 dark:text-stone-300 border border-stone-300/80 dark:border-white/10 truncate max-w-[130px]">
+                    {member.tags[0]}
+                  </span>
+                )}
+                {locationLabel && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-stone-200/80 dark:bg-white/5 text-stone-700 dark:text-stone-300 border border-stone-300/80 dark:border-white/10 truncate max-w-[140px]">
+                    {flag} {locationLabel}
+                  </span>
+                )}
               </div>
             </div>
-
-            {/* Compact Stage Pill */}
-            <span
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold ${stage.bg} ${stage.text} border border-stone-200 dark:border-stone-700/80 shrink-0`}
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              {stage.label}
-            </span>
           </div>
 
-          {/* ── Row 2: Compact Pitch Quote ──────────────────────────────────── */}
-          {member.business ? (
-            <p className="text-xs text-stone-700 dark:text-stone-300 font-medium leading-relaxed italic bg-stone-50/80 dark:bg-stone-800/50 px-3 py-2 rounded-xl border border-stone-100 dark:border-stone-800 line-clamp-2">
-              "{member.business}"
+          {/* ── 2. Middle Pitch Tile ───────────────────────────────────────── */}
+          <div className="bg-[#F8FAFC] dark:bg-white/[0.03] border border-[#E2E8F0] dark:border-white/10 rounded-2xl p-3.5 space-y-1">
+            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+              PITCH
+            </span>
+            <p className="text-xs sm:text-[13px] text-stone-800 dark:text-stone-200 font-semibold leading-relaxed line-clamp-2">
+              {member.business
+                ? `"${member.business}"`
+                : 'Open to explore strategic alliances and collaborations.'}
             </p>
-          ) : (
-            <p className="text-xs text-stone-400 italic bg-stone-50/50 dark:bg-stone-800/30 px-3 py-1.5 rounded-xl">
-              Open to network and explore synergies.
-            </p>
-          )}
+          </div>
 
-          {/* ── Row 3: Inline Compact Offers & Needs ────────────────────────── */}
-          {(offeringItems.length > 0 || seekingItems.length > 0) && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
-              {offeringItems.length > 0 && (
-                <div className="flex items-center gap-1.5 bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-200 px-2.5 py-1.5 rounded-lg border border-emerald-200/50 dark:border-emerald-800/40 min-w-0">
-                  <span className="font-bold text-emerald-700 dark:text-emerald-400 shrink-0">
-                    Offers:
-                  </span>
-                  <span className="truncate font-medium">{offeringItems.join(', ')}</span>
-                </div>
-              )}
-              {seekingItems.length > 0 && (
-                <div className="flex items-center gap-1.5 bg-sky-50/70 dark:bg-sky-950/40 text-sky-950 dark:text-sky-200 px-2.5 py-1.5 rounded-lg border border-sky-200/50 dark:border-sky-800/40 min-w-0">
-                  <span className="font-bold text-sky-700 dark:text-sky-400 shrink-0">Needs:</span>
-                  <span className="truncate font-medium">{seekingItems.join(', ')}</span>
-                </div>
-              )}
+          {/* ── 3. Lower 3-Box Sub-grid: [Tenure/Stage (Differentiated)] [Offering] [Looking For] ── */}
+          <div className="grid grid-cols-3 gap-2 text-left">
+            {/* Box 1: Differentiated Tenure / Stage */}
+            <div className="bg-emerald-50/80 dark:bg-gradient-to-br dark:from-emerald-500/15 dark:to-teal-500/5 border border-emerald-300 dark:border-emerald-500/40 shadow-xs dark:shadow-[0_0_18px_-3px_rgba(16,185,129,0.2)] rounded-2xl p-2.5 sm:p-3 flex flex-col justify-between">
+              <span className="text-[9px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
+                TENURE / STAGE
+              </span>
+              <div className="mt-1">
+                <span className="text-[11px] font-black text-stone-900 dark:text-emerald-100 block leading-tight">
+                  {stage.tenure || 'Active'}
+                </span>
+                <span className="text-[9px] font-bold text-emerald-700 dark:text-emerald-400 block mt-0.5">
+                  {stage.label}
+                </span>
+              </div>
             </div>
-          )}
+
+            {/* Box 2: Offering */}
+            <div className="bg-[#F8FAFC] dark:bg-white/[0.03] border border-[#E2E8F0] dark:border-white/10 rounded-2xl p-2.5 sm:p-3 flex flex-col justify-between">
+              <span className="text-[9px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+                OFFERING
+              </span>
+              <p className="text-[11px] text-stone-700 dark:text-stone-300 font-bold leading-snug mt-1 line-clamp-2">
+                {offeringItems.length > 0 ? offeringItems.join(', ') : 'General Expertise'}
+              </p>
+            </div>
+
+            {/* Box 3: Looking For */}
+            <div className="bg-[#F8FAFC] dark:bg-white/[0.03] border border-[#E2E8F0] dark:border-white/10 rounded-2xl p-2.5 sm:p-3 flex flex-col justify-between">
+              <span className="text-[9px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+                LOOKING FOR
+              </span>
+              <p className="text-[11px] text-stone-700 dark:text-stone-300 font-bold leading-snug mt-1 line-clamp-2">
+                {seekingItems.length > 0 ? seekingItems.join(', ') : 'Synergies'}
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* ── Row 4 / Footer: Tags + Fast Actions ─────────────────────────── */}
+        {/* ── 4. Bottom Action Bar: LinkedIn | Email | Save Contact ────────── */}
         <div
-          className="pt-2.5 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between gap-2"
+          className="bg-[#F8FAFC] dark:bg-white/[0.03] border border-[#E2E8F0] dark:border-white/10 rounded-2xl p-1.5 grid grid-cols-3 gap-1 relative z-10"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Primary Tag or Count */}
-          <div className="flex items-center gap-1.5 min-w-0">
-            {Array.isArray(member.tags) && member.tags.length > 0 ? (
-              <span className="text-[10px] font-bold text-stone-600 dark:text-stone-400 bg-stone-100 dark:bg-stone-800/90 px-2.5 py-1 rounded-md truncate max-w-[130px]">
-                {member.tags[0]}
+          {/* LinkedIn */}
+          {isLinkedInValid ? (
+            <a
+              href={linkedInHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center justify-center py-2 px-1 rounded-xl hover:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 transition-all text-center group/btn"
+              title={`Open LinkedIn (in/${linkedInHandle})`}
+            >
+              <Linkedin size={16} className="mb-1" />
+              <span className="text-[9px] font-black uppercase tracking-wider text-stone-600 dark:text-stone-400 group-hover/btn:text-emerald-700 dark:group-hover/btn:text-white">
+                LINKEDIN
               </span>
-            ) : (
-              <span className="text-[10px] font-bold text-stone-400 dark:text-stone-500">
-                Directory Member
-              </span>
-            )}
-            {Array.isArray(member.tags) && member.tags.length > 1 && (
-              <span className="text-[10px] font-bold text-stone-400 dark:text-stone-500 bg-stone-50 dark:bg-stone-800/50 px-1.5 py-1 rounded-md">
-                +{member.tags.length - 1}
-              </span>
-            )}
-          </div>
-
-          {/* Quick Action Buttons */}
-          <div className="flex items-center gap-1.5 shrink-0">
-            {/* Direct WhatsApp */}
-            {waUrl && (
-              <a
-                href={waUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-600 hover:text-white text-emerald-600 dark:text-emerald-400 transition-all"
-                title="Direct WhatsApp"
-              >
-                <MessageCircle size={14} />
-              </a>
-            )}
-
-            {/* LinkedIn */}
-            {isLinkedInValid && (
-              <a
-                href={linkedInHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-600 hover:text-white text-blue-600 dark:text-blue-400 transition-all"
-                title="LinkedIn Profile"
-              >
-                <Linkedin size={14} />
-              </a>
-            )}
-
-            {/* Quick QR Code modal trigger */}
+            </a>
+          ) : (
             <button
               type="button"
-              onClick={handleOpenQR}
-              className="p-1.5 rounded-lg bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 transition-all"
-              title="Show Phone QR"
+              disabled
+              className="flex flex-col items-center justify-center py-2 px-1 rounded-xl text-stone-400 dark:text-stone-600 opacity-40 cursor-not-allowed text-center"
+              title="LinkedIn not provided"
             >
-              <QrCode size={14} />
+              <Linkedin size={16} className="mb-1" />
+              <span className="text-[9px] font-black uppercase tracking-wider">LINKEDIN</span>
             </button>
+          )}
 
-            {/* 1-Click Save Contact (.vcf) */}
+          {/* Email */}
+          {member.email ? (
+            <a
+              href={`mailto:${member.email}`}
+              className="flex flex-col items-center justify-center py-2 px-1 rounded-xl hover:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 transition-all text-center group/btn"
+              title={`Send Email to ${member.email}`}
+            >
+              <Mail size={16} className="mb-1" />
+              <span className="text-[9px] font-black uppercase tracking-wider text-stone-600 dark:text-stone-400 group-hover/btn:text-emerald-700 dark:group-hover/btn:text-white">
+                EMAIL
+              </span>
+            </a>
+          ) : (
             <button
               type="button"
-              onClick={handleDownloadVCard}
-              className="px-2.5 py-1.5 rounded-lg bg-stone-900 hover:bg-black dark:bg-stone-100 dark:hover:bg-white dark:text-stone-900 text-white text-[11px] font-bold transition-all flex items-center gap-1 shadow-xs"
-              title="Save Contact (.vcf)"
+              disabled
+              className="flex flex-col items-center justify-center py-2 px-1 rounded-xl text-stone-400 dark:text-stone-600 opacity-40 cursor-not-allowed text-center"
+              title="Email not provided"
             >
-              <Download size={12} />
-              <span className="hidden sm:inline">Save</span>
+              <Mail size={16} className="mb-1" />
+              <span className="text-[9px] font-black uppercase tracking-wider">EMAIL</span>
             </button>
-          </div>
+          )}
+
+          {/* Save Contact */}
+          <button
+            type="button"
+            onClick={handleDownloadVCard}
+            className="flex flex-col items-center justify-center py-2 px-1 rounded-xl hover:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 transition-all text-center group/btn cursor-pointer"
+            title="Download .vcf Contact Card"
+          >
+            <Download size={16} className="mb-1" />
+            <span className="text-[9px] font-black uppercase tracking-wider text-stone-600 dark:text-stone-400 group-hover/btn:text-emerald-700 dark:group-hover/btn:text-white">
+              SAVE CONTACT
+            </span>
+          </button>
         </div>
       </div>
 

@@ -2,6 +2,7 @@
 export const STAGES = {
   idea: {
     label: 'Idea Phase',
+    tenure: 'Concept',
     color: 'slate',
     bg: 'bg-stone-100 dark:bg-stone-800',
     text: 'text-stone-700 dark:text-stone-300',
@@ -10,6 +11,7 @@ export const STAGES = {
   },
   starting: {
     label: 'Starting',
+    tenure: '<1 Year',
     color: 'emerald',
     bg: 'bg-emerald-50 dark:bg-emerald-950/40',
     text: 'text-emerald-700 dark:text-emerald-300',
@@ -18,6 +20,7 @@ export const STAGES = {
   },
   running: {
     label: 'Running',
+    tenure: '1–3 Years',
     color: 'amber',
     bg: 'bg-amber-50 dark:bg-amber-950/40',
     text: 'text-amber-700 dark:text-amber-300',
@@ -26,6 +29,7 @@ export const STAGES = {
   },
   growing: {
     label: 'Growing',
+    tenure: '3+ Years',
     color: 'indigo',
     bg: 'bg-indigo-50 dark:bg-indigo-950/40',
     text: 'text-indigo-700 dark:text-indigo-300',
