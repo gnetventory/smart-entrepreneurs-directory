@@ -7,6 +7,8 @@ export default {
       fontFamily: {
         sans:    ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
         display: ['Outfit', 'system-ui', 'sans-serif'],
+        serif:   ['Fraunces', 'Georgia', 'serif'],
+        mono:    ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
       },
       colors: {
         // Primary brand — emerald
@@ -18,7 +20,7 @@ export default {
           600: '#059669',
           700: '#047857',
         },
-        // Contrast highlight — orange
+        // Contrast highlight — terracotta & orange
         accent: {
           50:  '#fff7ed',
           100: '#ffedd5',
@@ -36,11 +38,21 @@ export default {
           subtle: '#EDE9E1',
           border: '#E5E1D8',
         },
+        stone: {
+          850: '#1f1c19',
+          925: '#12100e',
+        },
       },
       boxShadow: {
+        '2xs':           '0 1px 2px 0 rgba(0, 0, 0, 0.04)',
         'card':          '0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.04)',
         'card-hover':    '0 6px 24px 0 rgba(0,0,0,0.10), 0 2px 6px -1px rgba(0,0,0,0.05)',
         'card-warm':     '0 2px 12px 0 rgba(120,53,15,0.06)',
+        'tactile-sm':    '2px 2px 0px 0px rgba(28,25,23,0.9)',
+        'tactile':       '3px 3px 0px 0px rgba(28,25,23,0.95)',
+        'tactile-lg':    '4px 4px 0px 0px rgba(28,25,23,1)',
+        'tactile-dark':  '3px 3px 0px 0px rgba(68,64,60,0.95)',
+        'tactile-dark-lg': '4px 4px 0px 0px rgba(68,64,60,1)',
         'glow-emerald':  '0 0 20px -4px rgba(16,185,129,0.35)',
         'glow-orange':   '0 0 20px -4px rgba(249,115,22,0.35)',
         'inner-warm':    'inset 0 1px 3px 0 rgba(120,53,15,0.06)',

@@ -44,6 +44,7 @@ import {
   getAdminEmail,
   saveAdminEmail,
   updateMember,
+  deleteMember,
 } from '../../utils/storage';
 import {
   syncFromGoogleSheets,
@@ -54,9 +55,10 @@ import {
   rejectMember,
 } from '../../utils/sheetsSync';
 import { MAP_TILE_PRESETS } from '../../utils/constants';
-import { isStale, downloadJSON, hashPIN, copyToClipboard } from '../../utils/helpers';
+import { downloadJSON, hashPIN, copyToClipboard } from '../../utils/helpers';
 import { revokeAdminSession } from '../../utils/session';
 import Modal from '../common/Modal';
+import AIMatchmaker from '../matchmaker/AIMatchmaker';
 
 export default function AdminPanel({ onLock }) {
   const { apiKey, updateApiKey, mapConfig, updateMapConfig, members, refreshMembers, notify } =
@@ -90,13 +92,12 @@ export default function AdminPanel({ onLock }) {
   const [adminEmailInput, setAdminEmailInput] = useState(getAdminEmail());
   const [isPushingEmail, setIsPushingEmail] = useState(false);
   const [emailPushFeedback, setEmailPushFeedback] = useState(null);
+  const [showAdminAIMatchmaker, setShowAdminAIMatchmaker] = useState(false);
 
   // ── Pending Approvals ────────────────────────────────────────────────────
   const pendingMembers = members.filter((m) => m.status === 'pending');
   const [approvingId, setApprovingId] = useState(null);
   const [rejectingId, setRejectingId] = useState(null);
-
-  const staleMembers = members.filter((m) => isStale(m.updatedAt));
 
   const handleLock = () => {
     revokeAdminSession();
@@ -230,6 +231,45 @@ export default function AdminPanel({ onLock }) {
     }
   };
 
+  const handleApproveAndReplace = async (pendingMember, existingMember) => {
+    setApprovingId(pendingMember.id);
+    try {
+      // Merge the new fields into the existing profile
+      const updatedFields = {
+        name: pendingMember.name || existingMember.name,
+        role: pendingMember.role || existingMember.role,
+        business: pendingMember.business || existingMember.business,
+        stage: pendingMember.stage || existingMember.stage,
+        lookingFor: pendingMember.lookingFor || existingMember.lookingFor,
+        canHelp: pendingMember.canHelp || existingMember.canHelp,
+        location: pendingMember.location || existingMember.location,
+        phone: pendingMember.phone || existingMember.phone,
+        email: pendingMember.email || existingMember.email,
+        linkedin: pendingMember.linkedin || existingMember.linkedin,
+        website: pendingMember.website || existingMember.website,
+        instagram: pendingMember.instagram || existingMember.instagram,
+        tags: pendingMember.tags?.length ? pendingMember.tags : existingMember.tags,
+        status: 'active',
+        appStatus: 'APPROVED_UPDATE',
+        formTimestamp: pendingMember.formTimestamp || pendingMember.createdAt,
+        updatedAt: new Date().toISOString(),
+      };
+
+      updateMember(existingMember.id, updatedFields);
+      // Remove the pending submission record to avoid duplicate listings
+      deleteMember(pendingMember.id);
+
+      // Push approval to sheets
+      await approveMember({ ...existingMember, ...updatedFields });
+      refreshMembers();
+      notify(`✅ Updated and replaced ${existingMember.name}'s profile in the directory!`);
+    } catch (err) {
+      notify(`Failed to update profile: ${err.message}`, 'error');
+    } finally {
+      setApprovingId(null);
+    }
+  };
+
   const handleRejectMember = async (member) => {
     setRejectingId(member.id);
     try {
@@ -324,35 +364,41 @@ export default function AdminPanel({ onLock }) {
 
   return (
     <div className="space-y-6 animate-fade-in max-w-5xl mx-auto">
-      {/* ── Top Header Banner (Compact & High Impact) ────────────────────────── */}
-      <div className="card p-5 sm:p-6 bg-gradient-to-r from-stone-900 to-stone-950 text-white border-stone-800 shadow-lg flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-3.5">
-          <div className="p-3 bg-emerald-600 rounded-2xl flex-shrink-0 shadow-md shadow-emerald-600/30">
+      {/* ── Top Header Banner (Compact & High Impact Anti-Slop) ──────────────── */}
+      <div className="card p-5 sm:p-6 bg-stone-950 text-white border-[1.5px] border-stone-800 shadow-tactile dark:shadow-tactile-dark flex items-center justify-between gap-4 flex-wrap relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-orange-600/20 via-emerald-600/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+        <div className="flex items-center gap-3.5 relative z-10">
+          <div className="p-3 bg-emerald-600 rounded-2xl flex-shrink-0 border-[1.5px] border-emerald-400 shadow-tactile-sm">
             <Settings size={22} className="text-white" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-extrabold tracking-tight">Admin & Data Governance</h2>
-              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                Persistent Disk Storage
+              <h2 className="text-xl font-black tracking-tight font-display text-white">
+                Admin & Data Governance
+              </h2>
+              <span className="text-[10px] font-mono font-black uppercase px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                Persistent Disk DB
               </span>
             </div>
-            <p className="text-xs text-stone-400 font-medium mt-0.5">
+            <p className="text-xs text-stone-300 font-medium mt-0.5">
               Manage database state, Google Sheets 2-way sync, security PIN, and backups.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 relative z-10">
           <a
             href="/index.html"
             target="_blank"
             rel="noopener noreferrer"
-            className="btn-secondary text-xs py-2 px-3.5"
+            className="btn-secondary text-xs py-2 px-3.5 font-bold shadow-tactile-sm"
           >
             <ExternalLink size={13} /> Public Directory
           </a>
-          <button onClick={handleLock} className="btn-accent text-xs py-2 px-3.5">
+          <button
+            onClick={handleLock}
+            className="btn-accent text-xs py-2 px-3.5 font-bold shadow-tactile-sm"
+          >
             <Lock size={13} /> Lock Session
           </button>
         </div>
@@ -570,59 +616,133 @@ export default function AdminPanel({ onLock }) {
             </div>
           ) : (
             <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
-              {pendingMembers.map((member) => (
-                <div
-                  key={member.id}
-                  className="p-3 bg-white dark:bg-stone-900 border border-amber-200 dark:border-amber-900/60 rounded-xl space-y-2"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="font-bold text-sm text-stone-900 dark:text-stone-100 truncate">
-                        {member.name}
-                      </p>
-                      <p className="text-[11px] text-stone-500 truncate">
-                        {member.role} {member.location?.city ? `· ${member.location.city}` : ''}
-                      </p>
+              {pendingMembers.map((member) => {
+                // Find existing active/directory member matching by name, phone, or LinkedIn
+                const existingMatch = members.find(
+                  (m) =>
+                    m.id !== member.id &&
+                    m.status !== 'pending' &&
+                    m.status !== 'rejected' &&
+                    ((m.name &&
+                      member.name &&
+                      m.name.trim().toLowerCase() === member.name.trim().toLowerCase()) ||
+                      (m.phone &&
+                        member.phone &&
+                        m.phone.replace(/\D/g, '') === member.phone.replace(/\D/g, '') &&
+                        m.phone.replace(/\D/g, '').length >= 8) ||
+                      (m.linkedin &&
+                        member.linkedin &&
+                        m.linkedin.toLowerCase().includes(member.linkedin.toLowerCase())))
+                );
+
+                return (
+                  <div
+                    key={member.id}
+                    className={`p-3.5 bg-white dark:bg-stone-900 rounded-xl space-y-2.5 border ${
+                      existingMatch
+                        ? 'border-blue-300 dark:border-blue-800/80 ring-1 ring-blue-400/20'
+                        : 'border-amber-200 dark:border-amber-900/60'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-bold text-sm text-stone-900 dark:text-stone-100 truncate">
+                          {member.name}
+                        </p>
+                        <p className="text-[11px] text-stone-500 truncate">
+                          {member.role} {member.location?.city ? `· ${member.location.city}` : ''}
+                        </p>
+                      </div>
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                          existingMatch
+                            ? 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300'
+                            : 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300'
+                        }`}
+                      >
+                        {existingMatch ? 'PROFILE UPDATE' : 'NEW SUBMISSION'}
+                      </span>
                     </div>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 shrink-0">
-                      PENDING
-                    </span>
-                  </div>
-                  {member.business && (
-                    <p className="text-[11px] text-stone-600 dark:text-stone-400 line-clamp-2">
-                      {member.business}
-                    </p>
-                  )}
-                  <div className="flex gap-2 pt-1">
-                    <button
-                      type="button"
-                      onClick={() => handleApproveMember(member)}
-                      disabled={approvingId === member.id || rejectingId === member.id}
-                      className="btn-primary text-[11px] py-1.5 px-3 flex-1 font-bold justify-center"
-                    >
-                      {approvingId === member.id ? (
-                        <Loader2 size={12} className="animate-spin" />
+
+                    {/* Existing Profile Match Banner */}
+                    {existingMatch && (
+                      <div className="p-2 bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/60 rounded-lg text-xs space-y-1">
+                        <div className="flex items-center gap-1.5 font-bold text-blue-800 dark:text-blue-300 text-[11px]">
+                          <RotateCcw size={12} />
+                          <span>Existing Member Detected: {existingMatch.name}</span>
+                        </div>
+                        <p className="text-[10px] text-blue-700 dark:text-blue-300/80 leading-relaxed">
+                          Approving will update their existing directory profile and replace
+                          outdated details.
+                        </p>
+                      </div>
+                    )}
+
+                    {member.business && (
+                      <p className="text-[11px] text-stone-600 dark:text-stone-400 line-clamp-2">
+                        {member.business}
+                      </p>
+                    )}
+
+                    <div className="flex gap-2 pt-1 flex-wrap">
+                      {existingMatch ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => handleApproveAndReplace(member, existingMatch)}
+                            disabled={approvingId === member.id || rejectingId === member.id}
+                            className="btn-primary text-[11px] py-1.5 px-3 flex-1 font-bold justify-center bg-blue-600 hover:bg-blue-700 text-white"
+                          >
+                            {approvingId === member.id ? (
+                              <Loader2 size={12} className="animate-spin" />
+                            ) : (
+                              <RotateCcw size={12} />
+                            )}
+                            Approve & Replace Old Profile
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleApproveMember(member)}
+                            disabled={approvingId === member.id || rejectingId === member.id}
+                            className="btn-secondary text-[11px] py-1.5 px-2.5 font-bold justify-center"
+                            title="Approve as separate new entry"
+                          >
+                            New Entry
+                          </button>
+                        </>
                       ) : (
-                        <UserCheck size={12} />
+                        <button
+                          type="button"
+                          onClick={() => handleApproveMember(member)}
+                          disabled={approvingId === member.id || rejectingId === member.id}
+                          className="btn-primary text-[11px] py-1.5 px-3 flex-1 font-bold justify-center"
+                        >
+                          {approvingId === member.id ? (
+                            <Loader2 size={12} className="animate-spin" />
+                          ) : (
+                            <UserCheck size={12} />
+                          )}
+                          Approve
+                        </button>
                       )}
-                      Approve
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleRejectMember(member)}
-                      disabled={approvingId === member.id || rejectingId === member.id}
-                      className="btn-danger text-[11px] py-1.5 px-3 flex-1 font-bold justify-center"
-                    >
-                      {rejectingId === member.id ? (
-                        <Loader2 size={12} className="animate-spin" />
-                      ) : (
-                        <UserX size={12} />
-                      )}
-                      Reject
-                    </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleRejectMember(member)}
+                        disabled={approvingId === member.id || rejectingId === member.id}
+                        className="btn-danger text-[11px] py-1.5 px-3 font-bold justify-center"
+                      >
+                        {rejectingId === member.id ? (
+                          <Loader2 size={12} className="animate-spin" />
+                        ) : (
+                          <UserX size={12} />
+                        )}
+                        Reject
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -867,7 +987,41 @@ export default function AdminPanel({ onLock }) {
           </div>
         </div>
 
-        {/* Section 6: Sample Demo Data & Seeding */}
+        {/* Section 6: AI Semantic Matchmaker & Contextual WhatsApp Outreach (Admin Only) */}
+        <div className="card p-5 space-y-4 md:col-span-2 border-emerald-200/80 dark:border-emerald-900/50 bg-gradient-to-b from-emerald-50/20 to-transparent dark:from-emerald-950/10">
+          <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-2.5 flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <h3 className="section-title text-sm">
+                <Sparkles size={16} className="text-emerald-600 dark:text-emerald-400" />
+                AI Semantic Matchmaker & WhatsApp Icebreaker Engine
+              </h3>
+              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+                Admin Exclusive
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowAdminAIMatchmaker(!showAdminAIMatchmaker)}
+              className="btn-secondary text-xs py-1.5 px-3 font-bold"
+            >
+              {showAdminAIMatchmaker ? 'Hide Matchmaker' : 'Open AI Matchmaker Assistant ➔'}
+            </button>
+          </div>
+
+          <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed font-medium">
+            Run deep semantic AI evaluations powered by Gemini LLM across all founder bios to
+            uncover subtle synergies, bilateral business opportunities, and automatically generate
+            tailored WhatsApp introductory icebreakers.
+          </p>
+
+          {showAdminAIMatchmaker && (
+            <div className="pt-2 border-t border-stone-200 dark:border-stone-800">
+              <AIMatchmaker />
+            </div>
+          )}
+        </div>
+
+        {/* Section 7: Sample Demo Data & Seeding */}
         <div className="card p-5 space-y-3.5 md:col-span-2">
           <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-2.5">
             <h3 className="section-title text-sm">

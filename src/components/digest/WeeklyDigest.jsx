@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Copy, Sparkles, Check, Send } from 'lucide-react';
+import { FileText, Copy, Sparkles, Check } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
 import { generateWeeklyDigest } from '../../utils/gemini';
 import { isWithinDays, copyToClipboard } from '../../utils/helpers';
@@ -55,34 +55,35 @@ export default function WeeklyDigest() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in max-w-5xl">
       {/* Header Banner */}
-      <div className="card p-6 sm:p-8 bg-gradient-to-r from-emerald-500/10 via-blue-500/5 to-transparent border-emerald-500/30">
-        <div className="flex items-center gap-4">
-          <div className="p-3 bg-emerald-600 text-white rounded-2xl flex-shrink-0 shadow-lg shadow-emerald-600/20">
+      <div className="card p-6 sm:p-8 bg-stone-950 text-white border-[1.5px] border-stone-800 shadow-tactile dark:shadow-tactile-dark relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-orange-600/20 via-emerald-600/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+        <div className="relative z-10 flex items-center gap-4">
+          <div className="p-3 bg-emerald-600 text-white rounded-2xl flex-shrink-0 border-[1.5px] border-emerald-400 shadow-tactile-sm">
             <FileText size={24} />
           </div>
           <div>
-            <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            <h2 className="text-2xl font-black text-white tracking-tight font-display">
               WhatsApp Weekly Digest Generator
             </h2>
-            <p className="text-sm font-semibold text-slate-600 dark:text-slate-400 mt-0.5">
-              Auto-generate formatted WhatsApp announcement messages listing new community members
-              for your group chat.
+            <p className="text-[13.5px] sm:text-sm font-medium text-stone-300 mt-0.5">
+              Auto-generate structured WhatsApp broadcast announcements highlighting recent cohort
+              joiners and trending needs.
             </p>
           </div>
         </div>
       </div>
 
       {/* Controls */}
-      <div className="card p-6 sm:p-8 space-y-5">
-        <div className="flex items-center justify-between flex-wrap gap-4">
+      <div className="card p-6 sm:p-8 space-y-5 bg-white dark:bg-stone-900 border-[1.5px] border-stone-300 dark:border-stone-800 shadow-tactile-sm dark:shadow-none">
+        <div className="flex items-center justify-between flex-wrap gap-4 border-b-[1.5px] border-stone-200 dark:border-stone-800 pb-4">
           <div className="flex items-center gap-3">
-            <label className="label mb-0">Period:</label>
+            <label className="label mb-0">Cohort Range:</label>
             <select
               value={days}
               onChange={(e) => setDays(Number(e.target.value))}
-              className="input py-2 px-4 text-sm font-bold w-auto"
+              className="input py-2 px-4 text-[13.5px] sm:text-sm font-bold w-auto border-[1.5px] border-stone-300 dark:border-stone-700"
             >
               <option value={7}>Last 7 Days</option>
               <option value={14}>Last 14 Days</option>
@@ -90,9 +91,9 @@ export default function WeeklyDigest() {
             </select>
           </div>
 
-          <div className="text-sm font-bold text-slate-600 dark:text-slate-400">
+          <div className="text-[13.5px] sm:text-sm font-bold text-stone-600 dark:text-stone-400">
             Found{' '}
-            <strong className="text-emerald-600 dark:text-emerald-400">
+            <strong className="text-emerald-700 dark:text-emerald-400 font-black">
               {recentMembers.length}
             </strong>{' '}
             new member(s)
@@ -102,7 +103,7 @@ export default function WeeklyDigest() {
         <button
           onClick={handleGenerate}
           disabled={loading || recentMembers.length === 0}
-          className="btn-primary"
+          className="btn-primary text-sm font-bold shadow-tactile-sm"
         >
           {loading ? <LoadingSpinner size="sm" /> : <Sparkles size={18} />}
           {loading ? 'Formatting Digest with AI...' : 'Generate WhatsApp Digest Message'}
@@ -111,12 +112,15 @@ export default function WeeklyDigest() {
 
       {/* Digest Output */}
       {digestText && (
-        <div className="card p-6 sm:p-8 space-y-5 animate-slide-up">
+        <div className="card p-6 sm:p-8 space-y-5 animate-slide-up bg-white dark:bg-stone-900 border-[1.5px] border-stone-300 dark:border-stone-800 shadow-tactile-sm dark:shadow-none">
           <div className="flex items-center justify-between flex-wrap gap-3">
-            <h3 className="font-extrabold text-base uppercase tracking-wider text-slate-900 dark:text-slate-100">
-              📲 Ready-to-Post WhatsApp Message
+            <h3 className="font-black text-base uppercase tracking-wider text-stone-950 dark:text-stone-100 font-display">
+              📲 Ready-to-Post WhatsApp Broadcast Message
             </h3>
-            <button onClick={handleCopy} className="btn-primary text-xs py-2 px-4">
+            <button
+              onClick={handleCopy}
+              className="btn-accent text-[13px] font-bold shadow-tactile-sm py-2 px-4"
+            >
               {copied ? <Check size={16} /> : <Copy size={16} />}
               {copied ? 'Copied to Clipboard!' : 'Copy WhatsApp Format'}
             </button>
@@ -126,7 +130,7 @@ export default function WeeklyDigest() {
             rows={11}
             value={digestText}
             onChange={(e) => setDigestText(e.target.value)}
-            className="input font-mono text-sm leading-relaxed p-5 bg-slate-950/90 text-slate-100"
+            className="input font-mono text-[13.5px] sm:text-sm leading-relaxed p-5 bg-[#FAFAF7] dark:bg-stone-950 text-stone-900 dark:text-stone-100 border-[1.5px] border-stone-300 dark:border-stone-800 rounded-2xl"
           />
         </div>
       )}

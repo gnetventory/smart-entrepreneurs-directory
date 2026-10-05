@@ -392,38 +392,89 @@ export function computeExecutiveAnalytics(members = []) {
 
 /**
  * Compute synergy match score between target member and candidate member (0 to 100%)
+ * Returns 0 if there is no meaningful business connection or complementarity.
  */
 export function computeMemberSynergy(targetMember, candidateMember) {
   if (!targetMember || !candidateMember || targetMember.id === candidateMember.id) return 0;
 
-  let score = 20; // baseline compatibility
+  let score = 0;
+  let hasRealConnection = false;
 
-  // 1. Need <-> Offer Match (Highest weight: 45pts)
   const targetNeeds = (targetMember.lookingFor || '').toLowerCase();
   const candOffers = (candidateMember.canHelp || '').toLowerCase();
   const targetOffers = (targetMember.canHelp || '').toLowerCase();
   const candNeeds = (candidateMember.lookingFor || '').toLowerCase();
 
+  // 1. Direct Need <-> Offer Match (Highest weight: up to 55pts)
   const needOfferMatch1 =
-    targetNeeds &&
-    candOffers &&
-    candOffers.split(' ').some((w) => w.length > 3 && targetNeeds.includes(w));
+    targetNeeds.length > 3 &&
+    candOffers.length > 3 &&
+    candOffers.split(/[\s,.\-؛،]+/).some((w) => w.length > 3 && targetNeeds.includes(w));
+
   const needOfferMatch2 =
-    targetOffers &&
-    candNeeds &&
-    targetOffers.split(' ').some((w) => w.length > 3 && candNeeds.includes(w));
+    targetOffers.length > 3 &&
+    candNeeds.length > 3 &&
+    targetOffers.split(/[\s,.\-؛،]+/).some((w) => w.length > 3 && candNeeds.includes(w));
 
-  if (needOfferMatch1 && needOfferMatch2) score += 45;
-  else if (needOfferMatch1 || needOfferMatch2) score += 30;
+  if (needOfferMatch1 && needOfferMatch2) {
+    score += 55;
+    hasRealConnection = true;
+  } else if (needOfferMatch1 || needOfferMatch2) {
+    score += 35;
+    hasRealConnection = true;
+  }
 
-  // 2. Shared Industry / Tag Synergy (20pts)
+  // 2. Capability Vertical Cross-matching (up to 30pts)
+  const targetNeedCats = categorizeText(targetMember.lookingFor);
+  const candOfferCats = categorizeText(candidateMember.canHelp);
+  const targetOfferCats = categorizeText(targetMember.canHelp);
+  const candNeedCats = categorizeText(candidateMember.lookingFor);
+
+  const crossMatch1 = targetNeedCats.some((c) => candOfferCats.includes(c));
+  const crossMatch2 = targetOfferCats.some((c) => candNeedCats.includes(c));
+
+  if (crossMatch1 || crossMatch2) {
+    score += 25;
+    hasRealConnection = true;
+  }
+
+  // 3. Shared Industry / Tag Synergy (up to 25pts)
   const tTags = targetMember.tags || [];
   const cTags = candidateMember.tags || [];
-  const sharedTags = tTags.filter((t) => cTags.includes(t));
-  if (sharedTags.length >= 2) score += 20;
-  else if (sharedTags.length === 1) score += 12;
+  const sharedTags = tTags.filter((t) => cTags.some((ct) => ct.toLowerCase() === t.toLowerCase()));
 
-  // 3. Location Proximity (10pts)
+  if (sharedTags.length >= 2) {
+    score += 25;
+    hasRealConnection = true;
+  } else if (sharedTags.length === 1) {
+    score += 15;
+    hasRealConnection = true;
+  }
+
+  // 4. Role Complementarity (e.g. Founder + Developer, Agri + Logistics, etc.)
+  const tRole = (targetMember.role || '').toLowerCase();
+  const cRole = (candidateMember.role || '').toLowerCase();
+  const tBiz = (targetMember.business || '').toLowerCase();
+  const cBiz = (candidateMember.business || '').toLowerCase();
+
+  if (
+    (tRole.includes('founder') &&
+      (cRole.includes('developer') || cRole.includes('engineer') || cRole.includes('marketing'))) ||
+    (cRole.includes('founder') &&
+      (tRole.includes('developer') || tRole.includes('engineer') || tRole.includes('marketing'))) ||
+    (tBiz.includes('export') &&
+      (cBiz.includes('import') || cBiz.includes('logistics') || cBiz.includes('shipping'))) ||
+    (cBiz.includes('export') &&
+      (tBiz.includes('import') || tBiz.includes('logistics') || tBiz.includes('shipping')))
+  ) {
+    score += 15;
+    hasRealConnection = true;
+  }
+
+  // If no real connection was identified, they are not synergistic
+  if (!hasRealConnection) return 0;
+
+  // 5. Geographic Proximity Bonus (5-10pts only when connection exists)
   const tLoc = targetMember.location || {};
   const cLoc = candidateMember.location || {};
   if (tLoc.city && cLoc.city && tLoc.city.toLowerCase() === cLoc.city.toLowerCase()) {
@@ -436,7 +487,7 @@ export function computeMemberSynergy(targetMember, candidateMember) {
     score += 5;
   }
 
-  // 4. Complementary Stage bonus (5pts)
+  // 6. Stage Complementarity (5pts)
   if (
     (targetMember.stage === 'growing' &&
       (candidateMember.stage === 'starting' || candidateMember.stage === 'idea')) ||
@@ -446,5 +497,5 @@ export function computeMemberSynergy(targetMember, candidateMember) {
     score += 5;
   }
 
-  return Math.min(99, Math.max(15, score));
+  return Math.min(99, Math.max(25, score));
 }

@@ -8,6 +8,16 @@ export default defineConfig({
     directoryStoragePlugin(),
   ],
 
+  server: {
+    port: 5175,
+    host: true,
+  },
+
+  preview: {
+    port: 5175,
+    host: true,
+  },
+
   build: {
     // Chunk splitting for better caching
     rollupOptions: {

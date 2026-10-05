@@ -165,104 +165,19 @@ export const AVATAR_GRADIENTS = [
   'from-green-500 to-emerald-600',
 ];
 
-// ─── Seed / Demo Members ─────────────────────────────────────────────────────
-export const SEED_MEMBERS = [
-  {
-    id: 'seed-1',
-    name: 'Maria Silva',
-    role: 'Digital Marketing Specialist',
-    business:
-      'GreenBrand Studio – Sustainable branding & marketing agency helping eco-conscious startups build their identity',
-    stage: 'running',
-    lookingFor:
-      'Partnerships with sustainability-focused startups, and investors interested in green economy brands',
-    canHelp:
-      'Brand strategy, social media campaigns, content creation, SEO, and connecting with local suppliers in South America',
-    location: { country: 'Brazil', city: 'São Paulo' },
-    phone: '',
-    tags: ['Marketing', 'Sustainability', 'Branding', 'Content Creation'],
-    originalLanguage: 'en',
-    originalText: '',
-    createdAt: new Date(Date.now() - 35 * 864e5).toISOString(),
-    updatedAt: new Date(Date.now() - 35 * 864e5).toISOString(),
-  },
-  {
-    id: 'seed-2',
-    name: 'Ahmed Hassan',
-    role: 'Mobile App Developer & Tech Entrepreneur',
-    business:
-      'HalalGo – Food delivery platform connecting Muslim consumers with certified halal restaurants across the Middle East',
-    stage: 'growing',
-    lookingFor:
-      'Series A investors, experienced growth hackers, and restaurant partnerships in Turkey and Malaysia',
-    canHelp:
-      'Mobile app development (React Native, Flutter), API architecture, cloud infrastructure, and navigating the MENA startup ecosystem',
-    location: { country: 'Egypt', city: 'Cairo' },
-    phone: '',
-    tags: ['Mobile Apps', 'Food Tech', 'E-commerce'],
-    originalLanguage: 'en',
-    originalText: '',
-    createdAt: new Date(Date.now() - 20 * 864e5).toISOString(),
-    updatedAt: new Date(Date.now() - 20 * 864e5).toISOString(),
-  },
-  {
-    id: 'seed-3',
-    name: 'Priya Patel',
-    role: 'E-commerce Strategist & Marketplace Builder',
-    business:
-      'ArtisanBazaar – Online marketplace connecting Indian artisans and craftspeople directly with global buyers',
-    stage: 'starting',
-    lookingFor:
-      'Technical co-founder, supply chain logistics partner, and digital marketing expertise for international markets',
-    canHelp:
-      'E-commerce strategy, product sourcing, vendor management, marketplace operations, and South Asian market insights',
-    location: { country: 'India', city: 'Mumbai' },
-    phone: '',
-    tags: ['E-commerce', 'Marketplace', 'Design'],
-    originalLanguage: 'en',
-    originalText: '',
-    createdAt: new Date(Date.now() - 10 * 864e5).toISOString(),
-    updatedAt: new Date(Date.now() - 10 * 864e5).toISOString(),
-  },
-  {
-    id: 'seed-4',
-    name: 'Carlos Mendoza',
-    role: 'FinTech Innovator & Financial Inclusion Advocate',
-    business:
-      'PagoFácil – Digital wallet and micro-lending platform targeting the unbanked population in Latin America',
-    stage: 'idea',
-    lookingFor:
-      'Banking/regulatory compliance expert, angel investment of $50k–$100k, and fintech mentors with LATAM experience',
-    canHelp:
-      'Business plan development, financial modeling, pitch deck preparation, and LATAM entrepreneur network connections',
-    location: { country: 'Mexico', city: 'Mexico City' },
-    phone: '',
-    tags: ['FinTech', 'Finance'],
-    originalLanguage: 'en',
-    originalText: '',
-    createdAt: new Date(Date.now() - 5 * 864e5).toISOString(),
-    updatedAt: new Date(Date.now() - 5 * 864e5).toISOString(),
-  },
-  {
-    id: 'seed-5',
-    name: 'Sofia Kowalski',
-    role: 'EdTech Founder & Language Learning Expert',
-    business:
-      'LinguaPath – AI-powered language learning platform for adult professionals who need business English skills',
-    stage: 'running',
-    lookingFor:
-      'B2B partnerships with HR departments, content creators in multiple languages, and expansion into German & Czech markets',
-    canHelp:
-      'EdTech product design, curriculum development, user acquisition for educational products, and European market knowledge',
-    location: { country: 'Poland', city: 'Warsaw' },
-    phone: '',
-    tags: ['EdTech', 'AI/ML', 'SaaS', 'Education'],
-    originalLanguage: 'en',
-    originalText: '',
-    createdAt: new Date(Date.now() - 2 * 864e5).toISOString(),
-    updatedAt: new Date(Date.now() - 2 * 864e5).toISOString(),
-  },
-];
+import communityMembersData from '../data/community_members.json';
+
+// ─── Seed / Real Community Members ───────────────────────────────────────────
+export const SEED_MEMBERS = communityMembersData.map((m, idx) => ({
+  ...m,
+  id: m.id || `community-${idx + 1}`,
+  createdAt: m.createdAt || new Date(Date.now() - (idx + 1) * 36e5).toISOString(),
+  updatedAt: m.updatedAt || new Date().toISOString(),
+}));
+
+// ─── Official Member Intake & Update Google Form ──────────────────────────────
+export const GOOGLE_FORM_URL =
+  'https://docs.google.com/forms/d/e/1FAIpQLSeWXJF6cXtxMIQPLK3eKyDtfhdmIIK17oP8f9hS0WGgHysF5g/viewform?usp=header';
 
 // ─── Navigation Tabs ──────────────────────────────────────────────────────────
 export const NAV_TABS = [
@@ -273,8 +188,12 @@ export const NAV_TABS = [
     description: 'Executive intelligence & KPI ribbon',
   },
   { id: 'directory', label: 'Directory', icon: 'Users', description: 'Browse all members' },
-  { id: 'add', label: 'Add Member', icon: 'UserPlus', description: 'AI parser & manual form' },
-  { id: 'matchmaker', label: 'Matchmaker', icon: 'Sparkles', description: 'AI match suggestions' },
+  {
+    id: 'radar',
+    label: 'Match Radar',
+    icon: 'Radio',
+    description: 'Interactive synergy matching radar',
+  },
   {
     id: 'map',
     label: 'Alliance Atlas',

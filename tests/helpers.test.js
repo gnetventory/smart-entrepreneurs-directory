@@ -12,8 +12,8 @@ import {
 describe('helpers.js unit tests', () => {
   it('getInitials extracts initials correctly', () => {
     expect(getInitials('Maria Silva')).toBe('MS');
-    expect(getInitials('Ahmed')).toBe('A');
-    expect(getInitials('')).toBe('??');
+    expect(getInitials('Ahmed')).toBe('AH');
+    expect(getInitials('')).toBe('SE');
   });
 
   it('getAvatarGradient returns valid gradient class', () => {

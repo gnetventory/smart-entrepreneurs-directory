@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { EGYPT_CITIES } from '../../utils/egyptCities';
-import { Building2, Users, MapPin, Sparkles, ArrowRight, TreePine, Compass } from 'lucide-react';
+import { Building2 } from 'lucide-react';
 
 export default function EgyptIllustratedMap({
   cityCounts,
@@ -604,7 +604,7 @@ export default function EgyptIllustratedMap({
                   <div
                     key={m.id}
                     title={`${m.name} (${m.role})`}
-                    className="w-6 h-6 rounded-lg bg-emerald-600 text-white font-bold text-[9px] flex items-center justify-center flex-shrink-0 shadow-2xs"
+                    className="w-6 h-6 rounded-lg bg-emerald-600 text-white font-bold text-[9px] flex items-center justify-center flex-shrink-0 shadow-xs"
                   >
                     {m.name
                       .split(' ')

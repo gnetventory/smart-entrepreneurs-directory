@@ -4,16 +4,40 @@ import { formatDistanceToNow, differenceInDays } from 'date-fns';
 
 // ─── Avatar ────────────────────────────────────────────────────────────────────
 export function getInitials(name = '') {
-  if (!name || typeof name !== 'string') return '??';
-  return (
-    name
-      .trim()
-      .split(/\s+/)
-      .map((w) => w[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2) || '??'
-  );
+  if (!name || typeof name !== 'string') return 'SE';
+
+  // 1. Remove parenthesized or bracketed content (e.g. Arabic names in parentheses)
+  const cleaned = name
+    .replace(/\(.*?\)/g, '')
+    .replace(/\[.*?\]/g, '')
+    .replace(/\{.*?\}/g, '')
+    .trim();
+
+  // 2. Extract words containing English letters only
+  const words = cleaned
+    .split(/[\s\-_,.:;@/\\+]+/)
+    .map((w) => w.replace(/[^a-zA-Z]/g, ''))
+    .filter(Boolean);
+
+  if (words.length >= 2) {
+    return (words[0][0] + words[1][0]).toUpperCase();
+  }
+  if (words.length === 1) {
+    const single = words[0].toUpperCase();
+    return single.length >= 2 ? single.slice(0, 2) : single;
+  }
+
+  // 3. Fallback: Search for any English letters in the entire raw string
+  const allEnglishLetters = name.replace(/[^a-zA-Z]/g, '').toUpperCase();
+  if (allEnglishLetters.length >= 2) {
+    return allEnglishLetters.slice(0, 2);
+  }
+  if (allEnglishLetters.length === 1) {
+    return allEnglishLetters;
+  }
+
+  // 4. Default clean English monogram fallback for non-English names
+  return 'SE';
 }
 
 export function getAvatarGradient(name = '') {
@@ -116,25 +140,72 @@ export function getLinkedInHandle(url = '') {
   return clean || null;
 }
 
+// ─── Arabic & Text Normalization ──────────────────────────────────────────────
+export function normalizeSearchText(str = '') {
+  if (!str || typeof str !== 'string') return '';
+  return (
+    str
+      .toLowerCase()
+      .trim()
+      // Normalize Arabic Alef variations (أ, إ, آ -> ا)
+      .replace(/[أإآ]/g, 'ا')
+      // Normalize Yaa & Alef Maqsura (ى -> ي)
+      .replace(/ى/g, 'ي')
+      // Normalize Taa Marbuta & Haa (ة -> ه)
+      .replace(/ة/g, 'ه')
+      // Remove Arabic Tashkeel / Diacritics
+      .replace(/[\u064B-\u065F\u0670]/g, '')
+      // Remove special punctuation
+      .replace(/[\s\-_,.:;@()\[\]\/+]/g, ' ')
+  );
+}
+
 // ─── Search helpers ───────────────────────────────────────────────────────────
 export function memberMatchesSearch(member, query) {
   if (!query || !query.trim()) return true;
-  const q = query.toLowerCase().trim();
+  const qNorm = normalizeSearchText(query);
+  const qRaw = query.toLowerCase().trim();
+
+  // Aggregate all possible fields into searchable text blobs
   const locStr =
     typeof member.location === 'string'
-      ? member.location.toLowerCase()
-      : `${member.location?.city || ''} ${member.location?.district || ''} ${member.location?.country || ''}`.toLowerCase();
+      ? member.location
+      : `${member.location?.city || ''} ${member.location?.district || ''} ${member.location?.country || ''}`;
 
-  return (
-    member.name?.toLowerCase().includes(q) ||
-    member.role?.toLowerCase().includes(q) ||
-    member.business?.toLowerCase().includes(q) ||
-    member.canHelp?.toLowerCase().includes(q) ||
-    member.lookingFor?.toLowerCase().includes(q) ||
-    member.linkedin?.toLowerCase().includes(q) ||
-    member.tags?.some((t) => t.toLowerCase().includes(q)) ||
-    locStr.includes(q)
-  );
+  const stageLabel = STAGES[member.stage]?.label || '';
+  const stageTenure = STAGES[member.stage]?.tenure || '';
+
+  const allFields = [
+    member.name,
+    member.role,
+    member.business,
+    member.canHelp,
+    member.lookingFor,
+    member.email,
+    member.phone,
+    member.handle,
+    member.stage,
+    stageLabel,
+    stageTenure,
+    locStr,
+    member.linkedin,
+    member.website,
+    member.secondaryWebsite,
+    member.instagram,
+    ...(Array.isArray(member.tags) ? member.tags : []),
+    ...(Array.isArray(member.catalogues) ? member.catalogues : []),
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const fieldsNorm = normalizeSearchText(allFields);
+  const fieldsRaw = allFields.toLowerCase();
+
+  // Match either exact normalized tokens or raw substring
+  const searchTokens = qNorm.split(' ').filter(Boolean);
+  if (searchTokens.length === 0) return true;
+
+  return searchTokens.every((token) => fieldsNorm.includes(token) || fieldsRaw.includes(token));
 }
 
 // ─── Unique ID ────────────────────────────────────────────────────────────────

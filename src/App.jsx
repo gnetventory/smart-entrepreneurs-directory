@@ -2,6 +2,7 @@ import React from 'react';
 import Header from './components/layout/Header';
 import Sidebar from './components/layout/Sidebar';
 import Directory from './components/directory/Directory';
+import MatchRadarView from './components/radar/MatchRadarView';
 import AIParser from './components/parser/AIParser';
 import AIMatchmaker from './components/matchmaker/AIMatchmaker';
 import WorldMapView from './components/map/WorldMapView';
@@ -17,6 +18,8 @@ export default function App() {
         return <CommunityDashboard />;
       case 'directory':
         return <Directory />;
+      case 'radar':
+        return <MatchRadarView />;
       case 'add':
         return <AIParser />;
       case 'matchmaker':

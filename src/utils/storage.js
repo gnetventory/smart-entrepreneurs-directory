@@ -78,15 +78,23 @@ export function getMembers() {
   if (_membersCache !== null) return _membersCache;
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.MEMBERS);
-    if (!raw) {
-      _membersCache = [];
+    const seededFlag = localStorage.getItem('sed_community_seeded_v1');
+
+    if (!raw || !seededFlag) {
+      // First load or upgrading from legacy demo data to real community members
+      _membersCache = SEED_MEMBERS;
+      localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(SEED_MEMBERS));
+      localStorage.setItem('sed_community_seeded_v1', 'true');
+      localStorage.setItem('sed_initialized', 'true');
+      pushToDisk({ members: SEED_MEMBERS });
       return _membersCache;
     }
+
     const parsed = JSON.parse(raw);
-    _membersCache = Array.isArray(parsed) ? parsed : [];
+    _membersCache = Array.isArray(parsed) && parsed.length > 0 ? parsed : SEED_MEMBERS;
     return _membersCache;
   } catch {
-    _membersCache = [];
+    _membersCache = SEED_MEMBERS;
     return _membersCache;
   }
 }

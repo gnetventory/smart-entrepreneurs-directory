@@ -3,26 +3,23 @@ import {
   Map,
   MapPin,
   Building2,
-  Users,
   Search,
-  Sparkles,
   Filter,
-  Globe,
   RotateCcw,
-  ExternalLink,
   Linkedin,
   Phone,
   Mail,
-  CheckCircle2,
 } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
 import { EGYPT_CITIES, matchEgyptCity } from '../../utils/egyptCities';
 import { INDUSTRY_TAGS } from '../../utils/constants';
+import { isAdminSession } from '../../utils/session';
 import EgyptGISMap from './EgyptGISMap';
 import ProfileCard from '../directory/ProfileCard';
 
 export default function WorldMapView() {
   const { activeMembers: members, refreshMembers } = useApp();
+  const isAdmin = isAdminSession();
 
   // Filter States
   const [selectedIndustry, setSelectedIndustry] = useState('all');
@@ -467,7 +464,7 @@ export default function WorldMapView() {
                   >
                     <div className="flex items-start gap-2.5">
                       {/* Avatar */}
-                      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white font-black text-xs flex items-center justify-center flex-shrink-0 shadow-2xs">
+                      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white font-black text-xs flex items-center justify-center flex-shrink-0 shadow-xs">
                         {m.name
                           .split(' ')
                           .map((w) => w[0])
@@ -559,23 +556,16 @@ export default function WorldMapView() {
                             </span>
                           )}
 
-                          {hasValidPhone ? (
+                          {isAdmin && hasValidPhone ? (
                             <a
                               href={`tel:${m.phone}`}
                               onClick={(e) => e.stopPropagation()}
                               className="text-stone-600 dark:text-stone-300 hover:text-emerald-500 transition-colors"
-                              title={`Phone: ${m.phone}`}
+                              title={`Admin: ${m.phone}`}
                             >
                               <Phone size={13} />
                             </a>
-                          ) : (
-                            <span
-                              className="text-stone-300 dark:text-stone-700"
-                              title="Phone not available"
-                            >
-                              <Phone size={13} />
-                            </span>
-                          )}
+                          ) : null}
 
                           <span className="text-[10px] text-stone-400 font-semibold ml-auto flex items-center gap-1 group-hover:text-orange-500">
                             Focus on map ➔

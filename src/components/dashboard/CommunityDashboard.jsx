@@ -2,36 +2,23 @@ import React, { useMemo, useState } from 'react';
 import {
   Users,
   Sparkles,
-  TrendingUp,
   ArrowRight,
   MapPin,
   Briefcase,
-  AlertTriangle,
-  CheckCircle2,
-  ArrowUpRight,
-  Filter,
-  Search,
   Zap,
   Layers,
-  MessageSquare,
-  Handshake,
   Target,
   ShieldAlert,
-  Building2,
-  Globe,
   Flame,
 } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
-import { STAGES, getCountryFlag } from '../../utils/constants';
+import { STAGES } from '../../utils/constants';
 import { computeExecutiveAnalytics } from '../../utils/executiveAnalytics';
-import { buildWhatsAppUrl } from '../../utils/helpers';
-import { isAdminSession } from '../../utils/session';
 
 export default function CommunityDashboard() {
-  const { activeMembers: members, setActiveTab, setSearchQuery, setStageFilter } = useApp();
+  const { activeMembers: members, setActiveTab, setSearchQuery } = useApp();
   const [streamFilter, setStreamFilter] = useState('all'); // 'all' | 'need' | 'offer'
-  const [selectedVertical, setSelectedVertical] = useState('all');
-  const isAdmin = isAdminSession();
+  const [selectedVertical] = useState('all');
 
   const analytics = useMemo(() => computeExecutiveAnalytics(members), [members]);
 
@@ -48,28 +35,28 @@ export default function CommunityDashboard() {
 
   return (
     <div className="space-y-6 animate-fade-in max-w-7xl mx-auto">
-      {/* ── 1. Executive Top Hero (Compact & High Impact) ───────────────────── */}
-      <div className="card p-5 sm:p-6 bg-gradient-to-r from-stone-900 via-stone-950 to-stone-900 text-white border-stone-800 shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-orange-500/15 via-emerald-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+      {/* ── 1. Executive Top Hero (Compact & High Impact Anti-Slop) ─────────── */}
+      <div className="card p-5 sm:p-6 bg-stone-950 text-white border-[1.5px] border-stone-800 shadow-tactile dark:shadow-tactile-dark relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-orange-600/20 via-emerald-600/10 to-transparent rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex items-center justify-between flex-wrap gap-4">
-          <div className="space-y-1 max-w-2xl">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-stone-800/90 border border-stone-700 text-orange-300 text-[10px] font-extrabold uppercase tracking-widest">
+          <div className="space-y-1.5 max-w-2xl">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-stone-900 border-[1.5px] border-stone-700 text-orange-400 text-[10px] font-mono font-black uppercase tracking-widest">
               <Zap size={12} className="text-orange-400" /> Executive Command Center
             </div>
             <h1 className="text-xl sm:text-2xl font-black tracking-tight font-display text-white">
               Ecosystem Velocity & Matchmaking Intelligence
             </h1>
-            <p className="text-xs text-stone-300 font-medium">
+            <p className="text-xs text-stone-300 font-medium leading-relaxed">
               High-density visibility into deal flow, supply/demand gaps, and live collaboration
-              asks.
+              asks across WhatsApp mastermind cohorts.
             </p>
           </div>
 
           <div className="flex items-center gap-2.5">
             <button
               onClick={() => setActiveTab('directory')}
-              className="btn-accent px-4 py-2 text-xs font-bold flex items-center gap-1.5 shadow-md shadow-orange-500/20"
+              className="btn-accent px-4 py-2.5 text-xs font-black flex items-center gap-1.5 shadow-tactile-sm"
             >
               <Users size={14} /> Browse Directory <ArrowRight size={13} />
             </button>
@@ -78,37 +65,37 @@ export default function CommunityDashboard() {
       </div>
 
       {/* ── 2. EXECUTIVE KPI RIBBON (Top-Level Intelligence) ────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Verified Members & Growth Velocity */}
-        <div className="card p-4 space-y-2 border-l-4 border-l-emerald-500 bg-white dark:bg-stone-900">
+        <div className="card p-4 space-y-2 border-l-4 border-l-emerald-600 bg-white dark:bg-stone-900 border-[1.5px] border-stone-300 dark:border-stone-800 shadow-tactile-sm dark:shadow-none">
           <div className="flex items-center justify-between text-stone-500 dark:text-stone-400">
-            <span className="text-[10px] font-black uppercase tracking-widest">
+            <span className="text-[11px] font-black uppercase tracking-wider font-mono">
               Ecosystem Scale
             </span>
-            <div className="p-1 rounded-md bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400">
+            <div className="p-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800">
               <Users size={14} />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-stone-900 dark:text-stone-100 font-display">
+            <span className="text-2xl sm:text-3xl font-black text-stone-950 dark:text-stone-50 font-display">
               {analytics.total}
             </span>
-            <span className="text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800">
+            <span className="text-xs font-mono font-black text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-lg border border-emerald-300 dark:border-emerald-800">
               +{analytics.monthlyVelocity} this month
             </span>
           </div>
-          <p className="text-[10px] text-stone-500 dark:text-stone-400 font-medium">
+          <p className="text-[11.5px] text-stone-600 dark:text-stone-400 font-bold">
             Verified active founders & operators
           </p>
         </div>
 
         {/* Card 2: Synergy Density Rate */}
-        <div className="card p-4 space-y-2 border-l-4 border-l-orange-500 bg-white dark:bg-stone-900">
+        <div className="card p-4 space-y-2 border-l-4 border-l-orange-600 bg-white dark:bg-stone-900 border-[1.5px] border-stone-300 dark:border-stone-800 shadow-tactile-sm dark:shadow-none">
           <div className="flex items-center justify-between text-stone-500 dark:text-stone-400">
-            <span className="text-[10px] font-black uppercase tracking-widest">
+            <span className="text-[11px] font-black uppercase tracking-wider font-mono">
               Synergy Density Rate
             </span>
-            <div className="p-1 rounded-md bg-orange-100 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400">
+            <div className="p-1.5 rounded-lg bg-orange-100 dark:bg-orange-950/60 text-orange-700 dark:text-orange-400 border border-orange-300 dark:border-orange-800">
               <Sparkles size={14} />
             </div>
           </div>
@@ -116,20 +103,22 @@ export default function CommunityDashboard() {
             <span className="text-2xl sm:text-3xl font-black text-orange-600 dark:text-orange-400 font-display">
               {analytics.synergyIndex}%
             </span>
-            <span className="text-[9px] font-bold text-stone-500 uppercase tracking-wide">
+            <span className="text-[10px] font-mono font-black text-stone-500 uppercase tracking-wide">
               Network Liquidity
             </span>
           </div>
-          <p className="text-[10px] text-stone-500 dark:text-stone-400 font-medium">
+          <p className="text-[11.5px] text-stone-600 dark:text-stone-400 font-bold">
             Founders with active matching capability in network
           </p>
         </div>
 
         {/* Card 3: Active Asks Ticker */}
-        <div className="card p-4 space-y-2 border-l-4 border-l-sky-500 bg-white dark:bg-stone-900">
+        <div className="card p-4 space-y-2 border-l-4 border-l-sky-600 bg-white dark:bg-stone-900 border-[1.5px] border-stone-300 dark:border-stone-800 shadow-tactile-sm dark:shadow-none">
           <div className="flex items-center justify-between text-stone-500 dark:text-stone-400">
-            <span className="text-[10px] font-black uppercase tracking-widest">Active Asks</span>
-            <div className="p-1 rounded-md bg-sky-100 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400">
+            <span className="text-[11px] font-black uppercase tracking-wider font-mono">
+              Active Asks
+            </span>
+            <div className="p-1.5 rounded-lg bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-400 border border-sky-300 dark:border-sky-800">
               <Target size={14} />
             </div>
           </div>
@@ -137,34 +126,42 @@ export default function CommunityDashboard() {
             <span className="text-2xl sm:text-3xl font-black text-sky-600 dark:text-sky-400 font-display">
               {analytics.activeAsksCount}
             </span>
-            <span className="text-[11px] font-bold text-stone-500">
+            <span className="text-xs font-bold text-stone-600 dark:text-stone-400">
               vs {analytics.activeOffersCount} offers
             </span>
           </div>
-          <p className="text-[10px] text-stone-500 dark:text-stone-400 font-medium">
+          <p className="text-[11.5px] text-stone-600 dark:text-stone-400 font-bold">
             Unresolved assistance & partnership requests
           </p>
         </div>
 
         {/* Card 4: Stage Ratio */}
-        <div className="card p-4 space-y-2 border-l-4 border-l-indigo-500 bg-white dark:bg-stone-900">
+        <div className="card p-4 space-y-2 border-l-4 border-l-indigo-600 bg-white dark:bg-stone-900 border-[1.5px] border-stone-300 dark:border-stone-800 shadow-tactile-sm dark:shadow-none">
           <div className="flex items-center justify-between text-stone-500 dark:text-stone-400">
-            <span className="text-[10px] font-black uppercase tracking-widest">Stage Ratio</span>
-            <div className="p-1 rounded-md bg-indigo-100 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
+            <span className="text-[11px] font-black uppercase tracking-wider font-mono">
+              Stage Ratio
+            </span>
+            <div className="p-1.5 rounded-lg bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 border border-indigo-300 dark:border-indigo-800">
               <Layers size={14} />
             </div>
           </div>
-          <div className="text-lg sm:text-xl font-black text-stone-900 dark:text-stone-100 font-display font-mono">
+          <div className="text-lg sm:text-xl font-black text-stone-950 dark:text-stone-50 font-display font-mono">
             {analytics.stageRatios}
           </div>
-          <div className="flex items-center gap-1.5 text-[9px] font-bold text-stone-500">
-            <span>💡{analytics.stageCounts.idea}</span>
+          <div className="flex items-center gap-1.5 text-[10px] font-bold text-stone-600 dark:text-stone-400">
+            <span>💡 {analytics.stageCounts.idea}</span>
             <span>·</span>
-            <span className="text-emerald-600">🌱{analytics.stageCounts.starting}</span>
+            <span className="text-emerald-700 dark:text-emerald-400 font-black">
+              🌱 {analytics.stageCounts.starting}
+            </span>
             <span>·</span>
-            <span className="text-amber-600">⚙️{analytics.stageCounts.running}</span>
+            <span className="text-amber-700 dark:text-amber-400 font-black">
+              ⚙️ {analytics.stageCounts.running}
+            </span>
             <span>·</span>
-            <span className="text-indigo-600">🚀{analytics.stageCounts.growing}</span>
+            <span className="text-indigo-700 dark:text-indigo-400 font-black">
+              🚀 {analytics.stageCounts.growing}
+            </span>
           </div>
         </div>
       </div>
@@ -179,7 +176,7 @@ export default function CommunityDashboard() {
                 <Flame size={16} className="text-orange-500" />
                 The Supply / Demand Matchmaking Engine
               </h3>
-              <p className="text-[11px] text-stone-500 dark:text-stone-400 font-medium">
+              <p className="text-[12.5px] text-stone-500 dark:text-stone-400 font-medium">
                 Comparing community demand ("Looking For") directly against community supply ("Can
                 Offer").
               </p>
