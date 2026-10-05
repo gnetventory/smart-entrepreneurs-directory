@@ -63,7 +63,7 @@ export default function ProfileCard({ member, onDeleted, onUpdated, synergyScore
 
   const handleDownloadVCard = (e) => {
     e.stopPropagation();
-    downloadVCardFile(member);
+    downloadVCardFile(member, isAdmin);
     notify(`Saved ${member.name}'s contact card (.vcf)`);
   };
 
@@ -92,7 +92,7 @@ export default function ProfileCard({ member, onDeleted, onUpdated, synergyScore
           .join(', ')
           .toUpperCase();
 
-  const qrContactPayload = `MECARD:N:${member.name};ORG:${member.business || 'Smart Entrepreneurs Network'};TEL:${member.phone || ''};EMAIL:${member.email || ''};URL:${linkedInHref || member.website || ''};;`;
+  const qrContactPayload = `MECARD:N:${member.name};ORG:${member.business || 'Smart Entrepreneurs Network'};TEL:${isAdmin ? member.phone || '' : ''};EMAIL:${member.email || ''};URL:${linkedInHref || member.website || ''};;`;
 
   return (
     <>

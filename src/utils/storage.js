@@ -229,18 +229,18 @@ export function getMapConfig() {
     const raw = localStorage.getItem(STORAGE_KEYS.MAP_CONFIG);
     if (!raw) {
       return {
-        provider: 'carto_voyager',
+        provider: 'esri_world',
         apiKey: '',
-        styleId: 'mapbox/streets-v12',
+        styleId: '',
         customTileUrl: '',
       };
     }
     return JSON.parse(raw);
   } catch {
     return {
-      provider: 'carto_voyager',
+      provider: 'esri_world',
       apiKey: '',
-      styleId: 'mapbox/streets-v12',
+      styleId: '',
       customTileUrl: '',
     };
   }
@@ -248,10 +248,10 @@ export function getMapConfig() {
 
 export function saveMapConfig(config) {
   const safe = {
-    provider: config?.provider || 'carto_voyager',
-    apiKey: (config?.apiKey || '').trim(),
-    styleId: (config?.styleId || 'mapbox/streets-v12').trim(),
-    customTileUrl: (config?.customTileUrl || '').trim(),
+    provider: 'esri_world',
+    apiKey: '',
+    styleId: '',
+    customTileUrl: '',
   };
   localStorage.setItem(STORAGE_KEYS.MAP_CONFIG, JSON.stringify(safe));
   pushToDisk({ mapConfig: safe });

@@ -298,12 +298,12 @@ export function isWithinDays(dateStr, days) {
 }
 
 // ─── Digital Business Card & vCard Generation ─────────────────────────────────
-export function generateVCard(member) {
+export function generateVCard(member, includePhone = false) {
   if (!member) return '';
   const name = member.name || 'Founder';
   const role = member.role || 'Entrepreneur';
   const business = member.business ? member.business.split('\n')[0] : 'Alliance Network';
-  const phone = member.phone || '';
+  const phone = includePhone ? member.phone || '' : '';
   const email = member.email || '';
   const linkedin = member.linkedin || '';
   const city =
@@ -332,9 +332,9 @@ export function generateVCard(member) {
   return vcard;
 }
 
-export function downloadVCardFile(member) {
+export function downloadVCardFile(member, includePhone = false) {
   if (!member) return;
-  const vcardText = generateVCard(member);
+  const vcardText = generateVCard(member, includePhone);
   const blob = new Blob([vcardText], { type: 'text/vcard;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');

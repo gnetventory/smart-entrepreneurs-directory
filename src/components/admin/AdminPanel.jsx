@@ -802,112 +802,28 @@ export default function AdminPanel({ onLock }) {
         </div>
 
         {/* Section 3: Map Provider & Tile API Configuration */}
-        <div className="card p-5 space-y-3.5">
+        <div className="card p-5 space-y-3.5 border-emerald-200/80 dark:border-emerald-900/50 bg-gradient-to-b from-emerald-50/20 to-transparent dark:from-emerald-950/10">
           <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-2.5">
             <h3 className="section-title text-sm">
-              <Map size={15} className="text-orange-500" />
+              <Map size={15} className="text-emerald-600 dark:text-emerald-400" />
               Alliance Atlas Cartography
             </h3>
-            <span
-              className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${mapApiKey || mapProvider === 'esri_world' || mapProvider === 'osm_standard' ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300' : 'bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300'}`}
-            >
-              {mapApiKey ? 'API Key Active' : 'Key Optional'}
+            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+              Esri World Street Map Active
             </span>
           </div>
           <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed font-medium">
-            Configure map tile styling for the Alliance Atlas. 100% free Esri and OSM layers
-            included.
+            High-resolution global & Egyptian cartography powered by Esri World Street Map. 100%
+            free, zero external API keys needed, and zero rate limits or watermarks.
           </p>
-          <form onSubmit={handleSaveMapConfig} className="space-y-2.5 pt-1">
-            <div>
-              <label className="label text-[10px]">Tile Provider / Style</label>
-              <select
-                value={mapProvider}
-                onChange={(e) => setMapProvider(e.target.value)}
-                className="input py-1.5 text-xs font-semibold cursor-pointer"
-              >
-                {MAP_TILE_PRESETS.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+          <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-200 font-semibold space-y-1">
+            <div className="flex items-center gap-1.5 font-bold">
+              <Check size={14} className="text-emerald-600" /> Fully Optimized & Active
             </div>
-
-            {/* CartoDB API Key Input */}
-            {mapProvider.startsWith('carto_') && (
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="label text-[10px] mb-0">CARTO API Key</label>
-                  <a
-                    href="https://carto.com/basemaps/apikey/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold underline"
-                  >
-                    Get Free CARTO Key ➔
-                  </a>
-                </div>
-                <input
-                  type="text"
-                  value={mapApiKey}
-                  onChange={(e) => setMapApiKey(e.target.value)}
-                  placeholder="Paste your CARTO API Key here..."
-                  className="input font-mono text-xs py-1.5"
-                />
-              </div>
-            )}
-
-            {/* Mapbox Custom Options */}
-            {mapProvider === 'mapbox_custom' && (
-              <>
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="label text-[10px] mb-0">Mapbox Access Token (pk...)</label>
-                    <a
-                      href="https://account.mapbox.com/access-tokens/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold underline"
-                    >
-                      Get Free Token ➔
-                    </a>
-                  </div>
-                  <input
-                    type="password"
-                    value={mapApiKey}
-                    onChange={(e) => setMapApiKey(e.target.value)}
-                    placeholder="pk.eyJ1Ijo..."
-                    className="input font-mono text-xs py-1.5"
-                  />
-                </div>
-                <div>
-                  <label className="label text-[10px]">Mapbox Style ID</label>
-                  <input
-                    type="text"
-                    value={mapStyleId}
-                    onChange={(e) => setMapStyleId(e.target.value)}
-                    placeholder="mapbox/streets-v12"
-                    className="input font-mono text-xs py-1.5"
-                  />
-                </div>
-              </>
-            )}
-
-            {/* Free Provider Notice */}
-            {(mapProvider === 'esri_world' || mapProvider === 'osm_standard') && (
-              <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-[11px] text-emerald-700 dark:text-emerald-300 font-semibold">
-                ✓ 100% Free worldwide tiles with zero API key required and no watermarks.
-              </div>
-            )}
-
-            <button
-              type="submit"
-              className="btn-accent text-xs w-full py-2 font-bold justify-center cursor-pointer"
-            >
-              <Check size={14} /> Save Map Configuration
-            </button>
-          </form>
+            <div className="text-[11px] text-emerald-700 dark:text-emerald-300">
+              Worldwide vector street layer calibrated for Egypt hubs and MENA ecosystem density.
+            </div>
+          </div>
         </div>
 
         {/* Section 4: Security & Admin PIN */}

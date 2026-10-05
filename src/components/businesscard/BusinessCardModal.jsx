@@ -458,7 +458,7 @@ export default function BusinessCardModal({ member, isOpen, onClose }) {
         <div className="flex flex-wrap justify-center gap-3 pt-2">
           <button
             onClick={() => {
-              downloadVCardFile(member);
+              downloadVCardFile(member, isAdmin);
               notify(`Saved ${member.name}'s contact card (.vcf)`);
             }}
             className="btn-primary px-6 py-3 text-xs font-bold shadow-md flex items-center gap-2"

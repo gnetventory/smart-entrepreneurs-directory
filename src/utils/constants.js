@@ -92,16 +92,6 @@ export const STORAGE_KEYS = {
 // ─── Map Tile Providers & API Configuration ────────────────────────────────────
 export const MAP_TILE_PRESETS = [
   {
-    id: 'carto_voyager',
-    name: 'CartoDB Voyager (Warm & Vibrant)',
-    description: 'Crisp typography and warm colors. Supports your Carto API key',
-    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-    attribution:
-      '&copy; <a href="https://carto.com/" target="_blank">CARTO</a> &copy; OpenStreetMap',
-    requiresKey: false,
-    keyParam: 'api_key',
-  },
-  {
     id: 'esri_world',
     name: 'Esri World Street Map (100% Free, No Watermark)',
     description: 'High-resolution worldwide street cartography — 100% Free, No key needed',
@@ -109,44 +99,6 @@ export const MAP_TILE_PRESETS = [
     attribution:
       'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012',
     requiresKey: false,
-  },
-  {
-    id: 'osm_standard',
-    name: 'OpenStreetMap Standard (100% Free, No Watermark)',
-    description: 'Classic OpenStreetMap cartography — 100% Free, No key needed',
-    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
-    requiresKey: false,
-  },
-  {
-    id: 'carto_positron',
-    name: 'CartoDB Positron (Light Minimal)',
-    description: 'Clean light grey minimal tiles. Supports your Carto API key',
-    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-    attribution:
-      '&copy; <a href="https://carto.com/" target="_blank">CARTO</a> &copy; OpenStreetMap',
-    requiresKey: false,
-    keyParam: 'api_key',
-  },
-  {
-    id: 'carto_dark',
-    name: 'CartoDB Dark Matter (Dark Cyber)',
-    description: 'Sleek dark theme tiles. Supports your Carto API key',
-    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-    attribution:
-      '&copy; <a href="https://carto.com/" target="_blank">CARTO</a> &copy; OpenStreetMap',
-    requiresKey: false,
-    keyParam: 'api_key',
-  },
-  {
-    id: 'mapbox_custom',
-    name: 'Mapbox Custom Style',
-    description:
-      'High-res vector styles (50k free views/mo) — Requires Mapbox Access Token (pk...)',
-    url: 'https://api.mapbox.com/styles/v1/{styleId}/tiles/256/{z}/{x}/{y}@2x?access_token={apiKey}',
-    attribution: '&copy; <a href="https://www.mapbox.com/" target="_blank">Mapbox</a>',
-    requiresKey: true,
   },
 ];
 

@@ -130,7 +130,7 @@ export default function Directory() {
 
   const handleDownloadVCard = (e, m) => {
     e?.stopPropagation?.();
-    downloadVCardFile(m);
+    downloadVCardFile(m, isAdmin);
     notify(`Saved ${m.name}'s contact card (.vcf)`);
   };
 
