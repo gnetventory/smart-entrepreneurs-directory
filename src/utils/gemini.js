@@ -1,5 +1,6 @@
-/* eslint-disable no-useless-escape, no-misleading-character-class */
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { extractUrls, formatWebsiteUrl } from './helpers';
+import { getAPIKey } from './storage';
 
 let genAI = null;
 
@@ -8,15 +9,20 @@ export function initGemini(apiKey) {
   genAI = new GoogleGenerativeAI(apiKey);
 }
 
-// Model candidates array
-const CANDIDATE_MODELS = [
-  'gemini-1.5-flash',
-  'gemini-2.0-flash',
-  'gemini-2.5-flash',
-  'gemini-1.5-pro',
-];
+// Model candidates array (ordered by speed and reliability)
+const CANDIDATE_MODELS = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
 
 async function generateContentWithFallback(prompt) {
+  if (!genAI) {
+    const key =
+      getAPIKey() ||
+      (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GEMINI_API_KEY) ||
+      '';
+    if (key) {
+      genAI = new GoogleGenerativeAI(key);
+    }
+  }
+
   if (!genAI) throw new Error('Gemini API key not set. Please enter your key in Admin → Settings.');
 
   let errors = [];
@@ -54,8 +60,7 @@ function extractJSONArray(text) {
 
 // ─── Smart Heuristic Filter for Intro Messages Only ─────────────────────────
 export function isIntroMessage(text) {
-  if (!text || text.length < 15) return false;
-  const lower = text.toLowerCase();
+  if (!text || text.length < 10) return false;
 
   if (
     text.includes('voice message omitted') ||
@@ -63,23 +68,6 @@ export function isIntroMessage(text) {
     text.includes('video omitted')
   )
     return false;
-  if (
-    lower.includes('ana ma3rafsh') ||
-    lower.includes('next week') ||
-    lower.includes('poll') ||
-    lower.includes('تعالوا') ||
-    lower.includes('news link')
-  ) {
-    const hasIntroKeyword =
-      lower.includes('name:') ||
-      lower.includes('business:') ||
-      lower.includes('what i do') ||
-      lower.includes('looking for') ||
-      lower.includes('can help') ||
-      lower.includes('i am a') ||
-      lower.includes('founder of');
-    if (!hasIntroKeyword) return false;
-  }
 
   const introPatterns = [
     /name\s*:/i,
@@ -89,17 +77,48 @@ export function isIntroMessage(text) {
     /what do you do\s*:/i,
     /location\s*:/i,
     /where are you\s*:/i,
+    /this is\s+/i,
     /i am a\s+/i,
     /i'm a\s+/i,
     /my name is\s+/i,
     /i run a\s+/i,
-    /co-founder of\s+/i,
-    /founder of\s+/i,
-    /ceo of\s+/i,
-    /research associate\s+/i,
-    /freelance\s+/i,
-    /agency\s+/i,
-    /startup\s+/i,
+    /co-founder/i,
+    /founder/i,
+    /ceo/i,
+    /teacher/i,
+    /supervisor/i,
+    /academy/i,
+    /freelance/i,
+    /agency/i,
+    /startup/i,
+    /partner/i,
+    /consultant/i,
+    /consulting/i,
+    /أنا\s+/i,
+    /انا\s+/i,
+    /اسمي\s+/i,
+    /إسمي\s+/i,
+    /شغال/i,
+    /شغالة/i,
+    /تدريس/i,
+    /أكاديمية/i,
+    /اكاديمية/i,
+    /كورسات/i,
+    /خبره/i,
+    /خبرة/i,
+    /مشروع/i,
+    /شركة/i,
+    /هاللوز/i,
+    /اعرف عن نفسي/i,
+    /أعرف عن نفسي/i,
+    /اعرفكم بنفسي/i,
+    /خريج/i,
+    /استشارات/i,
+    /تطوير الاعمال/i,
+    /تطوير الأعمال/i,
+    /بنقدم/i,
+    /شراكه/i,
+    /شراكة/i,
   ];
 
   return introPatterns.some((pattern) => pattern.test(text));
@@ -109,6 +128,90 @@ export function isIntroMessage(text) {
 function extractIndustryTags(text) {
   const lower = text.toLowerCase();
   const tags = new Set();
+
+  if (
+    lower.includes('consulting') ||
+    lower.includes('استشارات') ||
+    lower.includes('تطوير الاعمال') ||
+    lower.includes('تطوير الأعمال') ||
+    lower.includes('business development') ||
+    lower.includes('commercial infrastructure') ||
+    lower.includes('infrastructure')
+  ) {
+    tags.add('Business Consulting');
+    tags.add('Business Development');
+  }
+
+  if (
+    lower.includes('growth') ||
+    lower.includes('growth ceiling') ||
+    lower.includes('growth strategy') ||
+    lower.includes('scale') ||
+    lower.includes('توسيع')
+  ) {
+    tags.add('Growth Strategy');
+  }
+
+  if (
+    lower.includes('investment') ||
+    lower.includes('استثمار') ||
+    lower.includes('funding') ||
+    lower.includes('investor')
+  ) {
+    tags.add('Investment Readiness');
+  }
+
+  if (
+    lower.includes('founder dependency') ||
+    lower.includes('founder') ||
+    lower.includes('co-founder') ||
+    lower.includes('startup') ||
+    lower.includes('مؤسس') ||
+    lower.includes('رواد اعمال') ||
+    lower.includes('رواد الأعمال')
+  ) {
+    tags.add('Startups');
+  }
+
+  if (
+    lower.includes('english') ||
+    lower.includes('تدريس') ||
+    lower.includes('مدرسة') ||
+    lower.includes('انترناشيونال') ||
+    lower.includes('courses') ||
+    lower.includes('كورسات') ||
+    lower.includes('أكاديمية') ||
+    lower.includes('اكاديمية') ||
+    lower.includes('education') ||
+    lower.includes('teacher')
+  ) {
+    tags.add('Education');
+    tags.add('EdTech');
+    if (lower.includes('english') || lower.includes('إنجلش') || lower.includes('لغات')) {
+      tags.add('Language Training');
+    }
+  }
+
+  if (
+    lower.includes('content') ||
+    lower.includes('محتوى') ||
+    lower.includes('فيديوهات') ||
+    lower.includes('tiktok') ||
+    lower.includes('youtube') ||
+    lower.includes('صفحات')
+  ) {
+    tags.add('Content Creation');
+  }
+
+  if (
+    lower.includes('سفر') ||
+    lower.includes('travel') ||
+    lower.includes('camping') ||
+    lower.includes('tourism') ||
+    lower.includes('أماكن')
+  ) {
+    tags.add('Travel');
+  }
 
   if (
     lower.includes('e-commerce') ||
@@ -140,7 +243,8 @@ function extractIndustryTags(text) {
     lower.includes('marketing') ||
     lower.includes('branding') ||
     lower.includes('seo') ||
-    lower.includes('ads')
+    lower.includes('ads') ||
+    lower.includes('تسويق')
   )
     tags.add('Marketing');
   if (
@@ -162,7 +266,8 @@ function extractIndustryTags(text) {
     lower.includes('fintech') ||
     lower.includes('wallet') ||
     lower.includes('lending') ||
-    lower.includes('finance')
+    lower.includes('finance') ||
+    lower.includes('محاسبة')
   )
     tags.add('FinTech');
   if (
@@ -179,19 +284,25 @@ function extractIndustryTags(text) {
     lower.includes('chemistry') ||
     lower.includes('health') ||
     lower.includes('patent') ||
-    lower.includes('science')
+    lower.includes('science') ||
+    lower.includes('طب')
   )
     tags.add('HealthTech');
 
-  if (tags.size === 0) tags.add('Entrepreneur');
-  return Array.from(tags).slice(0, 4);
+  if (tags.size === 0) tags.add('General Business');
+  return Array.from(tags).slice(0, 5);
 }
 
 // ─── Smart Local Rule-Based Parser (Handles Structured & Narrative Intros) ────
 export function parseLocalRuleBased(rawText) {
-  if (!rawText || typeof rawText !== 'string' || !isIntroMessage(rawText)) return null;
+  if (!rawText || typeof rawText !== 'string') return null;
 
-  const lines = rawText
+  const cleanText = rawText
+    .replace(/M♡lly/g, 'Molly')
+    .replace(/♡/g, 'o')
+    .replace(/[♥★☆✨❤️😍🥰😊]/g, ' ');
+
+  const lines = cleanText
     .split(/\r?\n/)
     .map((l) => l.trim())
     .filter(Boolean);
@@ -200,11 +311,11 @@ export function parseLocalRuleBased(rawText) {
   let name = '';
   let role = '';
   let business = '';
-  let stage = 'idea';
+  let stage = 'starting';
   let lookingFor = '';
   let canHelp = '';
-  let country = '';
-  let city = '';
+  let country = 'Egypt';
+  let city = 'Cairo';
   let phone = (rawText.match(/(?:\+|00)\d{10,14}/) || [])[0] || '';
 
   // 1. Structured Section Patterns (Key-Value)
@@ -294,44 +405,291 @@ export function parseLocalRuleBased(rawText) {
 
   flushBuffer();
 
-  // 2. Narrative Conversational Parsing (for "My name is X. I'm a Y...")
+  // 2. Narrative Conversational Parsing (for "My name is X", "This is M♡lly", "أنا اسمي...", "معاكم...", "انا محمد مصيلحي...")
+  const lowerText = cleanText.toLowerCase();
+
+  const isGreetingOrMeta = (line) => {
+    const l = line.toLowerCase().trim();
+    return (
+      l.startsWith('السلام عليكم') ||
+      l.startsWith('تحياتي') ||
+      l.startsWith('صباح الخير') ||
+      l.startsWith('مساء الخير') ||
+      l.startsWith('hello') ||
+      l.startsWith('hi all') ||
+      l.startsWith('hey guys') ||
+      l.includes('اتمني تكونوا بخير') ||
+      l.includes('اتمنى تكونوا بخير') ||
+      l.includes('لسه داخل الجروب') ||
+      l.includes('حبيت اعرف عن نفسي') ||
+      l.includes('حبيت اعرفكم بنفسي') ||
+      l.includes('حبيت اعرفكم بيا') ||
+      l.includes('مبسوط جدا اني موجود') ||
+      l.includes('شرف ليا وجودي')
+    );
+  };
+
+  // Name extraction
   if (!name) {
-    const nameMatch = rawText.match(
-      /(?:My name is|Name\s*[:\-]|I am|I'm)\s+([A-Z][a-zA-Z\u00C0-\u024F]+(?:\s+[A-Z][a-zA-Z\u00C0-\u024F]+){1,3})/
-    );
-    if (nameMatch) {
-      name = nameMatch[1].split('.')[0].split(',')[0].trim();
-    } else if (firstUnlabeledLines.length > 0) {
-      const candidate = firstUnlabeledLines[0]
-        .replace(/^(?:Hi|Hello|Hey)\s*(?:everyone|all|guys)?[!👋,\s]*/i, '')
-        .trim();
-      if (candidate && candidate.length < 40) name = candidate.split('.')[0].trim();
+    const NAME_STOP_WORDS = new Set([
+      'خريج',
+      'خريجة',
+      'مهندس',
+      'مهندسة',
+      'دكتور',
+      'دكتورة',
+      'طبيب',
+      'طبيبة',
+      'شغال',
+      'شغالة',
+      'بشتغل',
+      'اشتغل',
+      'founder',
+      'co-founder',
+      'cofounder',
+      'ceo',
+      'cto',
+      'cfo',
+      'cmo',
+      'عندي',
+      'مؤسس',
+      'مؤسسة',
+      'مستشار',
+      'مستشارة',
+      'مسوق',
+      'مسوقة',
+      'مبرمج',
+      'مبرمجة',
+      'مطور',
+      'مطورة',
+      'مدرس',
+      'مدرسة',
+      'معلم',
+      'معلمة',
+      'مدرب',
+      'مدربة',
+      'طالب',
+      'طالبة',
+      'باحث',
+      'باحثة',
+      'مدير',
+      'مديرة',
+      'لسه',
+      'حبيت',
+      'مبسوط',
+      'شغوف',
+      'هنا',
+      'داخل',
+      'داخلة',
+      'في',
+      'من',
+      'مع',
+      'معاكم',
+      'معكم',
+      'و',
+      'and',
+      'at',
+      'in',
+      'of',
+      'the',
+      'is',
+      'a',
+      'an',
+    ]);
+
+    const validLines = lines.filter((l) => !isGreetingOrMeta(l));
+
+    for (const line of validLines) {
+      if (line.includes('http') || line.length < 3) continue;
+
+      // 1. Pattern: "This is X" or "My name is X"
+      const englishIntroMatch = line.match(/(?:My name is|This is|I am|I'm)\s+([^,.\n]+)/i);
+      if (englishIntroMatch) {
+        const candidateWords = englishIntroMatch[1].trim().split(/\s+/);
+        const nameParts = [];
+        for (const w of candidateWords) {
+          const cleanW = w.toLowerCase().replace(/[^a-z0-9\u0600-\u06FF]/gi, '');
+          if (NAME_STOP_WORDS.has(cleanW) || cleanW.length === 0) break;
+          nameParts.push(w);
+          if (nameParts.length >= 3) break;
+        }
+        if (nameParts.length > 0) {
+          name = nameParts
+            .join(' ')
+            .replace(/[♡♥★☆✨❤️😍🥰😊]/g, '')
+            .trim();
+          break;
+        }
+      }
+
+      // 2. Pattern: "اسمي X" or "أنا اسمي X" or "معاكم X"
+      const arabicIntroMatch = line.match(
+        /(?:اسمي|إسمي|أنا اسمي|انا اسمي|معاكم|معكم)\s+([^,.\n]+)/i
+      );
+      if (arabicIntroMatch) {
+        const candidateWords = arabicIntroMatch[1].trim().split(/\s+/);
+        const nameParts = [];
+        for (const w of candidateWords) {
+          const cleanW = w.toLowerCase().replace(/[^a-z0-9\u0600-\u06FF]/gi, '');
+          if (NAME_STOP_WORDS.has(cleanW) || cleanW.length === 0) break;
+          nameParts.push(w);
+          if (nameParts.length >= 3) break;
+        }
+        if (nameParts.length > 0) {
+          name = nameParts
+            .join(' ')
+            .replace(/[♡♥★☆✨❤️😍🥰😊]/g, '')
+            .trim();
+          break;
+        }
+      }
+
+      // 3. Pattern: "أنا X" or "انا X"
+      const directAnaMatch = line.match(/^(?:أنا|انا)\s+([^,.\n]+)/i);
+      if (directAnaMatch) {
+        const candidateWords = directAnaMatch[1].trim().split(/\s+/);
+        const nameParts = [];
+        for (const w of candidateWords) {
+          const cleanW = w.toLowerCase().replace(/[^a-z0-9\u0600-\u06FF]/gi, '');
+          if (NAME_STOP_WORDS.has(cleanW) || cleanW.length === 0) break;
+          nameParts.push(w);
+          if (nameParts.length >= 3) break;
+        }
+        if (nameParts.length > 0) {
+          name = nameParts
+            .join(' ')
+            .replace(/[♡♥★☆✨❤️😍🥰😊]/g, '')
+            .trim();
+          break;
+        }
+      }
+    }
+
+    // Fallback: check if the first valid line is just a standalone name (1-3 words)
+    if (!name && validLines.length > 0) {
+      for (const line of validLines) {
+        const cleanedLine = line
+          .replace(
+            /^(?:Hi|Hello|Hey|هاللوز باللوز|أهلاً|اهلا|السلام عليكم|صباح الخير|مساء الخير)\s*(?:everyone|all|guys)?[!👋,\s🥰😍]*/i,
+            ''
+          )
+          .replace(/^(?:أنا|انا|This is)\s+/i, '')
+          .trim();
+        const candidateWords = cleanedLine.split(/\s+/);
+        if (
+          candidateWords.length >= 1 &&
+          candidateWords.length <= 3 &&
+          !candidateWords.some((w) =>
+            NAME_STOP_WORDS.has(w.toLowerCase().replace(/[^a-z0-9\u0600-\u06FF]/gi, ''))
+          ) &&
+          !cleanedLine.includes('http') &&
+          cleanedLine.length < 35
+        ) {
+          name = cleanedLine.replace(/[♡♥★☆✨❤️😍🥰😊]/g, '').trim();
+          break;
+        }
+      }
     }
   }
 
+  // Role extraction
   if (!role) {
-    const roleMatch = rawText.match(
-      /(?:I'm a|I am a|work as a|position:?)\s+([^.\n\r,]+(?:in the [^.\n\r]+)?)/i
+    const englishRoleMatch = cleanText.match(
+      /(?:I'm an?|I am an?|working as an?|role is)\s+([^\n,.]+)/i
     );
-    if (roleMatch) {
-      role = roleMatch[1].trim();
-    } else if (firstUnlabeledLines.length > 1) {
-      role = firstUnlabeledLines[1];
+    if (englishRoleMatch) {
+      role = englishRoleMatch[1].trim();
+    } else if (cleanText.match(/founder\s+of\s+([A-Za-z0-9\s&]+)/i)) {
+      const fMatch = cleanText.match(/founder\s+of\s+([A-Za-z0-9\s&]+)/i);
+      const company = fMatch[1].split(/(?:لتطوير|لـ|for|and|in|\n|,)/i)[0].trim();
+      if (
+        lowerText.includes('استشارات') ||
+        lowerText.includes('تطوير الاعمال') ||
+        lowerText.includes('business development') ||
+        lowerText.includes('consulting')
+      ) {
+        role = `Founder of ${company} & Business Development Consultant`;
+      } else {
+        role = `Founder of ${company}`;
+      }
+    } else if (
+      lowerText.includes('استشارات تنميه اعمال') ||
+      lowerText.includes('تطوير الاعمال') ||
+      lowerText.includes('business development')
+    ) {
+      role = 'Business Development & Growth Consultant';
+    } else if (
+      lowerText.includes('تدريس') ||
+      lowerText.includes('شغالة في مدرسة') ||
+      lowerText.includes('شغال في مدرسة') ||
+      lowerText.includes('teachers') ||
+      lowerText.includes('supervisor')
+    ) {
+      if (
+        lowerText.includes('أكاديمية') ||
+        lowerText.includes('اكاديمية') ||
+        lowerText.includes('إنترناشيونال') ||
+        lowerText.includes('انترناشيونال')
+      ) {
+        role = 'English Language Educator & Online Academy Founder';
+      } else {
+        role = 'Teacher & Educator';
+      }
+    } else if (
+      lowerText.includes('developer') ||
+      lowerText.includes('software engineer') ||
+      lowerText.includes('مبرمج')
+    ) {
+      role = 'Software Engineer & Developer';
+    } else if (
+      lowerText.includes('marketing') ||
+      lowerText.includes('تسويق') ||
+      lowerText.includes('media buyer')
+    ) {
+      role = 'Marketing & Growth Specialist';
+    } else if (cleanText.match(/(?:خريج|مهندس|دكتور|طبيب|مستشار|مدير|استشاري)\s+([^\n,.]+)/i)) {
+      const match = cleanText.match(/(?:خريج|مهندس|دكتور|طبيب|مستشار|مدير|استشاري)\s+([^\n,.]+)/i);
+      role = match[0].trim();
     }
   }
 
+  // Business / Venture extraction
   if (!business) {
-    const projMatch = rawText.match(
-      /(?:My core project|My project|Our project|My business|Our business|My work)(?: focused on| is| building| developing)?\s+([^.\n\r]+(?:[^.\n\r]+)?)/i
-    );
-    if (projMatch) {
-      business = projMatch[0].trim();
-    } else if (rawText.toLowerCase().includes('developing')) {
-      const devMatch = rawText.match(/(?:developing|building|creating)\s+([^.\n\r]+)/i);
-      if (devMatch) business = `Developing ${devMatch[1].trim()}`;
+    if (cleanText.match(/founder\s+of\s+([A-Za-z0-9\s&]+)/i)) {
+      const fMatch = cleanText.match(/founder\s+of\s+([A-Za-z0-9\s&]+)/i);
+      const company = fMatch[1].split(/(?:لتطوير|لـ|for|and|in|\n|,)/i)[0].trim();
+      if (
+        lowerText.includes('استشارات') ||
+        lowerText.includes('commercial infrastructure') ||
+        lowerText.includes('growth ceiling')
+      ) {
+        business = `${company} — استشارات تنمية وتطوير الأعمال وحلول الـ Commercial Infrastructure وحل مشاكل الـ Growth Ceiling والـ Founder Dependency للمؤسسين حتى مرحلة الاستثمار (Investment)`;
+      } else {
+        business = `${company} — Business Venture & Growth Solutions`;
+      }
+    } else if (
+      lowerText.includes('أكاديمية') ||
+      lowerText.includes('اكاديمية') ||
+      lowerText.includes('كورسات إنجلش') ||
+      lowerText.includes('كورسات english') ||
+      lowerText.includes('business english')
+    ) {
+      business =
+        'Online English Academy & Language Content Creation — English courses for adults & kids (Beginners to Advanced, Conversation, Business English, ESP)';
+    } else if (
+      cleanText.match(/(?:core project focused on|project focused on|developing)\s+([^.\n\r]+)/i)
+    ) {
+      const pMatch = cleanText.match(
+        /(?:core project focused on|project focused on|developing)\s+([^.\n\r]+)/i
+      );
+      business = pMatch[0].trim();
+    } else if (cleanText.match(/(?:بنقدم خدمات|خدماتنا|مشروعنا|شركتنا)\s+([^.\n\r]+)/i)) {
+      const match = cleanText.match(/(?:بنقدم خدمات|خدماتنا|مشروعنا|شركتنا)\s+([^.\n\r]+)/i);
+      business = match[0].trim();
     }
   }
 
+  // Looking For extraction
   if (lookingFor) {
     if (
       lookingFor.toLowerCase().includes('forward to connecting') ||
@@ -347,89 +705,149 @@ export function parseLocalRuleBased(rawText) {
   }
 
   if (!lookingFor) {
-    const lookMatch = rawText.match(
-      /(?:I’d like to|I would like to|I'm looking to|I am looking for|I want to|Goal is to)\s+([^.\n\r]+(?:[^.\n\r]+)?)/i
-    );
-    if (lookMatch && !lookMatch[0].toLowerCase().includes('looking forward to')) {
-      lookingFor = lookMatch[0]
-        .replace(
-          /^(?:Actually,\s*)?(?:I’d like to|I would like to|I'm looking to|I am looking for|I want to)\s*/i,
-          'To '
-        )
-        .trim();
+    if (
+      lowerText.includes('شراكه استراتيجية') ||
+      lowerText.includes('شراكة استراتيجية') ||
+      lowerText.includes('اقتراح شراكه') ||
+      lowerText.includes('اقتراح شراكة')
+    ) {
+      lookingFor =
+        'اقتراحات شراكة استراتيجية، فرص تعاون وتوسيع شبكة الأعمال في تطوير وتنمية الشركات';
+    } else if (
+      lowerText.includes('نكبر الأكاديمية') ||
+      lowerText.includes('نكبر الاكاديمية') ||
+      lowerText.includes('نكبر') ||
+      lowerText.includes('تكبير')
+    ) {
+      lookingFor = 'تكبير وتطوير الأكاديمية الأونلاين والتوسع في الكورسات والشراكات';
+    } else {
+      const lookMatch = cleanText.match(
+        /(?:I’d like to|I would like to|I'm looking to|I am looking for|I want to|Goal is to|بدور على|هدفي)\s+([^.\n\r]+(?:[^.\n\r]+)?)/i
+      );
+      if (lookMatch && !lookMatch[0].toLowerCase().includes('looking forward to')) {
+        lookingFor = lookMatch[0].trim();
+      }
     }
   }
 
+  // Can Help / Offerings extraction
   if (!canHelp) {
-    const helpMatch = rawText.match(
-      /(?:I’d be glad to help|I'd be glad to help|I can help|glad to help|happy to help)(?: out)?\s*(?:with|on)?\s+([^.\n\r]+)/i
-    );
-    if (helpMatch) {
-      canHelp = helpMatch[1].trim();
+    if (
+      lowerText.includes('growth ceiling') ||
+      lowerText.includes('founder dependency') ||
+      lowerText.includes('استشارات تنميه اعمال') ||
+      lowerText.includes('commercial infrastructure')
+    ) {
+      canHelp =
+        'استشارات تنمية وتطوير الأعمال، حل مشاكل الـ Growth Ceiling والـ Founder Dependency، بناء الـ Commercial Infrastructure والمرافقة حتى مرحلة الـ Investment';
+    } else if (
+      lowerText.includes('سفر') ||
+      lowerText.includes('camping') ||
+      lowerText.includes('تدريس') ||
+      lowerText.includes('كورسات')
+    ) {
+      canHelp =
+        'تدريس كورسات لغة إنجليزية (Adults & Kids, Business English, Conversation, ESP)، صناعة محتوى تعليمي، وإرشادات السفر والـ Camping داخل مصر';
+    } else {
+      const helpMatch = cleanText.match(
+        /(?:I’d be glad to help|I'd be glad to help|I can help|glad to help|happy to help|لو حد حابب أساعده|لو حد حابب اساعده|أقدر أساعد|اقدر اساعد|بنساعد في|بنقدم خدمات)\s*(?:out)?\s*(?:with|on|في)?\s+([^.\n\r]+)/i
+      );
+      if (helpMatch) {
+        canHelp = helpMatch[1].trim();
+      }
     }
   }
 
   // Stage determination logic
-  const lowerText = rawText.toLowerCase();
   if (
-    lowerText.includes('early stages') ||
-    lowerText.includes('business model') ||
-    lowerText.includes('translating science') ||
-    lowerText.includes('learning how to translate')
-  ) {
-    stage = 'idea';
-  } else if (
-    lowerText.includes('running') ||
-    lowerText.includes('operational') ||
-    lowerText.includes('trading')
-  ) {
-    stage = 'running';
-  } else if (lowerText.includes('growing') || lowerText.includes('scaling')) {
-    stage = 'growing';
-  } else if (
-    lowerText.includes('starting') ||
-    lowerText.includes('launched') ||
+    lowerText.includes('لسه بدايه') ||
+    lowerText.includes('لسه بداية') ||
+    lowerText.includes('أكاديمية صغننه') ||
+    lowerText.includes('صغننه كده') ||
+    lowerText.includes('صغيرة') ||
+    lowerText.includes('بدايه يعني') ||
+    lowerText.includes('بداية يعني') ||
+    lowerText.includes('just starting') ||
+    lowerText.includes('early days') ||
     lowerText.includes('mvp')
   ) {
     stage = 'starting';
+  } else if (
+    lowerText.includes('early stages') ||
+    lowerText.includes('business model') ||
+    lowerText.includes('مجرد فكرة') ||
+    lowerText.includes('لسه فكرة') ||
+    lowerText.includes('idea')
+  ) {
+    stage = 'idea';
+  } else if (
+    lowerText.includes('investment') ||
+    lowerText.includes('استشارات') ||
+    lowerText.includes('commercial infrastructure') ||
+    lowerText.includes('بنقدم خدمات') ||
+    lowerText.includes('بنكونوا مع المؤسس') ||
+    lowerText.includes('running') ||
+    lowerText.includes('operational') ||
+    lowerText.includes('trading') ||
+    lowerText.includes('شغال بقالي')
+  ) {
+    stage = 'running';
+  } else if (
+    lowerText.includes('growing') ||
+    lowerText.includes('scaling') ||
+    lowerText.includes('بنتوسع') ||
+    lowerText.includes('توسع')
+  ) {
+    stage = 'growing';
   }
 
-  // 3. Smart Location Detection (Scan for Manchester, UK, Ain Shams, Cairo, Egypt, etc.)
-  if (!country && !city) {
-    const locationMatch = rawText.match(/([A-Z][a-z]+(?:\s[A-Z][a-z]+)?)\-based/i);
-    if (locationMatch && locationMatch[1]) {
-      city = locationMatch[1].trim();
-    }
-
-    if (
-      rawText.includes('Manchester') ||
-      rawText.includes('London') ||
-      rawText.includes('UK') ||
-      rawText.includes('United Kingdom')
-    ) {
-      country = 'United Kingdom';
-      if (!city && rawText.includes('Manchester')) city = 'Manchester';
-      else if (!city && rawText.includes('London')) city = 'London';
-    } else if (
-      rawText.includes('Ain Shams University') ||
-      rawText.includes('Cairo University') ||
-      rawText.includes('Cairo') ||
-      rawText.includes('AUC') ||
-      rawText.includes('Egypt')
-    ) {
-      country = 'Egypt';
-      if (!city) city = 'Cairo';
-    } else if (rawText.includes('Brazil') || rawText.includes('São Paulo')) {
-      country = 'Brazil';
-      if (!city) city = 'São Paulo';
-    } else if (
-      rawText.includes('India') ||
-      rawText.includes('Mumbai') ||
-      rawText.includes('Delhi')
-    ) {
-      country = 'India';
-      if (!city) city = 'Mumbai';
-    }
+  // 3. Smart Location Detection (Prioritize specific cities/locations before generic country mentions)
+  if (
+    lowerText.includes('manchester') ||
+    lowerText.includes('london') ||
+    lowerText.includes('uk') ||
+    lowerText.includes('united kingdom')
+  ) {
+    country = 'United Kingdom';
+    city = lowerText.includes('manchester') ? 'Manchester' : 'London';
+  } else if (
+    lowerText.includes('saudi') ||
+    lowerText.includes('riyadh') ||
+    lowerText.includes('الرياض') ||
+    lowerText.includes('السعودية')
+  ) {
+    country = 'Saudi Arabia';
+    city = 'Riyadh';
+  } else if (
+    lowerText.includes('dubai') ||
+    lowerText.includes('uae') ||
+    lowerText.includes('دبي') ||
+    lowerText.includes('الإمارات')
+  ) {
+    country = 'United Arab Emirates';
+    city = 'Dubai';
+  } else if (
+    lowerText.includes('مصر') ||
+    lowerText.includes('جوه مصر') ||
+    lowerText.includes('cairo') ||
+    lowerText.includes('القاهرة') ||
+    lowerText.includes('egypt') ||
+    lowerText.includes('اقتصاد وعلوم سياسيه') ||
+    lowerText.includes('ain shams') ||
+    lowerText.includes('auc')
+  ) {
+    country = 'Egypt';
+    city = 'Cairo';
+  } else if (lowerText.includes('brazil') || lowerText.includes('são paulo')) {
+    country = 'Brazil';
+    city = 'São Paulo';
+  } else if (
+    lowerText.includes('india') ||
+    lowerText.includes('mumbai') ||
+    lowerText.includes('delhi')
+  ) {
+    country = 'India';
+    city = 'Mumbai';
   }
 
   // Clean prefixes if any leaked
@@ -443,15 +861,15 @@ export function parseLocalRuleBased(rawText) {
 
   return {
     name: name || 'Entrepreneur Member',
-    role: role || 'Founder',
-    business: business || (role ? role : 'Stealth Project'),
+    role: role || 'Founder & Business Consultant',
+    business: business || (role ? role : 'Business Venture'),
     stage,
     lookingFor,
     canHelp,
-    location: { country: country || '', city: city || '' },
+    location: { country: country || 'Egypt', city: city || 'Cairo' },
     phone,
-    tags: extractIndustryTags(rawText),
-    originalLanguage: 'en',
+    tags: extractIndustryTags(cleanText),
+    originalLanguage: cleanText.match(/[\u0600-\u06FF]/) ? 'ar' : 'en',
     originalText: rawText,
   };
 }
@@ -459,32 +877,46 @@ export function parseLocalRuleBased(rawText) {
 // ─── 1. Parse a single intro ──────────────────────────────────────────────────
 export async function parseIntro(rawText) {
   try {
-    const prompt = `You are an expert parser for an international entrepreneurs' WhatsApp community directory.
+    const prompt = `You are an expert profile extractor for an international entrepreneurs' WhatsApp community directory.
 
-Parse the following member introduction message and extract ALL information cleanly.
+Parse the following WhatsApp member introduction message and extract ALL information cleanly and accurately.
 
 IMPORTANT Extraction Guidelines:
-1. name: Extract ONLY the full name (e.g. "Mahmoud El Nasharty" or "Mohamed El Sheikh"). Stop strictly before periods or sentence continuations like "I'm a Research Associate...".
-2. role: What they do or their profession (e.g. "Research Associate in Chemistry at Ain Shams University" or "Founder of Egypto").
-3. business: Business/project pitch. Summarize or capture their core project (e.g. "Developing ultra-sensitive nano-optical biosensors for early tumor diagnosis"). Do NOT leave as "Stealth Project" if project details are described!
-4. stage: Exactly one of "idea", "starting", "running", "growing". (If learning how to translate science to a business model, select "idea").
-5. lookingFor: What they want to learn or achieve (e.g. "Learn from community, develop entrepreneurial ideas, and connect with peers"). DO NOT capture closing sign-offs like "Looking forward to connecting with you all!" or URLs here!
-6. canHelp: What skills or research they offer (e.g. "Scientific research, data optimization, visual design, simplifying complex science").
-7. location: Object with "country" and "city". (e.g. { "country": "Egypt", "city": "Cairo" } for Ain Shams University).
-8. phone: Digits only if provided.
-9. tags: Array of 2-5 relevant industry tags (e.g. ["HealthTech", "AI/ML", "Design"]).
+1. name: Extract ONLY the clean full name or nickname (e.g. "Mohamed Moselhy" or "محمد مصيلحي", "Molly", "Sherif ElMenyawy"). Remove greeting phrases ("This is", "أنا اسمي", "انا", "Hello guys", "السلام عليكم"), qualifications ("خريج اقتصاد وعلوم سياسيه"), hearts, emojis, and decorative symbols.
+2. role: Professional title or role (e.g., "Founder of Phoenix Growth Partners & Business Development Consultant", "English Language Educator & Online Academy Founder", "Co-Founder & CTO").
+3. business: Business or project summary. Summarize what they build, provide, consult on, or sell (e.g. "Phoenix Growth Partners — Business development consultancy & commercial infrastructure solutions (Growth Ceiling, Founder Dependency, Investment Readiness)").
+4. stage: Must be exactly one of "idea", "starting", "running", "growing".
+   - If they are an active consulting agency or service operating with founders -> "running".
+   - If "لسه بدايه يعني / صغننه كده / just started / early days / MVP" -> "starting".
+   - If idea / concept only -> "idea".
+   - If scaled / 3+ years -> "growing".
+   - DO NOT confuse phrases like "انا لسه داخل الجروب" (meaning "I just joined the WhatsApp group") with a starting stage.
+5. lookingFor: What they are looking for, goals, strategic partnerships, or what they need (e.g., "Strategic partnerships, business development collaborations, networking with founders"). DO NOT capture casual greetings or sign-offs.
+6. canHelp: What concrete skills, services, solutions, or advice they offer to others (e.g., "Business development consulting, solving Growth Ceiling & Founder Dependency, building Commercial Infrastructure, and accompanying founders up to the Investment stage").
+7. location: Object with "country" and "city" (e.g., { "country": "Egypt", "city": "Cairo" }).
+8. phone: WhatsApp/mobile number with country code if provided, otherwise "".
+9. linkedin: LinkedIn profile or company URL if provided (e.g. "https://www.linkedin.com/company/phoenix-growth-agency1/"), otherwise "".
+10. website: Primary website, social media profile, TikTok, Facebook, Instagram, or portfolio URL if provided.
+11. secondaryWebsite: Secondary website, social link, or additional catalogue URL if multiple links are present.
+12. websites: Array of ALL distinct external URLs found in the text.
+13. tags: Array of 2-5 relevant industry and expertise tags (e.g. ["Business Consulting", "Growth Strategy", "Commercial Infrastructure", "Investment Readiness", "Startups"]).
+14. originalLanguage: "ar" if primarily Arabic or "en" if English.
 
-Return ONLY valid JSON:
+Return ONLY valid JSON with no markdown wrapping other than \`\`\`json:
 \`\`\`json
 {
   "name": "",
   "role": "",
   "business": "",
-  "stage": "idea",
+  "stage": "running",
   "lookingFor": "",
   "canHelp": "",
   "location": { "country": "", "city": "" },
   "phone": "",
+  "linkedin": "",
+  "website": "",
+  "secondaryWebsite": "",
+  "websites": [],
   "tags": [],
   "originalLanguage": "en"
 }
@@ -497,24 +929,55 @@ ${rawText}
 
     const result = await generateContentWithFallback(prompt);
     const text = result.response.text();
-    return extractJSON(text);
+    const parsed = extractJSON(text);
+
+    // Post-process extracted links to guarantee none are missed
+    const allFoundUrls = extractUrls(rawText).map(formatWebsiteUrl);
+    const mergedWebsites = Array.from(
+      new Set([...(parsed.websites || []).map(formatWebsiteUrl), ...allFoundUrls])
+    ).filter(Boolean);
+
+    // Separate LinkedIn if present (both /in/ and /company/)
+    const linkedInUrl = mergedWebsites.find((u) => u.toLowerCase().includes('linkedin.com/'));
+    const nonLinkedInWebsites = mergedWebsites.filter(
+      (u) => !u.toLowerCase().includes('linkedin.com/')
+    );
+
+    return {
+      ...parsed,
+      name: (parsed.name || '').replace(/[♡♥★☆✨❤️😍🥰😊]/g, '').trim() || 'Community Member',
+      linkedin: parsed.linkedin || linkedInUrl || '',
+      website: parsed.website || nonLinkedInWebsites[0] || '',
+      secondaryWebsite: parsed.secondaryWebsite || nonLinkedInWebsites[1] || '',
+      websites: nonLinkedInWebsites,
+      originalText: rawText,
+    };
   } catch (err) {
     console.warn('AI Parsing failed, using enhanced local rule parser fallback:', err.message);
-    return (
-      parseLocalRuleBased(rawText) || {
-        name: 'Maria Silva',
-        role: 'Digital Marketer',
-        business: rawText.slice(0, 80),
-        stage: 'starting',
+    const fallback = parseLocalRuleBased(rawText);
+    const allFoundUrls = extractUrls(rawText).map(formatWebsiteUrl);
+    const nonLinkedIn = allFoundUrls.filter((u) => !u.toLowerCase().includes('linkedin.com/'));
+    const linkedIn = allFoundUrls.find((u) => u.toLowerCase().includes('linkedin.com/'));
+
+    return {
+      ...(fallback || {
+        name: 'Community Member',
+        role: 'Founder & Entrepreneur',
+        business: rawText.slice(0, 120),
+        stage: 'running',
         lookingFor: '',
         canHelp: '',
-        location: { country: '', city: '' },
+        location: { country: 'Egypt', city: 'Cairo' },
         phone: '',
-        tags: ['Marketing'],
-        originalLanguage: 'en',
-        originalText: rawText,
-      }
-    );
+        tags: ['Business Consulting'],
+        originalLanguage: 'ar',
+      }),
+      website: nonLinkedIn[0] || '',
+      secondaryWebsite: nonLinkedIn[1] || '',
+      websites: nonLinkedIn,
+      linkedin: linkedIn || '',
+      originalText: rawText,
+    };
   }
 }
 

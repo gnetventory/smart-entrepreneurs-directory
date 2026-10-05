@@ -169,15 +169,86 @@ export function formatWebsiteUrl(url = '') {
   return `https://${clean.replace(/^\/+/, '')}`;
 }
 
-export function getDomainLabel(url = '') {
-  if (!url) return 'Website';
+export function getPlatformLabel(url = '') {
+  if (!url || typeof url !== 'string') return 'Website';
+  const clean = url.trim().toLowerCase();
+
+  if (clean.includes('tiktok.com')) return 'TikTok';
+  if (
+    clean.includes('facebook.com') ||
+    clean.includes('fb.me') ||
+    clean.includes('fb.com') ||
+    clean.includes('fb.watch')
+  )
+    return 'Facebook';
+  if (clean.includes('instagram.com') || clean.includes('instagr.am')) return 'Instagram';
+  if (clean.includes('youtube.com') || clean.includes('youtu.be')) return 'YouTube';
+  if (clean.includes('linkedin.com')) return 'LinkedIn';
+  if (clean.includes('twitter.com') || clean.includes('x.com')) return 'X (Twitter)';
+  if (clean.includes('github.com')) return 'GitHub';
+  if (clean.includes('behance.net')) return 'Behance';
+  if (clean.includes('dribbble.com')) return 'Dribbble';
+  if (clean.includes('medium.com')) return 'Medium';
+  if (clean.includes('t.me') || clean.includes('telegram.org') || clean.includes('telegram.me'))
+    return 'Telegram';
+  if (clean.includes('wa.me') || clean.includes('whatsapp.com')) return 'WhatsApp';
+  if (clean.includes('threads.net')) return 'Threads';
+  if (clean.includes('pinterest.com')) return 'Pinterest';
+  if (clean.includes('snapchat.com')) return 'Snapchat';
+  if (clean.includes('substack.com')) return 'Substack';
+  if (clean.includes('spotify.com')) return 'Spotify';
+  if (clean.includes('soundcloud.com')) return 'SoundCloud';
+  if (clean.includes('calendly.com')) return 'Calendly';
+
+  // Domain fallback
   try {
     const formatted = formatWebsiteUrl(url);
     const parsed = new URL(formatted);
-    return parsed.hostname.replace(/^www\./, '');
+    const host = parsed.hostname.replace(/^www\./, '');
+    return host || 'Website';
   } catch {
-    return url.replace(/^https?:\/\/(www\.)?/, '').split('/')[0] || 'Website';
+    const rawHost = url.replace(/^https?:\/\/(www\.)?/, '').split('/')[0];
+    return rawHost || 'Website';
   }
+}
+
+export function getPlatformBadgeStyle(url = '') {
+  const label = getPlatformLabel(url);
+  const lower = label.toLowerCase();
+  if (lower.includes('tiktok')) {
+    return {
+      bg: 'bg-stone-900 text-white dark:bg-stone-800',
+      border: 'border-stone-700',
+      label: 'TikTok',
+    };
+  }
+  if (lower.includes('facebook')) {
+    return { bg: 'bg-blue-600 text-white', border: 'border-blue-700', label: 'Facebook' };
+  }
+  if (lower.includes('instagram')) {
+    return { bg: 'bg-pink-600 text-white', border: 'border-pink-700', label: 'Instagram' };
+  }
+  if (lower.includes('youtube')) {
+    return { bg: 'bg-red-600 text-white', border: 'border-red-700', label: 'YouTube' };
+  }
+  if (lower.includes('linkedin')) {
+    return { bg: 'bg-sky-700 text-white', border: 'border-sky-800', label: 'LinkedIn' };
+  }
+  if (lower === 'x (twitter)' || lower.includes('twitter')) {
+    return { bg: 'bg-stone-900 text-white', border: 'border-stone-800', label: 'X' };
+  }
+  if (lower.includes('github')) {
+    return { bg: 'bg-stone-800 text-white', border: 'border-stone-700', label: 'GitHub' };
+  }
+  return {
+    bg: 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300',
+    border: 'border-stone-200 dark:border-stone-700',
+    label,
+  };
+}
+
+export function getDomainLabel(url = '') {
+  return getPlatformLabel(url);
 }
 
 /**

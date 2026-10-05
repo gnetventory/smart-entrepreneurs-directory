@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Save, X } from 'lucide-react';
+import { Save, X, Plus, ExternalLink, Globe } from 'lucide-react';
 import { STAGE_OPTIONS, STAGES, INDUSTRY_TAGS } from '../../utils/constants';
 import { addMember } from '../../utils/storage';
 import { useApp } from '../../contexts/AppContext';
+import { formatWebsiteUrl, getPlatformLabel, getPlatformBadgeStyle } from '../../utils/helpers';
 
 const EMPTY_FORM = {
   name: '',
@@ -16,6 +17,7 @@ const EMPTY_FORM = {
   linkedin: '',
   website: '',
   secondaryWebsite: '',
+  websites: [],
   tags: [],
   originalLanguage: 'en',
   originalText: '',
@@ -30,6 +32,43 @@ export default function ManualForm({ initialData = {}, onSaved, onCancel, isEdit
   const set = (field, val) => setForm((f) => ({ ...f, [field]: val }));
   const setLocation = (field, val) =>
     setForm((f) => ({ ...f, location: { ...f.location, [field]: val } }));
+
+  // ── Dynamic Website & Social Link Handlers ──────────────────────────────────
+  const currentWebsites =
+    Array.isArray(form.websites) && form.websites.length > 0
+      ? form.websites
+      : [form.website, form.secondaryWebsite].filter(Boolean);
+
+  const handleUpdateWebsite = (index, val) => {
+    const updated = [...(currentWebsites.length > 0 ? currentWebsites : [''])];
+    updated[index] = val;
+    setForm((prev) => ({
+      ...prev,
+      websites: updated,
+      website: updated[0] || '',
+      secondaryWebsite: updated[1] || '',
+    }));
+  };
+
+  const handleAddWebsiteLink = () => {
+    const updated = [...currentWebsites, ''];
+    setForm((prev) => ({
+      ...prev,
+      websites: updated,
+      website: updated[0] || '',
+      secondaryWebsite: updated[1] || '',
+    }));
+  };
+
+  const handleRemoveWebsiteLink = (index) => {
+    const updated = currentWebsites.filter((_, i) => i !== index);
+    setForm((prev) => ({
+      ...prev,
+      websites: updated,
+      website: updated[0] || '',
+      secondaryWebsite: updated[1] || '',
+    }));
+  };
 
   const validate = () => {
     const e = {};
@@ -193,25 +232,80 @@ export default function ManualForm({ initialData = {}, onSaved, onCancel, isEdit
         </div>
       </div>
 
-      {/* Websites & Multi-Business Links */}
-      <div className="grid sm:grid-cols-2 gap-4">
-        <div>
-          <label className="label">Primary Website / Link</label>
-          <input
-            className="input"
-            value={form.website || ''}
-            onChange={(e) => set('website', e.target.value)}
-            placeholder="e.g. https://business1.com"
-          />
+      {/* Websites & Social Links (Labeled Platforms & Multi-Links Support) */}
+      <div className="space-y-2.5 p-3.5 rounded-2xl bg-stone-50 dark:bg-stone-850 border border-stone-200 dark:border-stone-750">
+        <div className="flex items-center justify-between">
+          <label className="label text-xs font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1.5 mb-0">
+            <Globe size={13} className="text-orange-500" />
+            <span>Websites & Social Media Links ({currentWebsites.length})</span>
+          </label>
+          <button
+            type="button"
+            onClick={handleAddWebsiteLink}
+            className="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1 cursor-pointer"
+          >
+            <Plus size={12} /> Add Another Link
+          </button>
         </div>
-        <div>
-          <label className="label">Secondary Website / Additional Business Link</label>
-          <input
-            className="input"
-            value={form.secondaryWebsite || ''}
-            onChange={(e) => set('secondaryWebsite', e.target.value)}
-            placeholder="e.g. https://business2.com or catalogue link"
-          />
+
+        <div className="space-y-2">
+          {currentWebsites.map((url, idx) => {
+            const badgeStyle = getPlatformBadgeStyle(url);
+            const platform = getPlatformLabel(url);
+            return (
+              <div key={idx} className="flex items-center gap-2">
+                <div
+                  className={`px-2.5 py-1.5 rounded-xl text-xs font-extrabold border flex items-center gap-1.5 shrink-0 min-w-[105px] justify-center shadow-xs ${badgeStyle.bg} ${badgeStyle.border}`}
+                >
+                  <span>{badgeStyle.label}</span>
+                </div>
+
+                <input
+                  type="text"
+                  value={url}
+                  onChange={(e) => handleUpdateWebsite(idx, e.target.value)}
+                  placeholder={`e.g. https://${platform.toLowerCase().replace(/[^a-z0-9]/g, '') || 'website'}.com/...`}
+                  className="input text-xs py-1.5 font-mono flex-1"
+                />
+
+                {url && (
+                  <a
+                    href={formatWebsiteUrl(url)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 rounded-xl bg-stone-200 dark:bg-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-300 dark:hover:bg-stone-600 transition-colors"
+                    title={`Test open ${platform}`}
+                  >
+                    <ExternalLink size={13} />
+                  </a>
+                )}
+
+                {currentWebsites.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveWebsiteLink(idx)}
+                    className="p-2 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-400 hover:text-rose-600 transition-colors cursor-pointer"
+                    title="Remove link"
+                  >
+                    <X size={13} />
+                  </button>
+                )}
+              </div>
+            );
+          })}
+
+          {currentWebsites.length === 0 && (
+            <div className="flex items-center justify-between py-2 px-3 rounded-xl bg-white dark:bg-stone-900 border border-dashed border-stone-300 dark:border-stone-700 text-xs text-stone-500">
+              <span>No website or social links added yet.</span>
+              <button
+                type="button"
+                onClick={handleAddWebsiteLink}
+                className="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline"
+              >
+                + Add Link
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

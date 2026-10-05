@@ -44,5 +44,6 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./tests/setup.js'],
     globals: true,
+    pool: 'threads',
   },
 });

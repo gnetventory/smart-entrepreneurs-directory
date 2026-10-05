@@ -12,7 +12,6 @@ import {
   Eye,
   ExternalLink,
   Download,
-  CreditCard,
   CheckCircle2,
   FileText,
 } from 'lucide-react';
@@ -36,7 +35,6 @@ import { isAdminSession } from '../../utils/session';
 import ProfileCard from './ProfileCard';
 import EmptyState from './EmptyState';
 import Modal from '../common/Modal';
-import BusinessCardModal from '../businesscard/BusinessCardModal';
 import EditMemberModal from '../parser/EditMemberModal';
 
 export default function Directory() {
@@ -60,7 +58,6 @@ export default function Directory() {
 
   // Modal states for Compact Table view
   const [detailMember, setDetailMember] = useState(null);
-  const [passMember, setPassMember] = useState(null);
   const [editMember, setEditMember] = useState(null);
   const [memberToDelete, setMemberToDelete] = useState(null);
 
@@ -603,12 +600,6 @@ export default function Directory() {
                 >
                   <Download size={13} /> Save Contact (.vcf)
                 </button>
-                <button
-                  onClick={() => setPassMember(detailMember)}
-                  className="btn-secondary text-xs font-bold py-2"
-                >
-                  <CreditCard size={13} /> Business Pass
-                </button>
               </div>
 
               <div className="flex items-center gap-2">
@@ -631,15 +622,6 @@ export default function Directory() {
             </div>
           </div>
         </Modal>
-      )}
-
-      {/* Full Pass Modal */}
-      {passMember && (
-        <BusinessCardModal
-          member={passMember}
-          isOpen={!!passMember}
-          onClose={() => setPassMember(null)}
-        />
       )}
 
       {/* Edit Modal */}

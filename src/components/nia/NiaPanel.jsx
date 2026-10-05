@@ -59,6 +59,7 @@ import { downloadJSON, hashPIN, copyToClipboard } from '../../utils/helpers';
 import { revokeNiaSession } from '../../utils/session';
 import Modal from '../common/Modal';
 import AIMatchmaker from '../matchmaker/AIMatchmaker';
+import NiaAddMember from './NiaAddMember';
 
 export default function NiaPanel({ onLock }) {
   const { apiKey, updateApiKey, members, refreshMembers, notify } = useApp();
@@ -387,6 +388,11 @@ export default function NiaPanel({ onLock }) {
 
       {/* ── 2-Column Administrative Grid ──────────────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* Section 0: Manual Member Intake & WhatsApp AI Parser */}
+        <div className="md:col-span-2">
+          <NiaAddMember />
+        </div>
+
         {/* Section 1: Google Sheets & Google Forms 2-Way Live Sync */}
         <div className="card p-5 space-y-3.5 md:col-span-2 border-emerald-200/80 dark:border-emerald-900/50 bg-gradient-to-b from-emerald-50/20 to-transparent dark:from-emerald-950/10">
           <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-2.5 flex-wrap gap-2">

@@ -4,7 +4,6 @@ import {
   Edit2,
   MapPin,
   Linkedin,
-  CreditCard,
   CheckCircle2,
   Download,
   Mail,
@@ -32,13 +31,11 @@ import { useApp } from '../../contexts/AppContext';
 import { isAdminSession } from '../../utils/session';
 import { QRCodeSVG } from '../common/QRCodeSVG';
 import Modal from '../common/Modal';
-import BusinessCardModal from '../businesscard/BusinessCardModal';
 import EditMemberModal from '../parser/EditMemberModal';
 
 export default function ProfileCard({ member, onDeleted, onUpdated, synergyScore = null }) {
   const { notify } = useApp();
   const [showDetail, setShowDetail] = useState(false);
-  const [showCard, setShowCard] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -420,12 +417,6 @@ export default function ProfileCard({ member, onDeleted, onUpdated, synergyScore
               <button onClick={handleDownloadVCard} className="btn-primary text-xs font-bold py-2">
                 <Download size={13} /> Save Contact (.vcf)
               </button>
-              <button
-                onClick={() => setShowCard(true)}
-                className="btn-secondary text-xs font-bold py-2"
-              >
-                <CreditCard size={13} /> Business Pass
-              </button>
             </div>
 
             <div className="flex items-center gap-2">
@@ -445,11 +436,6 @@ export default function ProfileCard({ member, onDeleted, onUpdated, synergyScore
           </div>
         </div>
       </Modal>
-
-      {/* Full Business Pass Modal */}
-      {showCard && (
-        <BusinessCardModal member={member} isOpen={showCard} onClose={() => setShowCard(false)} />
-      )}
 
       {/* Edit Modal */}
       {showEdit && (
