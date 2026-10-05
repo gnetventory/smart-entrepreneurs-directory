@@ -22,7 +22,8 @@ export default defineConfig({
     // Chunk splitting for better caching
     rollupOptions: {
       input: {
-        main:  'index.html',
+        main: 'index.html',
+        nia: 'nia.html',
         admin: 'admin.html',
       },
       output: {

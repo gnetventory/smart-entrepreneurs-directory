@@ -23,6 +23,7 @@ import {
   getLinkedInHandle,
   buildWhatsAppUrl,
   downloadVCardFile,
+  getMemberWebsites,
 } from '../../utils/helpers';
 import { STAGES, getCountryFlag } from '../../utils/constants';
 import { deleteMember } from '../../utils/storage';
@@ -47,6 +48,7 @@ export default function ProfileCard({ member, onDeleted, onUpdated, synergyScore
   const initials = getInitials(member.name);
   const gradient = getAvatarGradient(member.name);
   const flag = getCountryFlag(member.location?.country);
+  const websites = getMemberWebsites(member);
 
   const isLinkedInValid = isValidLinkedInUrl(member.linkedin);
   const linkedInHref = isLinkedInValid ? formatLinkedInUrl(member.linkedin) : null;
@@ -248,17 +250,23 @@ export default function ProfileCard({ member, onDeleted, onUpdated, synergyScore
               </a>
             )}
 
-            {member.website && (
+            {websites.map((w, idx) => (
               <a
-                href={member.website}
+                key={`${w.url}-${idx}`}
+                href={w.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-1.5 rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-800 hover:text-white transition-all text-xs font-bold"
-                title="Website / Link"
+                className="p-1.5 rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-800 hover:text-white dark:hover:bg-stone-100 dark:hover:text-stone-900 transition-all text-xs font-bold flex items-center gap-1"
+                title={`Visit ${w.label} (${w.url})`}
               >
                 <ExternalLink size={13} />
+                {websites.length > 1 && (
+                  <span className="text-[10px] font-mono max-w-[80px] truncate hidden sm:inline">
+                    {w.label}
+                  </span>
+                )}
               </a>
-            )}
+            ))}
           </div>
         </div>
       </div>
@@ -331,11 +339,7 @@ export default function ProfileCard({ member, onDeleted, onUpdated, synergyScore
           </div>
 
           {/* Links & Catalogues */}
-          {(member.website ||
-            member.secondaryWebsite ||
-            member.catalogues?.length > 0 ||
-            isLinkedInValid ||
-            waUrl) && (
+          {(websites.length > 0 || member.catalogues?.length > 0 || isLinkedInValid || waUrl) && (
             <div className="p-3.5 bg-stone-50 dark:bg-stone-850 rounded-xl border border-stone-200 dark:border-stone-750 space-y-2">
               <h4 className="font-bold text-[11px] uppercase tracking-wider text-stone-500">
                 Verified Links & Resources
@@ -362,16 +366,19 @@ export default function ProfileCard({ member, onDeleted, onUpdated, synergyScore
                     <MessageCircle size={13} /> Admin: Direct WhatsApp
                   </a>
                 )}
-                {member.website && (
+                {websites.map((w, idx) => (
                   <a
-                    href={member.website}
+                    key={`${w.url}-${idx}`}
+                    href={w.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-800 dark:text-stone-200 border border-stone-300 dark:border-stone-700 font-bold hover:bg-stone-800 hover:text-white transition-all"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-800 dark:text-stone-200 border border-stone-300 dark:border-stone-700 font-bold hover:bg-stone-800 hover:text-white dark:hover:bg-stone-100 dark:hover:text-stone-900 transition-all"
+                    title={w.url}
                   >
-                    <ExternalLink size={13} /> Website
+                    <ExternalLink size={13} />
+                    <span>{w.label || `Website ${idx + 1}`}</span>
                   </a>
-                )}
+                ))}
                 {Array.isArray(member.catalogues) &&
                   member.catalogues.map((cat, idx) => (
                     <a

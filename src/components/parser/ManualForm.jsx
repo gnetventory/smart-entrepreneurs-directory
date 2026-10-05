@@ -13,6 +13,9 @@ const EMPTY_FORM = {
   canHelp: '',
   location: { country: '', city: '' },
   phone: '',
+  linkedin: '',
+  website: '',
+  secondaryWebsite: '',
   tags: [],
   originalLanguage: 'en',
   originalText: '',
@@ -164,19 +167,52 @@ export default function ManualForm({ initialData = {}, onSaved, onCancel, isEdit
         </div>
       </div>
 
-      {/* Phone */}
-      <div>
-        <label className="label">WhatsApp Number (optional)</label>
-        <input
-          className="input"
-          value={form.phone}
-          onChange={(e) => set('phone', e.target.value)}
-          placeholder="e.g. +5511999999999"
-          type="tel"
-        />
-        <p className="text-xs text-muted mt-1">
-          Include country code. This enables the "Connect on WhatsApp" button.
-        </p>
+      {/* Contact & Links */}
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label className="label">WhatsApp Number (optional)</label>
+          <input
+            className="input"
+            value={form.phone}
+            onChange={(e) => set('phone', e.target.value)}
+            placeholder="e.g. +201012345678"
+            type="tel"
+          />
+          <p className="text-xs text-stone-500 mt-1">
+            Include country code. Restricted to NIA portal view.
+          </p>
+        </div>
+        <div>
+          <label className="label">LinkedIn Profile URL</label>
+          <input
+            className="input"
+            value={form.linkedin || ''}
+            onChange={(e) => set('linkedin', e.target.value)}
+            placeholder="e.g. https://linkedin.com/in/username"
+          />
+        </div>
+      </div>
+
+      {/* Websites & Multi-Business Links */}
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label className="label">Primary Website / Link</label>
+          <input
+            className="input"
+            value={form.website || ''}
+            onChange={(e) => set('website', e.target.value)}
+            placeholder="e.g. https://business1.com"
+          />
+        </div>
+        <div>
+          <label className="label">Secondary Website / Additional Business Link</label>
+          <input
+            className="input"
+            value={form.secondaryWebsite || ''}
+            onChange={(e) => set('secondaryWebsite', e.target.value)}
+            placeholder="e.g. https://business2.com or catalogue link"
+          />
+        </div>
       </div>
 
       {/* Tags */}

@@ -203,25 +203,36 @@ export function saveDarkMode(isDark) {
   pushToDisk({ darkMode: isDark });
 }
 
-// ─── Admin PIN ────────────────────────────────────────────────────────────────
+// ─── NIA PIN ──────────────────────────────────────────────────────────────────
 const DEFAULT_PIN_HASH = '0ad56b7d42b80f306a24b61853ecb571e83411f6c0dd5c06c998d9e1c3eecf87'; // 1234
 
-export function getAdminPIN() {
-  return localStorage.getItem(STORAGE_KEYS.ADMIN_PIN) || DEFAULT_PIN_HASH;
+export function getNiaPIN() {
+  return (
+    localStorage.getItem(STORAGE_KEYS.NIA_PIN) ||
+    localStorage.getItem(STORAGE_KEYS.ADMIN_PIN) ||
+    DEFAULT_PIN_HASH
+  );
 }
 
-export function saveAdminPIN(pinHash) {
+export function saveNiaPIN(pinHash) {
   const safeHash = pinHash || DEFAULT_PIN_HASH;
+  localStorage.setItem(STORAGE_KEYS.NIA_PIN, safeHash);
   localStorage.setItem(STORAGE_KEYS.ADMIN_PIN, safeHash);
-  pushToDisk({ adminPIN: safeHash });
+  pushToDisk({ adminPIN: safeHash, niaPIN: safeHash });
   notifyStorageChange();
 }
 
-export function clearAdminPIN() {
+export function clearNiaPIN() {
+  localStorage.setItem(STORAGE_KEYS.NIA_PIN, DEFAULT_PIN_HASH);
   localStorage.setItem(STORAGE_KEYS.ADMIN_PIN, DEFAULT_PIN_HASH);
-  pushToDisk({ adminPIN: DEFAULT_PIN_HASH });
+  pushToDisk({ adminPIN: DEFAULT_PIN_HASH, niaPIN: DEFAULT_PIN_HASH });
   notifyStorageChange();
 }
+
+// Aliases for backwards compatibility
+export const getAdminPIN = getNiaPIN;
+export const saveAdminPIN = saveNiaPIN;
+export const clearAdminPIN = clearNiaPIN;
 
 // ─── Map Configuration ────────────────────────────────────────────────────────
 export function getMapConfig() {
@@ -377,18 +388,27 @@ export function clearTombstones() {
   pushToDisk({ tombstones: [] });
 }
 
-// ─── Admin Notification Email ─────────────────────────────────────────────────
-export function getAdminEmail() {
+// ─── NIA Notification Email ──────────────────────────────────────────────────
+export function getNiaEmail() {
   try {
-    return localStorage.getItem(STORAGE_KEYS.ADMIN_EMAIL) || '';
+    return (
+      localStorage.getItem(STORAGE_KEYS.NIA_EMAIL) ||
+      localStorage.getItem(STORAGE_KEYS.ADMIN_EMAIL) ||
+      ''
+    );
   } catch {
     return '';
   }
 }
 
-export function saveAdminEmail(email) {
+export function saveNiaEmail(email) {
   const safe = String(email || '').trim();
+  localStorage.setItem(STORAGE_KEYS.NIA_EMAIL, safe);
   localStorage.setItem(STORAGE_KEYS.ADMIN_EMAIL, safe);
-  pushToDisk({ adminEmail: safe });
+  pushToDisk({ adminEmail: safe, niaEmail: safe });
   return safe;
 }
+
+// Aliases for backwards compatibility
+export const getAdminEmail = getNiaEmail;
+export const saveAdminEmail = saveNiaEmail;

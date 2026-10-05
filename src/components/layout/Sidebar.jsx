@@ -1,15 +1,5 @@
 import React from 'react';
-import {
-  Users,
-  UserPlus,
-  Sparkles,
-  Globe,
-  Map,
-  BarChart3,
-  Radio,
-  Settings,
-  TrendingUp,
-} from 'lucide-react';
+import { Users, UserPlus, Sparkles, Globe, Map, BarChart3, Radio, TrendingUp } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
 import { NAV_TABS } from '../../utils/constants';
 
@@ -144,17 +134,6 @@ export default function Sidebar() {
               />
             </div>
           </div>
-
-          {/* Admin link */}
-          <a
-            href="/admin.html"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 px-3 py-2 rounded-xl text-[13px] text-stone-500 dark:text-stone-400 hover:text-stone-950 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 border border-transparent hover:border-stone-200 dark:hover:border-stone-700 transition-all font-bold"
-          >
-            <Settings size={14} />
-            Admin Security Portal
-          </a>
         </div>
       </aside>
     </>

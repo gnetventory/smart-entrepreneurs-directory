@@ -81,11 +81,13 @@ export const STORAGE_KEYS = {
   EXCHANGE: 'sed_exchange_posts',
   API_KEY: 'sed_gemini_api_key',
   DARK_MODE: 'sed_dark_mode',
+  NIA_PIN: 'sed_nia_pin',
   ADMIN_PIN: 'sed_admin_pin',
   APP_SETTINGS: 'sed_app_settings',
   MAP_CONFIG: 'sed_map_config',
   SHEETS_CONFIG: 'sed_sheets_config',
   TOMBSTONES: 'sed_tombstones',
+  NIA_EMAIL: 'sed_nia_email',
   ADMIN_EMAIL: 'sed_admin_email',
 };
 

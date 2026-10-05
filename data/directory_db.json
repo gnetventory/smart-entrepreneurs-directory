@@ -2764,8 +2764,13 @@
       "status": "active",
       "formTimestamp": "2026-09-29T22:50:52.103Z",
       "createdAt": "2026-09-29T22:50:52.103Z",
-      "updatedAt": "2026-10-05T13:01:14.160Z",
-      "isFromGoogleForm": true
+      "updatedAt": "2026-10-05T13:35:14.213Z",
+      "isFromGoogleForm": true,
+      "website": "https://linkedin.com/in/testname",
+      "secondaryWebsite": "",
+      "websites": [
+        "https://linkedin.com/in/testname"
+      ]
     },
     {
       "id": "sheet-row-6",
@@ -2789,8 +2794,13 @@
       "status": "active",
       "formTimestamp": "2026-09-29T22:50:52.103Z",
       "createdAt": "2026-09-29T22:50:52.103Z",
-      "updatedAt": "2026-10-05T13:01:14.161Z",
-      "isFromGoogleForm": true
+      "updatedAt": "2026-10-05T13:35:14.214Z",
+      "isFromGoogleForm": true,
+      "website": "https://linkedin.com/in/testname",
+      "secondaryWebsite": "",
+      "websites": [
+        "https://linkedin.com/in/testname"
+      ]
     }
   ],
   "tombstones": [
@@ -2804,10 +2814,10 @@
   "sheetsConfig": {
     "apiUrl": "https://script.google.com/macros/s/AKfycbw4LsEO25x4cShDWg8nI6DSwqURApEB9aMNgT6nb7rPGRkOxlS2nP144PxJLtO6eR9F8Q/exec",
     "autoSync": false,
-    "lastSyncAt": "2026-10-05T13:01:14.165Z",
+    "lastSyncAt": "2026-10-05T13:35:14.218Z",
     "lastSyncStatus": {
       "success": true,
-      "lastSyncAt": "2026-10-05T13:01:14.165Z",
+      "lastSyncAt": "2026-10-05T13:35:14.218Z",
       "addedCount": 0,
       "updatedCount": 2,
       "ignoredTombstoneCount": 4,
@@ -2823,5 +2833,5 @@
     "customTileUrl": ""
   },
   "darkMode": false,
-  "updatedAt": "2026-10-05T13:01:14.183Z"
+  "updatedAt": "2026-10-05T13:35:14.248Z"
 }

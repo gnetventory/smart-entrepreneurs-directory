@@ -5,11 +5,15 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/admin",
-      "destination": "/admin.html"
+      "source": "/nia",
+      "destination": "/nia.html"
     },
     {
-      "source": "/((?!assets|admin\\.html).*)",
+      "source": "/admin",
+      "destination": "/nia.html"
+    },
+    {
+      "source": "/((?!assets|admin\\.html|nia\\.html).*)",
       "destination": "/index.html"
     }
   ],

@@ -1,5 +1,4 @@
-/* eslint-disable no-unused-vars */
-import { generateId } from './helpers';
+import { generateId, extractUrls } from './helpers';
 import {
   getMembers,
   saveMembers,
@@ -180,6 +179,9 @@ function normalizeHeader(header) {
       h.indexOf('where are you') > -1 || h.indexOf('based') > -1 || h.indexOf('location') > -1) return 'city';
   // Q10: "Industry (...)"
   if (h.indexOf('industry') > -1 || h.indexOf('tag') > -1 || h.indexOf('sector') > -1) return 'tags';
+  if (h.indexOf('secondary website') > -1 || h.indexOf('other website') > -1 || h.indexOf('website 2') > -1 || h.indexOf('link 2') > -1) return 'secondaryWebsite';
+  if (h.indexOf('website') > -1 || h.indexOf('site') > -1 || h.indexOf('url') > -1 || h.indexOf('link') > -1 || h.indexOf('portfolio') > -1) return 'website';
+  if (h.indexOf('catalog') > -1 || h.indexOf('catalogue') > -1 || h.indexOf('brochure') > -1) return 'catalogues';
   if (h.indexOf('app_status') > -1) return 'appStatus';
   if (h.indexOf('last_app_sync_at') > -1) return 'lastAppSyncAt';
   if (h.indexOf('app_notes') > -1) return 'appNotes';
@@ -285,6 +287,27 @@ export function normalizeSheetRow(row = {}) {
     status = 'rejected';
   }
 
+  // Extract websites, secondary websites & catalogues (supports multiple URLs)
+  const rawWebsites = [];
+  const primaryWeb = pick('website', 'site', 'url', 'link', 'portfolio');
+  const secondaryWeb = pick(
+    'secondaryWebsite',
+    'secondary_website',
+    'website_2',
+    'other_website',
+    'website2',
+    'link_2'
+  );
+  const rawCatalogues = pick('catalogues', 'catalogue', 'catalog', 'brochure');
+
+  if (primaryWeb) rawWebsites.push(...extractUrls(primaryWeb));
+  if (secondaryWeb) rawWebsites.push(...extractUrls(secondaryWeb));
+
+  const website = rawWebsites[0] || '';
+  const secondaryWebsite = rawWebsites[1] || '';
+  const websitesList = rawWebsites.filter(Boolean);
+  const catalogues = rawCatalogues ? extractUrls(rawCatalogues) : [];
+
   return {
     id: sheetId,
     sheetRowIndex,
@@ -297,6 +320,10 @@ export function normalizeSheetRow(row = {}) {
     location: { country, city },
     phone: pick('phone', 'whatsapp', 'mobile'),
     linkedin: pick('linkedin'),
+    website,
+    secondaryWebsite,
+    websites: websitesList,
+    catalogues: catalogues.length > 0 ? catalogues : undefined,
     tags: tags.length > 0 ? tags : ['Startup'],
     appStatus: appStatusRaw || 'PENDING',
     status, // 'pending' | 'active' | 'rejected'

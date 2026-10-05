@@ -140,6 +140,99 @@ export function getLinkedInHandle(url = '') {
   return clean || null;
 }
 
+// ─── Multi-Website & Resource URL Helpers ─────────────────────────────────────
+export function extractUrls(input) {
+  if (!input) return [];
+  if (Array.isArray(input)) return input.flatMap(extractUrls);
+  const str = String(input);
+  // Match standard URLs or web address patterns
+  const urlRegex =
+    /(?:https?:\/\/|www\.)[^\s,;"'<>]+|(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?:\/[^\s,;"'<>]*)?/gi;
+  const matches = str.match(urlRegex) || [];
+  if (matches.length > 0) {
+    return matches.map((u) => u.trim());
+  }
+  // Fallback: split by newlines, commas, semicolons
+  return str
+    .split(/[\n,;]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+export function formatWebsiteUrl(url = '') {
+  if (!url || typeof url !== 'string') return '';
+  const clean = url.trim();
+  if (!clean) return '';
+  if (clean.startsWith('http://') || clean.startsWith('https://')) {
+    return clean;
+  }
+  return `https://${clean.replace(/^\/+/, '')}`;
+}
+
+export function getDomainLabel(url = '') {
+  if (!url) return 'Website';
+  try {
+    const formatted = formatWebsiteUrl(url);
+    const parsed = new URL(formatted);
+    return parsed.hostname.replace(/^www\./, '');
+  } catch {
+    return url.replace(/^https?:\/\/(www\.)?/, '').split('/')[0] || 'Website';
+  }
+}
+
+/**
+ * Returns a deduplicated array of all websites, secondary websites,
+ * and online links for a member profile.
+ */
+export function getMemberWebsites(member) {
+  if (!member || typeof member !== 'object') return [];
+  const rawLinks = [];
+
+  // 1. Primary website
+  if (member.website) {
+    rawLinks.push(...extractUrls(member.website));
+  }
+
+  // 2. Secondary website
+  if (member.secondaryWebsite) {
+    rawLinks.push(...extractUrls(member.secondaryWebsite));
+  }
+
+  // 3. Array of websites or links
+  if (Array.isArray(member.websites)) {
+    member.websites.forEach((w) => {
+      if (w) rawLinks.push(...extractUrls(w));
+    });
+  }
+  if (Array.isArray(member.links)) {
+    member.links.forEach((l) => {
+      if (l) rawLinks.push(...extractUrls(l));
+    });
+  }
+
+  // Deduplicate and format
+  const result = [];
+  const seen = new Set();
+
+  rawLinks.forEach((raw) => {
+    if (!raw || typeof raw !== 'string') return;
+    const formatted = formatWebsiteUrl(raw);
+    const lowerKey = formatted.toLowerCase().replace(/\/+$/, '');
+    if (
+      !seen.has(lowerKey) &&
+      (formatted.startsWith('http://') || formatted.startsWith('https://'))
+    ) {
+      seen.add(lowerKey);
+      result.push({
+        url: formatted,
+        label: getDomainLabel(formatted),
+      });
+    }
+  });
+
+  return result;
+}
+
 // ─── Arabic & Text Normalization ──────────────────────────────────────────────
 export function normalizeSearchText(str = '') {
   if (!str || typeof str !== 'string') return '';
@@ -313,6 +406,9 @@ export function generateVCard(member, includePhone = false) {
   const country = typeof member.location === 'object' ? member.location?.country || '' : '';
   const location = [city, country].filter(Boolean).join(', ');
 
+  const websites = getMemberWebsites(member);
+  const websiteLines = websites.map((w) => `URL:${w.url}`);
+
   const vcard = [
     'BEGIN:VCARD',
     'VERSION:3.0',
@@ -322,6 +418,7 @@ export function generateVCard(member, includePhone = false) {
     phone ? `TEL;TYPE=CELL:${phone}` : '',
     email ? `EMAIL:${email}` : '',
     linkedin ? `URL:${linkedin}` : '',
+    ...websiteLines,
     location ? `ADR;TYPE=WORK:;;${city};;;;${country}` : '',
     `NOTE:Member of Smart Entrepreneurs Directory`,
     'END:VCARD',

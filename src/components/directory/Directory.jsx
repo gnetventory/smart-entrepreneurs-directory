@@ -26,6 +26,7 @@ import {
   formatLinkedInUrl,
   getLinkedInHandle,
   downloadVCardFile,
+  getMemberWebsites,
 } from '../../utils/helpers';
 import { STAGES, STAGE_OPTIONS, getCountryFlag, GOOGLE_FORM_URL } from '../../utils/constants';
 import { deleteMember } from '../../utils/storage';
@@ -304,6 +305,7 @@ export default function Directory() {
                   const isLinkedInValid = isValidLinkedInUrl(m.linkedin);
                   const linkedInHref = isLinkedInValid ? formatLinkedInUrl(m.linkedin) : null;
                   const waUrl = buildWhatsAppUrl(m.phone);
+                  const websites = getMemberWebsites(m);
                   const locLabel =
                     typeof m.location === 'string'
                       ? m.location
@@ -399,6 +401,18 @@ export default function Directory() {
                               <MessageCircle size={13} />
                             </a>
                           )}
+                          {websites.map((w, idx) => (
+                            <a
+                              key={`${w.url}-${idx}`}
+                              href={w.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-1.5 rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-800 hover:text-white transition-all"
+                              title={`Visit ${w.label} (${w.url})`}
+                            >
+                              <ExternalLink size={13} />
+                            </a>
+                          ))}
                           <button
                             onClick={() => setDetailMember(m)}
                             className="p-1.5 rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-200 font-bold"
@@ -505,6 +519,80 @@ export default function Directory() {
                 </p>
               </div>
             </div>
+
+            {/* Links & Resources */}
+            {(() => {
+              const dWebsites = getMemberWebsites(detailMember);
+              const dLinkedInValid = isValidLinkedInUrl(detailMember.linkedin);
+              const dLinkedInHref = dLinkedInValid
+                ? formatLinkedInUrl(detailMember.linkedin)
+                : null;
+              const dWaUrl = buildWhatsAppUrl(detailMember.phone);
+
+              if (
+                dWebsites.length === 0 &&
+                !dLinkedInValid &&
+                (!isAdmin || !dWaUrl) &&
+                (!detailMember.catalogues || detailMember.catalogues.length === 0)
+              ) {
+                return null;
+              }
+
+              return (
+                <div className="p-3.5 bg-stone-50 dark:bg-stone-850 rounded-xl border border-stone-200 dark:border-stone-750 space-y-2">
+                  <h4 className="font-bold text-[11px] uppercase tracking-wider text-stone-500">
+                    Verified Links & Resources
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {dLinkedInValid && (
+                      <a
+                        href={dLinkedInHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 font-bold hover:bg-blue-600 hover:text-white transition-all"
+                      >
+                        <Linkedin size={13} /> LinkedIn Profile
+                      </a>
+                    )}
+                    {isAdmin && dWaUrl && (
+                      <a
+                        href={dWaUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-bold hover:bg-emerald-600 hover:text-white transition-all"
+                      >
+                        <MessageCircle size={13} /> Admin: Direct WhatsApp
+                      </a>
+                    )}
+                    {dWebsites.map((w, idx) => (
+                      <a
+                        key={`${w.url}-${idx}`}
+                        href={w.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-800 dark:text-stone-200 border border-stone-300 dark:border-stone-700 font-bold hover:bg-stone-800 hover:text-white transition-all"
+                        title={w.url}
+                      >
+                        <ExternalLink size={13} />
+                        <span>{w.label || `Website ${idx + 1}`}</span>
+                      </a>
+                    ))}
+                    {Array.isArray(detailMember.catalogues) &&
+                      detailMember.catalogues.map((cat, idx) => (
+                        <a
+                          key={idx}
+                          href={cat}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 font-bold hover:bg-purple-600 hover:text-white transition-all"
+                        >
+                          <FileText size={13} /> Catalogue #{idx + 1}
+                        </a>
+                      ))}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Links & Action Bar */}
             <div className="pt-4 border-t border-stone-200 dark:border-stone-800 flex items-center justify-between flex-wrap gap-2">
