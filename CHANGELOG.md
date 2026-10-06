@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.17.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.16.0...v1.17.0) (2026-10-06)
+
+
+### Features
+
+* integrate GlobalAllianceMap and worldHubs into WorldMapView ([6fea9c0](https://github.com/gnetventory/smart-entrepreneurs-directory/commit/6fea9c0588b0600884a31e931af94e8f6c98a700))
+
 ## [1.16.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.15.0...v1.16.0) (2026-10-05)
 
 
