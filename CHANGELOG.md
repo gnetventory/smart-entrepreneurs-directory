@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.18.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.17.1...v1.18.0) (2026-10-06)
+
+
+### Features
+
+* integrate psychologyHelpers and enhance dashboard, radar, and profile views ([693e25e](https://github.com/gnetventory/smart-entrepreneurs-directory/commit/693e25e4061c9b236c0312f47fbe1fe7edebcae1))
+
 ### [1.17.1](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.17.0...v1.17.1) (2026-10-06)
 
 ## [1.17.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.16.0...v1.17.0) (2026-10-06)
