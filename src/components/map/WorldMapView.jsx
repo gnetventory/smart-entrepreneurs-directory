@@ -9,12 +9,13 @@ import {
   Linkedin,
   Phone,
   Mail,
+  Globe,
 } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
-import { EGYPT_CITIES, matchEgyptCity } from '../../utils/egyptCities';
+import { ALL_WORLD_HUBS, GLOBAL_REGIONS, resolveMemberLocation } from '../../utils/worldHubs';
 import { INDUSTRY_TAGS } from '../../utils/constants';
 import { isAdminSession } from '../../utils/session';
-import EgyptGISMap from './EgyptGISMap';
+import GlobalAllianceMap from './GlobalAllianceMap';
 import ProfileCard from '../directory/ProfileCard';
 
 export default function WorldMapView() {
@@ -22,8 +23,9 @@ export default function WorldMapView() {
   const isAdmin = isAdminSession();
 
   // Filter States
+  const [selectedRegion, setSelectedRegion] = useState('all');
+  const [selectedHubId, setSelectedHubId] = useState('all');
   const [selectedIndustry, setSelectedIndustry] = useState('all');
-  const [selectedCityId, setSelectedCityId] = useState('all');
   const [founderSearch, setFounderSearch] = useState('');
   const [companySearch, setCompanySearch] = useState('');
   const [listSearch, setListSearch] = useState('');
@@ -32,74 +34,78 @@ export default function WorldMapView() {
   const [focusedCoords, setFocusedCoords] = useState(null);
   const [focusedMemberId, setFocusedMemberId] = useState(null);
 
-  // 1. Group members by matched Egyptian City Hub
-  const { cityCounts, membersByCity, otherMembers, totalEgyptMembers, allIndustries } =
-    useMemo(() => {
-      const counts = {};
-      const byCity = {};
-      const others = [];
-      const industriesSet = new Set();
+  // 1. Resolve and index all members globally
+  const { hubCounts, membersByHub, allIndustries, resolvedMembers } = useMemo(() => {
+    const counts = {};
+    const byHub = {};
+    const industriesSet = new Set();
 
-      EGYPT_CITIES.forEach((c) => {
-        counts[c.id] = 0;
-        byCity[c.id] = [];
-      });
+    ALL_WORLD_HUBS.forEach((h) => {
+      counts[h.id] = 0;
+      byHub[h.id] = [];
+    });
 
-      let egyptCount = 0;
-      const safeMembers = Array.isArray(members) ? members : [];
-
-      safeMembers.forEach((m) => {
-        // Collect industries / tags
-        if (Array.isArray(m.tags)) {
-          m.tags.forEach((t) => industriesSet.add(t));
-        }
-        if (m.industry) industriesSet.add(m.industry);
-
-        const matchedCityId = matchEgyptCity(m.location);
-        if (matchedCityId && counts[matchedCityId] !== undefined) {
-          counts[matchedCityId]++;
-          byCity[matchedCityId].push(m);
-          egyptCount++;
-        } else {
-          others.push(m);
-        }
-      });
-
-      // Add fallback industry tags if not yet in set
-      INDUSTRY_TAGS.slice(0, 10).forEach((t) => industriesSet.add(t));
-
-      return {
-        cityCounts: counts,
-        membersByCity: byCity,
-        otherMembers: others,
-        totalEgyptMembers: egyptCount,
-        allIndustries: Array.from(industriesSet).sort(),
-      };
-    }, [members]);
-
-  // 2. Active Egyptian hubs with >= 1 member
-  const activeCities = useMemo(() => {
-    return EGYPT_CITIES.filter((c) => (cityCounts[c.id] || 0) > 0).sort(
-      (a, b) => (cityCounts[b.id] || 0) - (cityCounts[a.id] || 0)
-    );
-  }, [cityCounts]);
-
-  // 3. Filtered Members (Applying Industry, City, Founder, Company, and List search)
-  const filteredMembers = useMemo(() => {
     const safeMembers = Array.isArray(members) ? members : [];
 
-    return safeMembers.filter((m) => {
-      // 1. City match
-      const matchedCityId = matchEgyptCity(m.location);
-      if (selectedCityId !== 'all') {
-        if (selectedCityId === 'others') {
-          if (matchedCityId) return false;
-        } else {
-          if (matchedCityId !== selectedCityId) return false;
-        }
+    const enriched = safeMembers.map((m) => {
+      // Collect industries / tags
+      if (Array.isArray(m.tags)) {
+        m.tags.forEach((t) => industriesSet.add(t));
+      }
+      if (m.industry) industriesSet.add(m.industry);
+
+      const resolved = resolveMemberLocation(m.location);
+
+      if (counts[resolved.hubId] !== undefined) {
+        counts[resolved.hubId]++;
+        byHub[resolved.hubId].push(m);
+      } else {
+        // Fallback to cairo
+        counts['cairo'] = (counts['cairo'] || 0) + 1;
+        byHub['cairo'] = byHub['cairo'] || [];
+        byHub['cairo'].push(m);
       }
 
-      // 2. Industry / Vertical match
+      return {
+        ...m,
+        _geo: resolved,
+      };
+    });
+
+    // Add fallback industry tags if not yet in set
+    INDUSTRY_TAGS.slice(0, 10).forEach((t) => industriesSet.add(t));
+
+    return {
+      hubCounts: counts,
+      membersByHub: byHub,
+      allIndustries: Array.from(industriesSet).sort(),
+      resolvedMembers: enriched,
+    };
+  }, [members]);
+
+  // 2. Active Worldwide Hubs with >= 1 member
+  const activeHubs = useMemo(() => {
+    return ALL_WORLD_HUBS.filter((h) => (hubCounts[h.id] || 0) > 0).sort(
+      (a, b) => (hubCounts[b.id] || 0) - (hubCounts[a.id] || 0)
+    );
+  }, [hubCounts]);
+
+  // 3. Filtered Members (Applying Region, Hub, Industry, Founder, Company, and List search)
+  const filteredMembers = useMemo(() => {
+    return resolvedMembers.filter((m) => {
+      const geo = m._geo;
+
+      // 1. Region match
+      if (selectedRegion !== 'all' && geo.regionId !== selectedRegion) {
+        return false;
+      }
+
+      // 2. Hub match
+      if (selectedHubId !== 'all' && geo.hubId !== selectedHubId) {
+        return false;
+      }
+
+      // 3. Industry / Vertical match
       if (selectedIndustry !== 'all') {
         const memberTags = Array.isArray(m.tags) ? m.tags : [];
         const hasTag = memberTags.some((t) => t.toLowerCase() === selectedIndustry.toLowerCase());
@@ -110,19 +116,19 @@ export default function WorldMapView() {
         if (!hasTag && !matchInd && !inBusiness) return false;
       }
 
-      // 3. Founder Name search
+      // 4. Founder Name search
       if (founderSearch.trim()) {
         const q = founderSearch.toLowerCase().trim();
         if (!m.name?.toLowerCase().includes(q)) return false;
       }
 
-      // 4. Company Name search
+      // 5. Company Name search
       if (companySearch.trim()) {
         const q = companySearch.toLowerCase().trim();
         if (!m.business?.toLowerCase().includes(q)) return false;
       }
 
-      // 5. Drawer Quick Search
+      // 6. Drawer Quick Search
       if (listSearch.trim()) {
         const q = listSearch.toLowerCase().trim();
         const locStr =
@@ -138,28 +144,43 @@ export default function WorldMapView() {
 
       return true;
     });
-  }, [members, selectedCityId, selectedIndustry, founderSearch, companySearch, listSearch]);
+  }, [
+    resolvedMembers,
+    selectedRegion,
+    selectedHubId,
+    selectedIndustry,
+    founderSearch,
+    companySearch,
+    listSearch,
+  ]);
 
-  // Dynamic city counts recalculated after industry/founder/company filtering
-  const dynamicCityCounts = useMemo(() => {
+  // Dynamic hub counts recalculated after filtering
+  const dynamicHubCounts = useMemo(() => {
     const counts = {};
-    EGYPT_CITIES.forEach((c) => {
-      counts[c.id] = 0;
+    ALL_WORLD_HUBS.forEach((h) => {
+      counts[h.id] = 0;
     });
 
     filteredMembers.forEach((m) => {
-      const cityId = matchEgyptCity(m.location);
-      if (cityId && counts[cityId] !== undefined) {
-        counts[cityId]++;
+      if (m._geo?.hubId && counts[m._geo.hubId] !== undefined) {
+        counts[m._geo.hubId]++;
       }
     });
     return counts;
   }, [filteredMembers]);
 
+  // Active hubs in current view
+  const activeFilteredHubs = useMemo(() => {
+    return ALL_WORLD_HUBS.filter((h) => (dynamicHubCounts[h.id] || 0) > 0).sort(
+      (a, b) => (dynamicHubCounts[b.id] || 0) - (dynamicHubCounts[a.id] || 0)
+    );
+  }, [dynamicHubCounts]);
+
   // Reset all filters
   const handleResetFilters = () => {
+    setSelectedRegion('all');
+    setSelectedHubId('all');
     setSelectedIndustry('all');
-    setSelectedCityId('all');
     setFounderSearch('');
     setCompanySearch('');
     setListSearch('');
@@ -167,19 +188,16 @@ export default function WorldMapView() {
     setFocusedMemberId(null);
   };
 
-  // Focus a specific founder on map
+  // Focus a specific founder on global map
   const handleFocusFounder = (member) => {
     setFocusedMemberId(member.id);
-    const cityId = matchEgyptCity(member.location);
-    if (cityId) {
-      const cityObj = EGYPT_CITIES.find((c) => c.id === cityId);
-      if (cityObj && cityObj.lat && cityObj.lng) {
-        setFocusedCoords({ lat: cityObj.lat, lng: cityObj.lng });
-      }
+    const geo = member._geo || resolveMemberLocation(member.location);
+    if (geo && geo.lat && geo.lng) {
+      setFocusedCoords({ lat: geo.lat, lng: geo.lng });
     }
   };
 
-  const selectedCityObj = EGYPT_CITIES.find((c) => c.id === selectedCityId);
+  const selectedHubObj = ALL_WORLD_HUBS.find((h) => h.id === selectedHubId);
 
   return (
     <div className="space-y-4 animate-fade-in max-w-7xl mx-auto">
@@ -187,17 +205,17 @@ export default function WorldMapView() {
       <div className="card p-4 sm:p-5 bg-gradient-to-r from-emerald-800 via-teal-800 to-stone-900 text-white border-0 shadow-lg relative overflow-hidden flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-3.5">
           <div className="p-3 bg-orange-500 text-white rounded-2xl flex-shrink-0 shadow-md shadow-orange-500/30">
-            <Map size={22} />
+            <Globe size={22} />
           </div>
           <div>
             <div className="flex items-center gap-2 mb-0.5">
               <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-white/20 text-orange-200">
                 Alliance Atlas
               </span>
-              <span className="text-xs text-emerald-300 font-bold">🇪🇬 Egypt Ecosystem</span>
+              <span className="text-xs text-emerald-300 font-bold">🌐 Global Ecosystem GIS</span>
             </div>
             <h2 className="text-xl sm:text-2xl font-black tracking-tight font-display text-white">
-              Alliance Atlas & Founder Density
+              Global Atlas & Founder Density
             </h2>
           </div>
         </div>
@@ -205,9 +223,9 @@ export default function WorldMapView() {
         <div className="flex items-center gap-2.5">
           <div className="px-3.5 py-1.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 text-center">
             <div className="text-lg font-black text-orange-300 font-mono leading-none">
-              {activeCities.length}
+              {activeHubs.length}
             </div>
-            <div className="text-[9px] font-bold text-white/80 uppercase">Active Hubs</div>
+            <div className="text-[9px] font-bold text-white/80 uppercase">Global Hubs</div>
           </div>
           <div className="px-3.5 py-1.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 text-center">
             <div className="text-lg font-black text-emerald-300 font-mono leading-none">
@@ -218,7 +236,7 @@ export default function WorldMapView() {
         </div>
       </div>
 
-      {/* ── 2. Top Global Filters Bar (Matching Reference Layout) ────────────── */}
+      {/* ── 2. Top Global Filters Bar ────────────────────────────────────────── */}
       <div className="card p-3.5 sm:p-4 bg-white dark:bg-stone-900 border-stone-200/90 dark:border-stone-800 shadow-sm space-y-3">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
@@ -227,8 +245,9 @@ export default function WorldMapView() {
               Atlas Filter Controls
             </span>
           </div>
-          {(selectedIndustry !== 'all' ||
-            selectedCityId !== 'all' ||
+          {(selectedRegion !== 'all' ||
+            selectedHubId !== 'all' ||
+            selectedIndustry !== 'all' ||
             founderSearch ||
             companySearch ||
             listSearch) && (
@@ -241,7 +260,48 @@ export default function WorldMapView() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
+          {/* Region Dropdown */}
+          <div>
+            <label className="label text-[10px] mb-1">Global Region</label>
+            <select
+              value={selectedRegion}
+              onChange={(e) => {
+                setSelectedRegion(e.target.value);
+                setSelectedHubId('all'); // Reset hub when region changes
+              }}
+              className="input py-2 text-xs font-semibold cursor-pointer"
+            >
+              {GLOBAL_REGIONS.map((reg) => (
+                <option key={reg.id} value={reg.id}>
+                  {reg.icon} {reg.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* City / Hub Dropdown */}
+          <div>
+            <label className="label text-[10px] mb-1">City Hub</label>
+            <select
+              value={selectedHubId}
+              onChange={(e) => setSelectedHubId(e.target.value)}
+              className="input py-2 text-xs font-semibold cursor-pointer"
+            >
+              <option value="all">🌐 All Hubs ({filteredMembers.length})</option>
+              {activeHubs
+                .filter((h) => selectedRegion === 'all' || h.regionId === selectedRegion)
+                .map((h) => {
+                  const count = dynamicHubCounts[h.id] || hubCounts[h.id] || 0;
+                  return (
+                    <option key={h.id} value={h.id}>
+                      {h.flag} {h.name}, {h.country} ({count})
+                    </option>
+                  );
+                })}
+            </select>
+          </div>
+
           {/* Vertical / Industry Dropdown */}
           <div>
             <label className="label text-[10px] mb-1">Industry / Vertical</label>
@@ -256,29 +316,6 @@ export default function WorldMapView() {
                   {ind}
                 </option>
               ))}
-            </select>
-          </div>
-
-          {/* Governorate / City Dropdown */}
-          <div>
-            <label className="label text-[10px] mb-1">Governorate / City Hub</label>
-            <select
-              value={selectedCityId}
-              onChange={(e) => setSelectedCityId(e.target.value)}
-              className="input py-2 text-xs font-semibold cursor-pointer"
-            >
-              <option value="all">🇪🇬 All Egypt Hubs ({totalEgyptMembers})</option>
-              {EGYPT_CITIES.map((c) => {
-                const count = cityCounts[c.id] || 0;
-                return (
-                  <option key={c.id} value={c.id}>
-                    {c.name} ({count})
-                  </option>
-                );
-              })}
-              {otherMembers.length > 0 && (
-                <option value="others">🌍 Global / Other ({otherMembers.length})</option>
-              )}
             </select>
           </div>
 
@@ -320,16 +357,16 @@ export default function WorldMapView() {
         </div>
       </div>
 
-      {/* ── 3. Main Dashboard Body: GIS Map + Right Filter Drawer ────────────── */}
+      {/* ── 3. Main Dashboard Body: Global Map + Right Founder Drawer ─────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-        {/* ── Left/Center GIS Map Canvas (8 Columns) ───────────────────────── */}
+        {/* ── Left/Center Global GIS Map Canvas (8 Columns) ────────────────── */}
         <div className="lg:col-span-8 flex flex-col space-y-3">
           <div className="card overflow-hidden border-stone-200/90 dark:border-stone-800 p-0 shadow-lg">
-            <EgyptGISMap
-              cityCounts={dynamicCityCounts}
-              selectedCityId={selectedCityId}
-              onSelectCity={(id) => setSelectedCityId(id === selectedCityId ? 'all' : id)}
-              membersByCity={membersByCity}
+            <GlobalAllianceMap
+              hubCounts={dynamicHubCounts}
+              selectedHubId={selectedHubId}
+              onSelectHub={(id) => setSelectedHubId(id === selectedHubId ? 'all' : id)}
+              membersByHub={membersByHub}
               focusedCoords={focusedCoords}
             />
           </div>
@@ -337,32 +374,34 @@ export default function WorldMapView() {
           {/* Quick Hub Filter Bar Underneath Map */}
           <div className="card p-3 bg-white dark:bg-stone-900 border-stone-200/90 dark:border-stone-800 flex items-center gap-1.5 overflow-x-auto">
             <span className="text-[11px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider flex-shrink-0 mr-1 flex items-center gap-1">
-              <MapPin size={12} className="text-orange-500" /> Quick Hubs:
+              <MapPin size={12} className="text-orange-500" /> Active Hubs:
             </span>
             <button
-              onClick={() => setSelectedCityId('all')}
+              onClick={() => setSelectedHubId('all')}
               className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all border flex-shrink-0 cursor-pointer ${
-                selectedCityId === 'all'
+                selectedHubId === 'all'
                   ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-950 border-stone-900 shadow-xs'
                   : 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:border-orange-300'
               }`}
             >
-              All ({members.length})
+              All ({filteredMembers.length})
             </button>
-            {activeCities.map((city) => {
-              const count = dynamicCityCounts[city.id] || 0;
-              const isSelected = selectedCityId === city.id;
+            {activeFilteredHubs.slice(0, 8).map((hub) => {
+              const count = dynamicHubCounts[hub.id] || 0;
+              const isSelected = selectedHubId === hub.id;
               return (
                 <button
-                  key={city.id}
-                  onClick={() => setSelectedCityId(city.id)}
+                  key={hub.id}
+                  onClick={() => setSelectedHubId(hub.id)}
                   className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 flex-shrink-0 cursor-pointer ${
                     isSelected
                       ? 'bg-orange-500 text-white border-orange-500 shadow-xs'
                       : 'bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-200 border-stone-200 dark:border-stone-800 hover:border-orange-300'
                   }`}
                 >
-                  <span>{city.name.split('&')[0].trim()}</span>
+                  <span>
+                    {hub.flag} {hub.name.split('&')[0].trim()}
+                  </span>
                   <span
                     className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono font-black ${
                       isSelected
@@ -390,7 +429,9 @@ export default function WorldMapView() {
                 </h3>
               </div>
               <p className="text-[10px] text-emerald-200 font-medium mt-0.5">
-                {selectedCityObj ? `Filtered by ${selectedCityObj.name}` : 'Ecosystem Roster'}
+                {selectedHubObj
+                  ? `${selectedHubObj.flag} ${selectedHubObj.name}, ${selectedHubObj.country}`
+                  : 'Global Alliance Network'}
               </p>
             </div>
 
@@ -437,6 +478,7 @@ export default function WorldMapView() {
             ) : (
               filteredMembers.map((m) => {
                 const isFocused = focusedMemberId === m.id;
+                const geo = m._geo || resolveMemberLocation(m.location);
                 const locStr =
                   typeof m.location === 'string'
                     ? m.location
@@ -499,12 +541,10 @@ export default function WorldMapView() {
 
                         {/* Location & Tags */}
                         <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-                          {locStr && (
-                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300">
-                              <MapPin size={9} className="text-orange-500" />
-                              {locStr}
-                            </span>
-                          )}
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300">
+                            <span className="text-[10px]">{geo.flag}</span>
+                            {locStr || geo.hubName}
+                          </span>
                           {Array.isArray(m.tags) &&
                             m.tags.slice(0, 2).map((t) => (
                               <span
@@ -516,7 +556,7 @@ export default function WorldMapView() {
                             ))}
                         </div>
 
-                        {/* Social / Contact Icons with error handling shading */}
+                        {/* Social / Contact Icons */}
                         <div className="flex items-center gap-2 mt-2 pt-1.5 border-t border-stone-100 dark:border-stone-800">
                           {hasValidLinkedin ? (
                             <a
@@ -568,7 +608,7 @@ export default function WorldMapView() {
                           ) : null}
 
                           <span className="text-[10px] text-stone-400 font-semibold ml-auto flex items-center gap-1 group-hover:text-orange-500">
-                            Focus on map ➔
+                            Fly on map ➔
                           </span>
                         </div>
                       </div>
@@ -595,17 +635,17 @@ export default function WorldMapView() {
       </div>
 
       {/* ── 4. Detailed Grid of Filtered Member Profile Cards (When filtered) ── */}
-      {selectedCityId !== 'all' && (
+      {selectedHubId !== 'all' && (
         <div className="space-y-3 pt-2">
           <div className="flex items-center justify-between">
             <h3 className="section-title text-sm">
-              {selectedCityObj
-                ? `Hub Deep-Dive: ${selectedCityObj.name} (${filteredMembers.length})`
-                : `Global / Other Founders (${filteredMembers.length})`}
+              {selectedHubObj
+                ? `${selectedHubObj.flag} Hub Deep-Dive: ${selectedHubObj.name}, ${selectedHubObj.country} (${filteredMembers.length})`
+                : `Filtered Founders (${filteredMembers.length})`}
             </h3>
             <button
-              onClick={() => setSelectedCityId('all')}
-              className="btn-secondary py-1 px-3 text-xs font-bold"
+              onClick={() => setSelectedHubId('all')}
+              className="btn-secondary py-1 px-3 text-xs font-bold cursor-pointer"
             >
               Show All Hubs
             </button>

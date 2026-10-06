@@ -2882,10 +2882,10 @@
   "sheetsConfig": {
     "apiUrl": "https://script.google.com/macros/s/AKfycbw4LsEO25x4cShDWg8nI6DSwqURApEB9aMNgT6nb7rPGRkOxlS2nP144PxJLtO6eR9F8Q/exec",
     "autoSync": false,
-    "lastSyncAt": "2026-10-05T23:53:54.765Z",
+    "lastSyncAt": "2026-10-06T00:17:38.972Z",
     "lastSyncStatus": {
       "success": true,
-      "lastSyncAt": "2026-10-05T23:53:54.765Z",
+      "lastSyncAt": "2026-10-06T00:17:38.972Z",
       "addedCount": 0,
       "updatedCount": 0,
       "ignoredTombstoneCount": 0,
@@ -2901,5 +2901,5 @@
     "customTileUrl": ""
   },
   "darkMode": false,
-  "updatedAt": "2026-10-05T23:53:54.777Z"
+  "updatedAt": "2026-10-06T00:17:38.985Z"
 }
