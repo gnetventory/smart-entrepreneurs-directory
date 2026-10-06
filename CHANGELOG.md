@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.19.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.18.0...v1.19.0) (2026-10-06)
+
+
+### Features
+
+* gate curated matchmaking queue and bilateral intro hub to admin users ([cbd7d95](https://github.com/gnetventory/smart-entrepreneurs-directory/commit/cbd7d9575d7d7aaefa55fecfba10e2d201a003f2))
+
 ## [1.18.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.17.1...v1.18.0) (2026-10-06)
 
 
