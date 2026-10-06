@@ -229,8 +229,8 @@ export default function CommunityDashboard() {
         </div>
       </div>
 
-      {/* ── 3. TODAY'S CURATED MATCHMAKING QUEUE (High-Affinity Deal Flow) ───── */}
-      {analytics.curatedPairings.length > 0 && (
+      {/* ── 3. TODAY'S CURATED MATCHMAKING QUEUE (High-Affinity Deal Flow - Admin Only) ───── */}
+      {isAdmin && analytics.curatedPairings.length > 0 && (
         <div className="card p-5 sm:p-6 bg-white dark:bg-stone-900 border-[1.5px] border-stone-300 dark:border-stone-800 shadow-md space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-2 border-b border-stone-100 dark:border-stone-800 pb-3">
             <div className="flex items-center gap-2.5">
@@ -858,8 +858,8 @@ export default function CommunityDashboard() {
         </Modal>
       )}
 
-      {/* ── Bilateral Introduction Facilitation Hub Modal ────────────────────── */}
-      {bilateralPairing && (
+      {/* ── Bilateral Introduction Facilitation Hub Modal (Admin Only) ──────────────── */}
+      {isAdmin && bilateralPairing && (
         <Modal
           isOpen={!!bilateralPairing}
           onClose={() => setBilateralPairing(null)}
