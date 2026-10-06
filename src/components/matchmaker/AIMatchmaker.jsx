@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Sparkles, MessageCircle, UserCheck, AlertCircle, Copy } from 'lucide-react';
+import { Sparkles, MessageCircle, UserCheck, AlertCircle, Copy, Check } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
 import { generateMatches, generateOutreachMessage } from '../../utils/gemini';
 import { getInitials, getAvatarGradient, buildWhatsAppUrl } from '../../utils/helpers';
+import { isAdminSession } from '../../utils/session';
 import LoadingSpinner from '../common/LoadingSpinner';
 import Modal from '../common/Modal';
 
@@ -11,6 +12,7 @@ export default function AIMatchmaker() {
   const [selectedMemberId, setSelectedMemberId] = useState('');
   const [loading, setLoading] = useState(false);
   const [matches, setMatches] = useState([]);
+  const [copiedOutreach, setCopiedOutreach] = useState(false);
   const [outreachModal, setOutreachModal] = useState({
     isOpen: false,
     match: null,
@@ -18,6 +20,7 @@ export default function AIMatchmaker() {
     loading: false,
   });
 
+  const isAdmin = isAdminSession();
   const targetMember = members.find((m) => m.id === selectedMemberId);
 
   const handleFindMatches = async () => {
@@ -47,10 +50,17 @@ export default function AIMatchmaker() {
       console.error(err);
       setOutreachModal((prev) => ({
         ...prev,
-        message: `Hi ${matchItem.member.name}, I saw your profile in the Entrepreneurs Directory! I run ${targetMember.business} and would love to connect.`,
+        message: `Hi ${matchItem.member.name}, I saw your profile in the Entrepreneurs Directory! I run ${targetMember.business} and would love to connect about potential synergies.`,
         loading: false,
       }));
     }
+  };
+
+  const handleCopyOutreach = () => {
+    navigator.clipboard.writeText(outreachModal.message);
+    setCopiedOutreach(true);
+    notify('📋 Outreach message copied to clipboard!');
+    setTimeout(() => setCopiedOutreach(false), 2000);
   };
 
   return (
@@ -128,7 +138,7 @@ export default function AIMatchmaker() {
           {loading ? <LoadingSpinner size="sm" /> : <Sparkles size={18} />}
           {loading
             ? `Analyzing synergy across ${members.length - 1} profiles...`
-            : 'Find Matches with Gemini AI'}
+            : 'Reveal High-Synergy AI Matches'}
         </button>
       </div>
 
@@ -162,7 +172,7 @@ export default function AIMatchmaker() {
                           {m.name}
                         </h4>
                         <p className="text-[13px] sm:text-sm font-bold text-emerald-700 dark:text-emerald-400">
-                          {m.role} · {m.location?.city}, {m.location?.country}
+                          {m.role} · {m.location?.city || ''}, {m.location?.country || 'Global'}
                         </p>
                       </div>
                     </div>
@@ -196,7 +206,7 @@ export default function AIMatchmaker() {
                       onClick={() => handleOpenOutreach(item)}
                       className="btn-accent text-[13px] py-2 px-4 font-bold shadow-tactile-sm"
                     >
-                      <MessageCircle size={15} /> Draft AI WhatsApp Outreach
+                      <MessageCircle size={15} /> Draft Contextual Outreach
                     </button>
                   </div>
                 </div>
@@ -217,7 +227,7 @@ export default function AIMatchmaker() {
       >
         <div className="space-y-4">
           <p className="text-xs font-semibold text-stone-500">
-            Gemini drafted this personalized outreach message based on your mutual needs and offers:
+            Personalized outreach drafted based on mutual needs and offers:
           </p>
 
           {outreachModal.loading ? (
@@ -235,22 +245,23 @@ export default function AIMatchmaker() {
 
           <div className="flex gap-2 justify-end">
             <button
-              onClick={() => {
-                navigator.clipboard.writeText(outreachModal.message);
-                notify('Message copied to clipboard!');
-              }}
-              className="btn-secondary text-xs"
+              onClick={handleCopyOutreach}
+              className="btn-secondary text-xs flex items-center gap-1.5"
             >
-              <Copy size={15} /> Copy Message
+              {copiedOutreach ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
+              <span>{copiedOutreach ? 'Copied to Clipboard!' : 'Copy Outreach Message'}</span>
             </button>
-            {buildWhatsAppUrl(outreachModal.match?.phone) && (
+            {/* Direct WhatsApp only for Admin Session */}
+            {isAdmin && outreachModal.match?.phone && (
               <a
-                href={`${buildWhatsAppUrl(outreachModal.match?.phone)}?text=${encodeURIComponent(outreachModal.message)}`}
+                href={`https://wa.me/${outreachModal.match.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
+                  outreachModal.message
+                )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn-primary text-xs"
+                className="btn-primary text-xs flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 border-emerald-700"
               >
-                <MessageCircle size={15} /> Send on WhatsApp
+                <MessageCircle size={14} /> Send on WhatsApp
               </a>
             )}
           </div>

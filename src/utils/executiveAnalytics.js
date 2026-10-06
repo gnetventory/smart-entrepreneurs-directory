@@ -1,5 +1,5 @@
 // ─── Executive Analytics & Matchmaking Engine ────────────────────────────────
-// Powering the Executive KPI Ribbon, Supply/Demand Matrix, Network Gaps & Match Radar
+// Powering the Executive KPI Ribbon, Supply/Demand Matrix, Network Gaps, Match Radar & Curated Deal Flow
 
 export const CAPABILITY_VERTICALS = [
   {
@@ -160,237 +160,6 @@ export function categorizeText(text = '') {
 }
 
 /**
- * Calculate full executive intelligence dataset
- */
-export function computeExecutiveAnalytics(members = []) {
-  const total = members.length;
-  if (total === 0) {
-    return {
-      total: 0,
-      monthlyVelocity: 0,
-      monthlyGrowthRate: 0,
-      synergyIndex: 0,
-      activeAsksCount: 0,
-      activeOffersCount: 0,
-      stageCounts: { idea: 0, starting: 0, running: 0, growing: 0 },
-      stageRatios: '0 : 0 : 0 : 0',
-      matrix: [],
-      networkGaps: [],
-      topDistricts: [],
-      topIndustries: [],
-      highIntentStream: [],
-    };
-  }
-
-  // 1. Stage split & growth velocity
-  const now = Date.now();
-  const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
-  let newLast30Days = 0;
-  const stageCounts = { idea: 0, starting: 0, running: 0, growing: 0 };
-  let activeAsksCount = 0;
-  let activeOffersCount = 0;
-
-  members.forEach((m) => {
-    if (stageCounts[m.stage] !== undefined) stageCounts[m.stage]++;
-    if (m.lookingFor && m.lookingFor.trim().length > 3) activeAsksCount++;
-    if (m.canHelp && m.canHelp.trim().length > 3) activeOffersCount++;
-    const created = new Date(m.createdAt).getTime();
-    if (now - created <= thirtyDaysMs) newLast30Days++;
-  });
-
-  const monthlyGrowthRate =
-    total > newLast30Days ? Math.round((newLast30Days / (total - newLast30Days)) * 100) : 100;
-
-  const stageRatios = `${stageCounts.idea} : ${stageCounts.starting} : ${stageCounts.running} : ${stageCounts.growing}`;
-
-  // 2. Supply vs. Demand Matrix across Capability Verticals
-  const demandCounts = {};
-  const supplyCounts = {};
-  CAPABILITY_VERTICALS.forEach((v) => {
-    demandCounts[v.id] = 0;
-    supplyCounts[v.id] = 0;
-  });
-
-  members.forEach((m) => {
-    const demVerts = categorizeText(`${m.lookingFor || ''} ${m.tags?.join(' ') || ''}`);
-    const supVerts = categorizeText(`${m.canHelp || ''} ${m.role || ''} ${m.business || ''}`);
-
-    demVerts.forEach((vId) => {
-      if (demandCounts[vId] !== undefined) demandCounts[vId]++;
-    });
-    supVerts.forEach((vId) => {
-      if (supplyCounts[vId] !== undefined) supplyCounts[vId]++;
-    });
-  });
-
-  const matrix = CAPABILITY_VERTICALS.map((v) => {
-    const demand = demandCounts[v.id] || 0;
-    const supply = supplyCounts[v.id] || 0;
-    const demandPct = activeAsksCount > 0 ? Math.round((demand / activeAsksCount) * 100) : 0;
-    const supplyPct = activeOffersCount > 0 ? Math.round((supply / activeOffersCount) * 100) : 0;
-    const gap = demand - supply;
-
-    return {
-      ...v,
-      demand,
-      supply,
-      demandPct,
-      supplyPct,
-      gap,
-      status: gap > 0 ? 'deficit' : gap < 0 ? 'surplus' : 'balanced',
-    };
-  }).sort((a, b) => b.demand - a.demand);
-
-  // 3. Network Gap Identification (Actionable Intelligence Alerts)
-  const networkGaps = [];
-  matrix.forEach((item) => {
-    if (item.demand >= 2 && item.supply === 0) {
-      networkGaps.push({
-        type: 'critical_deficit',
-        severity: 'high',
-        vertical: item.label,
-        icon: item.icon,
-        message: `Critical Gap: ${item.demand} founders seeking ${item.label}, but 0 community members currently offer this.`,
-        action: 'Recruit/Invite advisors in this domain',
-      });
-    } else if (item.demand >= 3 && item.supply <= 2) {
-      const deficitPct = Math.round(((item.demand - item.supply) / item.demand) * 100);
-      networkGaps.push({
-        type: 'high_deficit',
-        severity: 'medium',
-        vertical: item.label,
-        icon: item.icon,
-        message: `High Supply Deficit: ${item.demand} founders seeking ${item.label} with only ${item.supply} provider (${deficitPct}% shortage).`,
-        action: 'Prioritize matchmaking for this vertical',
-      });
-    } else if (item.supply >= 4 && item.demand <= 1) {
-      networkGaps.push({
-        type: 'supply_surplus',
-        severity: 'opportunity',
-        vertical: item.label,
-        icon: item.icon,
-        message: `High Capability Surplus: ${item.supply} experts offering ${item.label} ready for immediate collaboration.`,
-        action: 'Broadcast available expertise to community',
-      });
-    }
-  });
-
-  // 4. Synergy Index Calculation (% of members who have at least one complementary peer in network)
-  let synergisticMembersCount = 0;
-  members.forEach((memberA) => {
-    const aLooking = (memberA.lookingFor || '').toLowerCase();
-    const aOffers = (memberA.canHelp || '').toLowerCase();
-    if (!aLooking && !aOffers) return;
-
-    const hasSynergy = members.some((memberB) => {
-      if (memberB.id === memberA.id) return false;
-      const bOffers = (memberB.canHelp || '').toLowerCase();
-      const bLooking = (memberB.lookingFor || '').toLowerCase();
-
-      // Check if A's looking matches B's offers OR A's offers match B's looking
-      const match1 =
-        aLooking.length > 3 &&
-        bOffers.length > 3 &&
-        bOffers.split(' ').some((w) => w.length > 3 && aLooking.includes(w));
-      const match2 =
-        aOffers.length > 3 &&
-        bLooking.length > 3 &&
-        aOffers.split(' ').some((w) => w.length > 3 && bLooking.includes(w));
-      return match1 || match2;
-    });
-
-    if (hasSynergy) synergisticMembersCount++;
-  });
-
-  const synergyIndex = total > 0 ? Math.round((synergisticMembersCount / total) * 100) : 0;
-
-  // 5. Geographic Concentration (Districts / Hubs)
-  const districtCounts = {};
-  members.forEach((m) => {
-    const loc = m.location || {};
-    const district = loc.district || loc.city || loc.country || 'Unspecified';
-    districtCounts[district] = (districtCounts[district] || 0) + 1;
-  });
-
-  const topDistricts = Object.entries(districtCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 6)
-    .map(([name, count]) => ({
-      name,
-      count,
-      pct: Math.round((count / total) * 100),
-    }));
-
-  // 6. Industry Clustering
-  const industryCounts = {};
-  members.forEach((m) => {
-    (m.tags || []).forEach((t) => {
-      industryCounts[t] = (industryCounts[t] || 0) + 1;
-    });
-  });
-
-  const topIndustries = Object.entries(industryCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 8)
-    .map(([name, count]) => ({
-      name,
-      count,
-      pct: Math.round((count / total) * 100),
-    }));
-
-  // 7. High-Intent "Need / Offer" Stream
-  const highIntentStream = [];
-  members.forEach((m) => {
-    if (m.lookingFor && m.lookingFor.trim().length > 3) {
-      highIntentStream.push({
-        id: `need-${m.id}`,
-        memberId: m.id,
-        memberName: m.name,
-        memberRole: m.role,
-        memberStage: m.stage,
-        memberLocation: m.location,
-        type: 'need',
-        text: m.lookingFor,
-        verticals: categorizeText(m.lookingFor),
-        createdAt: m.updatedAt || m.createdAt,
-      });
-    }
-    if (m.canHelp && m.canHelp.trim().length > 3) {
-      highIntentStream.push({
-        id: `offer-${m.id}`,
-        memberId: m.id,
-        memberName: m.name,
-        memberRole: m.role,
-        memberStage: m.stage,
-        memberLocation: m.location,
-        type: 'offer',
-        text: m.canHelp,
-        verticals: categorizeText(m.canHelp),
-        createdAt: m.updatedAt || m.createdAt,
-      });
-    }
-  });
-
-  highIntentStream.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-  return {
-    total,
-    monthlyVelocity: newLast30Days,
-    monthlyGrowthRate,
-    synergyIndex,
-    activeAsksCount,
-    activeOffersCount,
-    stageCounts,
-    stageRatios,
-    matrix,
-    networkGaps,
-    topDistricts,
-    topIndustries,
-    highIntentStream,
-  };
-}
-
-/**
  * Compute synergy match score between target member and candidate member (0 to 100%)
  * Returns 0 if there is no meaningful business connection or complementarity.
  */
@@ -451,7 +220,7 @@ export function computeMemberSynergy(targetMember, candidateMember) {
     hasRealConnection = true;
   }
 
-  // 4. Role Complementarity (e.g. Founder + Developer, Agri + Logistics, etc.)
+  // 4. Role & Venture Complementarity
   const tRole = (targetMember.role || '').toLowerCase();
   const cRole = (candidateMember.role || '').toLowerCase();
   const tBiz = (targetMember.business || '').toLowerCase();
@@ -459,13 +228,13 @@ export function computeMemberSynergy(targetMember, candidateMember) {
 
   if (
     (tRole.includes('founder') &&
-      (cRole.includes('developer') || cRole.includes('engineer') || cRole.includes('marketing'))) ||
+      (cRole.includes('developer') || cRole.includes('engineer') || cRole.includes('marketing') || cRole.includes('consultant'))) ||
     (cRole.includes('founder') &&
-      (tRole.includes('developer') || tRole.includes('engineer') || tRole.includes('marketing'))) ||
+      (tRole.includes('developer') || tRole.includes('engineer') || tRole.includes('marketing') || tRole.includes('consultant'))) ||
     (tBiz.includes('export') &&
-      (cBiz.includes('import') || cBiz.includes('logistics') || cBiz.includes('shipping'))) ||
+      (cBiz.includes('import') || cBiz.includes('logistics') || cBiz.includes('shipping') || cBiz.includes('trade'))) ||
     (cBiz.includes('export') &&
-      (tBiz.includes('import') || tBiz.includes('logistics') || tBiz.includes('shipping')))
+      (tBiz.includes('import') || tBiz.includes('logistics') || tBiz.includes('shipping') || tBiz.includes('trade')))
   ) {
     score += 15;
     hasRealConnection = true;
@@ -474,7 +243,7 @@ export function computeMemberSynergy(targetMember, candidateMember) {
   // If no real connection was identified, they are not synergistic
   if (!hasRealConnection) return 0;
 
-  // 5. Geographic Proximity Bonus (5-10pts only when connection exists)
+  // 5. Geographic Proximity Bonus (5-10pts)
   const tLoc = targetMember.location || {};
   const cLoc = candidateMember.location || {};
   if (tLoc.city && cLoc.city && tLoc.city.toLowerCase() === cLoc.city.toLowerCase()) {
@@ -497,5 +266,306 @@ export function computeMemberSynergy(targetMember, candidateMember) {
     score += 5;
   }
 
-  return Math.min(99, Math.max(25, score));
+  return Math.min(99, Math.max(30, score));
+}
+
+/**
+ * ⚡ Top Curated Bilateral Pairings ("Today's Matchmaking Queue")
+ * Evaluates all member combinations and returns the top bilateral pairings with explicit human-readable rationales.
+ */
+export function computeTopBilateralPairings(members = [], limit = 3) {
+  if (!Array.isArray(members) || members.length < 2) return [];
+
+  const pairs = [];
+  const seenPairs = new Set();
+
+  for (let i = 0; i < members.length; i++) {
+    const memberA = members[i];
+    if (!memberA.business) continue;
+
+    for (let j = i + 1; j < members.length; j++) {
+      const memberB = members[j];
+      if (!memberB.business) continue;
+
+      const pairKey = [memberA.id, memberB.id].sort().join(':::');
+      if (seenPairs.has(pairKey)) continue;
+      seenPairs.add(pairKey);
+
+      const score = computeMemberSynergy(memberA, memberB);
+      if (score >= 60) {
+        // Generate contextual match rationale
+        let rationale = `${memberA.name.split(' ')[0]} and ${memberB.name.split(' ')[0]} share strong cross-industry synergies in ${memberA.tags?.[0] || 'business development'}.`;
+
+        const aLooking = (memberA.lookingFor || '').toLowerCase();
+        const bOffering = (memberB.canHelp || '').toLowerCase();
+        const bLooking = (memberB.lookingFor || '').toLowerCase();
+        const aOffering = (memberA.canHelp || '').toLowerCase();
+
+        if (aLooking.length > 3 && bOffering.length > 3 && bOffering.split(' ').some((w) => w.length > 3 && aLooking.includes(w))) {
+          rationale = `${memberA.name.split(' ')[0]} is seeking assistance with items that ${memberB.name.split(' ')[0]} specializes in offering.`;
+        } else if (bLooking.length > 3 && aOffering.length > 3 && aOffering.split(' ').some((w) => w.length > 3 && bLooking.includes(w))) {
+          rationale = `${memberB.name.split(' ')[0]} needs expertise that ${memberA.name.split(' ')[0]} actively offers.`;
+        }
+
+        pairs.push({
+          id: `pairing-${memberA.id}-${memberB.id}`,
+          memberA,
+          memberB,
+          score,
+          rationale,
+          headline: `${memberA.business.split('—')[0].trim()} ⇄ ${memberB.business.split('—')[0].trim()}`,
+        });
+      }
+    }
+  }
+
+  return pairs.sort((a, b) => b.score - a.score).slice(0, limit);
+}
+
+/**
+ * Calculate full executive intelligence dataset
+ */
+export function computeExecutiveAnalytics(members = []) {
+  const total = members.length;
+  if (total === 0) {
+    return {
+      total: 0,
+      monthlyVelocity: 0,
+      monthlyGrowthRate: 0,
+      synergyIndex: 0,
+      activeAsksCount: 0,
+      activeOffersCount: 0,
+      stageCounts: { idea: 0, starting: 0, running: 0, growing: 0 },
+      stageRatios: '0 : 0 : 0 : 0',
+      matrix: [],
+      networkGaps: [],
+      topDistricts: [],
+      topIndustries: [],
+      highIntentStream: [],
+      curatedPairings: [],
+    };
+  }
+
+  // 1. Stage split & growth velocity
+  const now = Date.now();
+  const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+  let newLast30Days = 0;
+  const stageCounts = { idea: 0, starting: 0, running: 0, growing: 0 };
+  let activeAsksCount = 0;
+  let activeOffersCount = 0;
+
+  members.forEach((m) => {
+    if (stageCounts[m.stage] !== undefined) stageCounts[m.stage]++;
+    if (m.lookingFor && m.lookingFor.trim().length > 3) activeAsksCount++;
+    if (m.canHelp && m.canHelp.trim().length > 3) activeOffersCount++;
+    const created = new Date(m.createdAt).getTime();
+    if (now - created <= thirtyDaysMs) newLast30Days++;
+  });
+
+  const monthlyGrowthRate =
+    total > newLast30Days ? Math.round((newLast30Days / (total - newLast30Days)) * 100) : 100;
+
+  const stageRatios = `${stageCounts.idea} : ${stageCounts.starting} : ${stageCounts.running} : ${stageCounts.growing}`;
+
+  // 2. Supply vs. Demand Matrix across Capability Verticals
+  const demandCounts = {};
+  const supplyCounts = {};
+  const providersByVertical = {};
+
+  CAPABILITY_VERTICALS.forEach((v) => {
+    demandCounts[v.id] = 0;
+    supplyCounts[v.id] = 0;
+    providersByVertical[v.id] = [];
+  });
+
+  members.forEach((m) => {
+    const demVerts = categorizeText(`${m.lookingFor || ''} ${m.tags?.join(' ') || ''}`);
+    const supVerts = categorizeText(`${m.canHelp || ''} ${m.role || ''} ${m.business || ''}`);
+
+    demVerts.forEach((vId) => {
+      if (demandCounts[vId] !== undefined) demandCounts[vId]++;
+    });
+    supVerts.forEach((vId) => {
+      if (supplyCounts[vId] !== undefined) {
+        supplyCounts[vId]++;
+        providersByVertical[vId].push(m);
+      }
+    });
+  });
+
+  const matrix = CAPABILITY_VERTICALS.map((v) => {
+    const demand = demandCounts[v.id] || 0;
+    const supply = supplyCounts[v.id] || 0;
+    const demandPct = activeAsksCount > 0 ? Math.round((demand / activeAsksCount) * 100) : 0;
+    const supplyPct = activeOffersCount > 0 ? Math.round((supply / activeOffersCount) * 100) : 0;
+    const gap = demand - supply;
+
+    return {
+      ...v,
+      demand,
+      supply,
+      demandPct,
+      supplyPct,
+      gap,
+      status: gap > 0 ? 'deficit' : gap < 0 ? 'surplus' : 'balanced',
+    };
+  }).sort((a, b) => b.demand - a.demand);
+
+  // 3. Network Gap Identification with Prescriptive Candidate Recommendations
+  const networkGaps = [];
+  matrix.forEach((item) => {
+    const activeProviders = providersByVertical[item.id] || [];
+
+    if (item.demand >= 2 && item.supply === 0) {
+      networkGaps.push({
+        type: 'critical_deficit',
+        severity: 'high',
+        vertical: item.label,
+        icon: item.icon,
+        message: `Critical Gap: ${item.demand} founders seeking ${item.label}, but 0 community members currently offer this.`,
+        action: 'Recruit/Invite advisors in this domain',
+        candidateProviders: [],
+      });
+    } else if (item.demand >= 3 && item.supply <= 3) {
+      const deficitPct = Math.round(((item.demand - item.supply) / item.demand) * 100);
+      networkGaps.push({
+        type: 'high_deficit',
+        severity: 'medium',
+        vertical: item.label,
+        icon: item.icon,
+        message: `High Supply Deficit: ${item.demand} founders seeking ${item.label} with only ${item.supply} provider (${deficitPct}% shortage).`,
+        action: activeProviders.length > 0 ? `Bridge with: ${activeProviders.slice(0, 2).map((p) => p.name).join(' & ')}` : 'Prioritize matchmaking for this vertical',
+        candidateProviders: activeProviders.slice(0, 3),
+      });
+    } else if (item.supply >= 4 && item.demand <= 1) {
+      networkGaps.push({
+        type: 'supply_surplus',
+        severity: 'opportunity',
+        vertical: item.label,
+        icon: item.icon,
+        message: `Capability Surplus: ${item.supply} experts offering ${item.label} ready for immediate collaboration.`,
+        action: `Available Experts: ${activeProviders.slice(0, 2).map((p) => p.name).join(', ')}`,
+        candidateProviders: activeProviders.slice(0, 3),
+      });
+    }
+  });
+
+  // 4. Synergy Index Calculation
+  let synergisticMembersCount = 0;
+  members.forEach((memberA) => {
+    const aLooking = (memberA.lookingFor || '').toLowerCase();
+    const aOffers = (memberA.canHelp || '').toLowerCase();
+    if (!aLooking && !aOffers) return;
+
+    const hasSynergy = members.some((memberB) => {
+      if (memberB.id === memberA.id) return false;
+      const bOffers = (memberB.canHelp || '').toLowerCase();
+      const bLooking = (memberB.lookingFor || '').toLowerCase();
+
+      const match1 =
+        aLooking.length > 3 &&
+        bOffers.length > 3 &&
+        bOffers.split(' ').some((w) => w.length > 3 && aLooking.includes(w));
+      const match2 =
+        aOffers.length > 3 &&
+        bLooking.length > 3 &&
+        aOffers.split(' ').some((w) => w.length > 3 && bLooking.includes(w));
+      return match1 || match2;
+    });
+
+    if (hasSynergy) synergisticMembersCount++;
+  });
+
+  const synergyIndex = total > 0 ? Math.round((synergisticMembersCount / total) * 100) : 0;
+
+  // 5. Geographic Concentration
+  const districtCounts = {};
+  members.forEach((m) => {
+    const loc = m.location || {};
+    const district = loc.district || loc.city || loc.country || 'Unspecified';
+    districtCounts[district] = (districtCounts[district] || 0) + 1;
+  });
+
+  const topDistricts = Object.entries(districtCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([name, count]) => ({
+      name,
+      count,
+      pct: Math.round((count / total) * 100),
+    }));
+
+  // 6. Industry Clustering
+  const industryCounts = {};
+  members.forEach((m) => {
+    (m.tags || []).forEach((t) => {
+      industryCounts[t] = (industryCounts[t] || 0) + 1;
+    });
+  });
+
+  const topIndustries = Object.entries(industryCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([name, count]) => ({
+      name,
+      count,
+      pct: Math.round((count / total) * 100),
+    }));
+
+  // 7. High-Intent "Need / Offer" Stream
+  const highIntentStream = [];
+  members.forEach((m) => {
+    if (m.lookingFor && m.lookingFor.trim().length > 3) {
+      highIntentStream.push({
+        id: `need-${m.id}`,
+        memberId: m.id,
+        member: m,
+        memberName: m.name,
+        memberRole: m.role,
+        memberStage: m.stage,
+        memberLocation: m.location,
+        type: 'need',
+        text: m.lookingFor,
+        verticals: categorizeText(m.lookingFor),
+        createdAt: m.updatedAt || m.createdAt,
+      });
+    }
+    if (m.canHelp && m.canHelp.trim().length > 3) {
+      highIntentStream.push({
+        id: `offer-${m.id}`,
+        memberId: m.id,
+        member: m,
+        memberName: m.name,
+        memberRole: m.role,
+        memberStage: m.stage,
+        memberLocation: m.location,
+        type: 'offer',
+        text: m.canHelp,
+        verticals: categorizeText(m.canHelp),
+        createdAt: m.updatedAt || m.createdAt,
+      });
+    }
+  });
+
+  highIntentStream.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  // 8. Top Curated Bilateral Pairings
+  const curatedPairings = computeTopBilateralPairings(members, 3);
+
+  return {
+    total,
+    monthlyVelocity: newLast30Days,
+    monthlyGrowthRate,
+    synergyIndex,
+    activeAsksCount,
+    activeOffersCount,
+    stageCounts,
+    stageRatios,
+    matrix,
+    networkGaps,
+    topDistricts,
+    topIndustries,
+    highIntentStream,
+    curatedPairings,
+  };
 }

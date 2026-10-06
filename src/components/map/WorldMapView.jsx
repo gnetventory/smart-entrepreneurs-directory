@@ -12,7 +12,11 @@ import {
   Globe,
 } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
-import { ALL_WORLD_HUBS, GLOBAL_REGIONS, resolveMemberLocation } from '../../utils/worldHubs';
+import {
+  ALL_WORLD_HUBS,
+  GLOBAL_REGIONS,
+  resolveMemberLocation,
+} from '../../utils/worldHubs';
 import { INDUSTRY_TAGS } from '../../utils/constants';
 import { isAdminSession } from '../../utils/session';
 import GlobalAllianceMap from './GlobalAllianceMap';
@@ -108,7 +112,9 @@ export default function WorldMapView() {
       // 3. Industry / Vertical match
       if (selectedIndustry !== 'all') {
         const memberTags = Array.isArray(m.tags) ? m.tags : [];
-        const hasTag = memberTags.some((t) => t.toLowerCase() === selectedIndustry.toLowerCase());
+        const hasTag = memberTags.some(
+          (t) => t.toLowerCase() === selectedIndustry.toLowerCase()
+        );
         const matchInd = (m.industry || '').toLowerCase() === selectedIndustry.toLowerCase();
         const inBusiness = (m.business || '')
           .toLowerCase()
@@ -201,165 +207,168 @@ export default function WorldMapView() {
 
   return (
     <div className="space-y-4 animate-fade-in max-w-7xl mx-auto">
-      {/* ── 1. Compact Header Banner (Warm Premium Palette) ──────────────────── */}
-      <div className="card p-4 sm:p-5 bg-gradient-to-r from-emerald-800 via-teal-800 to-stone-900 text-white border-0 shadow-lg relative overflow-hidden flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="p-3 bg-orange-500 text-white rounded-2xl flex-shrink-0 shadow-md shadow-orange-500/30">
-            <Globe size={22} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 mb-0.5">
-              <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-white/20 text-orange-200">
-                Alliance Atlas
-              </span>
-              <span className="text-xs text-emerald-300 font-bold">🌐 Global Ecosystem GIS</span>
+      {/* ── Frozen Sticky Top Container: Atlas Header + Controls ───────────── */}
+      <div className="sticky top-[66px] z-20 space-y-3 bg-[#FAFAF7]/95 dark:bg-stone-950/95 backdrop-blur-md pb-2 pt-1 transition-colors">
+        {/* Compact Header Banner (Warm Premium Palette) */}
+        <div className="card p-3.5 sm:p-4 bg-gradient-to-r from-emerald-800 via-teal-800 to-stone-900 text-white border-0 shadow-lg relative overflow-hidden flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-orange-500 text-white rounded-xl flex-shrink-0 shadow-md shadow-orange-500/30">
+              <Globe size={20} />
             </div>
-            <h2 className="text-xl sm:text-2xl font-black tracking-tight font-display text-white">
-              Global Atlas & Founder Density
-            </h2>
+            <div>
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="text-[9.5px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-white/20 text-orange-200">
+                  Alliance Atlas
+                </span>
+                <span className="text-[11px] text-emerald-300 font-bold">🌐 Global Ecosystem GIS</span>
+              </div>
+              <h2 className="text-lg sm:text-xl font-black tracking-tight font-display text-white">
+                Global Atlas & Founder Density
+              </h2>
+            </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-2.5">
-          <div className="px-3.5 py-1.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 text-center">
-            <div className="text-lg font-black text-orange-300 font-mono leading-none">
-              {activeHubs.length}
-            </div>
-            <div className="text-[9px] font-bold text-white/80 uppercase">Global Hubs</div>
-          </div>
-          <div className="px-3.5 py-1.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 text-center">
-            <div className="text-lg font-black text-emerald-300 font-mono leading-none">
-              {filteredMembers.length}
-            </div>
-            <div className="text-[9px] font-bold text-white/80 uppercase">Matching Founders</div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── 2. Top Global Filters Bar ────────────────────────────────────────── */}
-      <div className="card p-3.5 sm:p-4 bg-white dark:bg-stone-900 border-stone-200/90 dark:border-stone-800 shadow-sm space-y-3">
-        <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
-            <Filter size={14} className="text-orange-500" />
-            <span className="text-xs font-black uppercase tracking-wider text-stone-700 dark:text-stone-300">
-              Atlas Filter Controls
-            </span>
-          </div>
-          {(selectedRegion !== 'all' ||
-            selectedHubId !== 'all' ||
-            selectedIndustry !== 'all' ||
-            founderSearch ||
-            companySearch ||
-            listSearch) && (
-            <button
-              onClick={handleResetFilters}
-              className="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1 cursor-pointer"
-            >
-              <RotateCcw size={12} /> Clear all filters
-            </button>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
-          {/* Region Dropdown */}
-          <div>
-            <label className="label text-[10px] mb-1">Global Region</label>
-            <select
-              value={selectedRegion}
-              onChange={(e) => {
-                setSelectedRegion(e.target.value);
-                setSelectedHubId('all'); // Reset hub when region changes
-              }}
-              className="input py-2 text-xs font-semibold cursor-pointer"
-            >
-              {GLOBAL_REGIONS.map((reg) => (
-                <option key={reg.id} value={reg.id}>
-                  {reg.icon} {reg.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* City / Hub Dropdown */}
-          <div>
-            <label className="label text-[10px] mb-1">City Hub</label>
-            <select
-              value={selectedHubId}
-              onChange={(e) => setSelectedHubId(e.target.value)}
-              className="input py-2 text-xs font-semibold cursor-pointer"
-            >
-              <option value="all">🌐 All Hubs ({filteredMembers.length})</option>
-              {activeHubs
-                .filter((h) => selectedRegion === 'all' || h.regionId === selectedRegion)
-                .map((h) => {
-                  const count = dynamicHubCounts[h.id] || hubCounts[h.id] || 0;
-                  return (
-                    <option key={h.id} value={h.id}>
-                      {h.flag} {h.name}, {h.country} ({count})
-                    </option>
-                  );
-                })}
-            </select>
-          </div>
-
-          {/* Vertical / Industry Dropdown */}
-          <div>
-            <label className="label text-[10px] mb-1">Industry / Vertical</label>
-            <select
-              value={selectedIndustry}
-              onChange={(e) => setSelectedIndustry(e.target.value)}
-              className="input py-2 text-xs font-semibold cursor-pointer"
-            >
-              <option value="all">All Verticals (Any)</option>
-              {allIndustries.map((ind) => (
-                <option key={ind} value={ind}>
-                  {ind}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Founder Name Search */}
-          <div>
-            <label className="label text-[10px] mb-1">Founder Name</label>
-            <div className="relative">
-              <Search
-                size={14}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"
-              />
-              <input
-                type="text"
-                value={founderSearch}
-                onChange={(e) => setFounderSearch(e.target.value)}
-                placeholder="Filter founder name..."
-                className="input pl-8 py-2 text-xs font-medium"
-              />
+            <div className="px-3 py-1 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 text-center">
+              <div className="text-base font-black text-orange-300 font-mono leading-none">
+                {activeHubs.length}
+              </div>
+              <div className="text-[8.5px] font-bold text-white/80 uppercase">Global Hubs</div>
+            </div>
+            <div className="px-3 py-1 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 text-center">
+              <div className="text-base font-black text-emerald-300 font-mono leading-none">
+                {filteredMembers.length}
+              </div>
+              <div className="text-[8.5px] font-bold text-white/80 uppercase">Matching</div>
             </div>
           </div>
+        </div>
 
-          {/* Company Name Search */}
-          <div>
-            <label className="label text-[10px] mb-1">Company / Business</label>
-            <div className="relative">
-              <Building2
-                size={14}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"
-              />
-              <input
-                type="text"
-                value={companySearch}
-                onChange={(e) => setCompanySearch(e.target.value)}
-                placeholder="Filter company..."
-                className="input pl-8 py-2 text-xs font-medium"
-              />
+        {/* Top Global Filters Bar */}
+        <div className="card p-3 sm:p-3.5 bg-white dark:bg-stone-900 border-stone-200/90 dark:border-stone-800 shadow-sm space-y-2.5">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-1.5">
+              <Filter size={13} className="text-orange-500" />
+              <span className="text-[11px] font-black uppercase tracking-wider text-stone-700 dark:text-stone-300">
+                Atlas Filter Controls
+              </span>
+            </div>
+            {(selectedRegion !== 'all' ||
+              selectedHubId !== 'all' ||
+              selectedIndustry !== 'all' ||
+              founderSearch ||
+              companySearch ||
+              listSearch) && (
+              <button
+                onClick={handleResetFilters}
+                className="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <RotateCcw size={12} /> Clear all filters
+              </button>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+            {/* Region Dropdown */}
+            <div>
+              <label className="label text-[9.5px] mb-0.5">Global Region</label>
+              <select
+                value={selectedRegion}
+                onChange={(e) => {
+                  setSelectedRegion(e.target.value);
+                  setSelectedHubId('all');
+                }}
+                className="input py-1.5 text-xs font-semibold cursor-pointer"
+              >
+                {GLOBAL_REGIONS.map((reg) => (
+                  <option key={reg.id} value={reg.id}>
+                    {reg.icon} {reg.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* City / Hub Dropdown */}
+            <div>
+              <label className="label text-[9.5px] mb-0.5">City Hub</label>
+              <select
+                value={selectedHubId}
+                onChange={(e) => setSelectedHubId(e.target.value)}
+                className="input py-1.5 text-xs font-semibold cursor-pointer"
+              >
+                <option value="all">🌐 All Hubs ({filteredMembers.length})</option>
+                {activeHubs
+                  .filter((h) => selectedRegion === 'all' || h.regionId === selectedRegion)
+                  .map((h) => {
+                    const count = dynamicHubCounts[h.id] || hubCounts[h.id] || 0;
+                    return (
+                      <option key={h.id} value={h.id}>
+                        {h.flag} {h.name}, {h.country} ({count})
+                      </option>
+                    );
+                  })}
+              </select>
+            </div>
+
+            {/* Vertical / Industry Dropdown */}
+            <div>
+              <label className="label text-[9.5px] mb-0.5">Industry / Vertical</label>
+              <select
+                value={selectedIndustry}
+                onChange={(e) => setSelectedIndustry(e.target.value)}
+                className="input py-1.5 text-xs font-semibold cursor-pointer"
+              >
+                <option value="all">All Verticals (Any)</option>
+                {allIndustries.map((ind) => (
+                  <option key={ind} value={ind}>
+                    {ind}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Founder Name Search */}
+            <div>
+              <label className="label text-[9.5px] mb-0.5">Founder Name</label>
+              <div className="relative">
+                <Search
+                  size={13}
+                  className="absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-400"
+                />
+                <input
+                  type="text"
+                  value={founderSearch}
+                  onChange={(e) => setFounderSearch(e.target.value)}
+                  placeholder="Filter founder..."
+                  className="input pl-7 py-1.5 text-xs font-medium"
+                />
+              </div>
+            </div>
+
+            {/* Company Name Search */}
+            <div>
+              <label className="label text-[9.5px] mb-0.5">Company / Business</label>
+              <div className="relative">
+                <Building2
+                  size={13}
+                  className="absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-400"
+                />
+                <input
+                  type="text"
+                  value={companySearch}
+                  onChange={(e) => setCompanySearch(e.target.value)}
+                  placeholder="Filter company..."
+                  className="input pl-7 py-1.5 text-xs font-medium"
+                />
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── 3. Main Dashboard Body: Global Map + Right Founder Drawer ─────────── */}
+      {/* ── Main Dashboard Body: Global Map + Right Founder Drawer ─────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-        {/* ── Left/Center Global GIS Map Canvas (8 Columns) ────────────────── */}
+        {/* Left/Center Global GIS Map Canvas (8 Columns) */}
         <div className="lg:col-span-8 flex flex-col space-y-3">
           <div className="card overflow-hidden border-stone-200/90 dark:border-stone-800 p-0 shadow-lg">
             <GlobalAllianceMap
@@ -399,9 +408,7 @@ export default function WorldMapView() {
                       : 'bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-200 border-stone-200 dark:border-stone-800 hover:border-orange-300'
                   }`}
                 >
-                  <span>
-                    {hub.flag} {hub.name.split('&')[0].trim()}
-                  </span>
+                  <span>{hub.flag} {hub.name.split('&')[0].trim()}</span>
                   <span
                     className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono font-black ${
                       isSelected
@@ -417,7 +424,7 @@ export default function WorldMapView() {
           </div>
         </div>
 
-        {/* ── Right Panel: Filterable Founders & Companies Drawer (4 Columns) ── */}
+        {/* Right Panel: Filterable Founders & Companies Drawer (4 Columns) */}
         <div className="lg:col-span-4 card p-0 border-stone-200/90 dark:border-stone-800 flex flex-col overflow-hidden shadow-lg max-h-[590px]">
           {/* Header styled with Emerald-to-Teal gradient and Orange Badge */}
           <div className="p-3.5 bg-gradient-to-r from-emerald-800 via-teal-800 to-stone-900 text-white flex items-center justify-between">
@@ -634,7 +641,7 @@ export default function WorldMapView() {
         </div>
       </div>
 
-      {/* ── 4. Detailed Grid of Filtered Member Profile Cards (When filtered) ── */}
+      {/* ── Detailed Grid of Filtered Member Profile Cards (When filtered) ── */}
       {selectedHubId !== 'all' && (
         <div className="space-y-3 pt-2">
           <div className="flex items-center justify-between">
