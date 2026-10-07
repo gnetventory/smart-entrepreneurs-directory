@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.20.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.19.0...v1.20.0) (2026-10-07)
+
+
+### Features
+
+* implement fuzzy search engine, score explainability, and NIA duplicate detection ([530e964](https://github.com/gnetventory/smart-entrepreneurs-directory/commit/530e96454f947869cf6c4c2d7a9d85e90f0c920f))
+
 ## [1.19.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.18.0...v1.19.0) (2026-10-06)
 
 
