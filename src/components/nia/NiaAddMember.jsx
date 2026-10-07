@@ -113,8 +113,7 @@ export default function NiaAddMember({ onMemberAdded }) {
         throw new Error('Could not extract member details from message');
       }
 
-      const allUrls = extractUrls(rawText).map(formatWebsiteUrl);
-      const websitesList = result.websites?.length ? result.websites : allUrls;
+      const websitesList = Array.isArray(result.websites) ? result.websites.filter(Boolean) : [];
 
       const populatedForm = {
         ...EMPTY_FORM,

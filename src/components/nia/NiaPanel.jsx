@@ -57,9 +57,11 @@ import {
 import { MAP_TILE_PRESETS } from '../../utils/constants';
 import { downloadJSON, hashPIN, copyToClipboard } from '../../utils/helpers';
 import { revokeNiaSession } from '../../utils/session';
+import { detectDuplicateMatch } from '../../utils/duplicateDetector';
 import Modal from '../common/Modal';
 import AIMatchmaker from '../matchmaker/AIMatchmaker';
 import NiaAddMember from './NiaAddMember';
+import DuplicateComparisonModal from './DuplicateComparisonModal';
 
 export default function NiaPanel({ onLock }) {
   const { apiKey, updateApiKey, members, refreshMembers, notify } = useApp();
@@ -94,6 +96,7 @@ export default function NiaPanel({ onLock }) {
   const pendingMembers = members.filter((m) => m.status === 'pending');
   const [approvingId, setApprovingId] = useState(null);
   const [rejectingId, setRejectingId] = useState(null);
+  const [duplicateReview, setDuplicateReview] = useState(null); // { pendingMember, existingMember, matchReason, confidence }
 
   const handleLock = () => {
     revokeNiaSession();
@@ -604,22 +607,13 @@ export default function NiaPanel({ onLock }) {
           ) : (
             <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
               {pendingMembers.map((member) => {
-                const existingMatch = members.find(
-                  (m) =>
-                    m.id !== member.id &&
-                    m.status !== 'pending' &&
-                    m.status !== 'rejected' &&
-                    ((m.name &&
-                      member.name &&
-                      m.name.trim().toLowerCase() === member.name.trim().toLowerCase()) ||
-                      (m.phone &&
-                        member.phone &&
-                        m.phone.replace(/\D/g, '') === member.phone.replace(/\D/g, '') &&
-                        m.phone.replace(/\D/g, '').length >= 8) ||
-                      (m.linkedin &&
-                        member.linkedin &&
-                        m.linkedin.toLowerCase().includes(member.linkedin.toLowerCase())))
+                const duplicateInfo = detectDuplicateMatch(
+                  member,
+                  members.filter(
+                    (m) => m.id !== member.id && m.status !== 'pending' && m.status !== 'rejected'
+                  )
                 );
+                const existingMatch = duplicateInfo.matchedMember;
 
                 return (
                   <div
@@ -646,19 +640,34 @@ export default function NiaPanel({ onLock }) {
                             : 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300'
                         }`}
                       >
-                        {existingMatch ? 'PROFILE UPDATE' : 'NEW SUBMISSION'}
+                        {existingMatch ? `MATCH: ${duplicateInfo.confidence}%` : 'NEW SUBMISSION'}
                       </span>
                     </div>
 
                     {existingMatch && (
-                      <div className="p-2 bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/60 rounded-lg text-xs space-y-1">
-                        <div className="flex items-center gap-1.5 font-bold text-blue-800 dark:text-blue-300 text-[11px]">
-                          <RotateCcw size={12} />
-                          <span>Existing Member Detected: {existingMatch.name}</span>
+                      <div className="p-2.5 bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/60 rounded-lg text-xs space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 font-bold text-blue-800 dark:text-blue-300 text-[11px]">
+                            <RotateCcw size={12} />
+                            <span>Existing Match: {existingMatch.name}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setDuplicateReview({
+                                pendingMember: member,
+                                existingMember: existingMatch,
+                                matchReason: duplicateInfo.matchReason,
+                                confidence: duplicateInfo.confidence,
+                              })
+                            }
+                            className="text-[10.5px] font-bold text-blue-700 dark:text-blue-400 hover:underline cursor-pointer flex items-center gap-1"
+                          >
+                            <span>Side-by-Side Diff</span> →
+                          </button>
                         </div>
-                        <p className="text-[10px] text-blue-700 dark:text-blue-300/80 leading-relaxed">
-                          Approving will update their existing directory profile and replace
-                          outdated details.
+                        <p className="text-[10.5px] text-blue-700 dark:text-blue-300/80 leading-relaxed font-medium">
+                          {duplicateInfo.matchReason}
                         </p>
                       </div>
                     )}
@@ -674,22 +683,25 @@ export default function NiaPanel({ onLock }) {
                         <>
                           <button
                             type="button"
-                            onClick={() => handleApproveAndReplace(member, existingMatch)}
+                            onClick={() =>
+                              setDuplicateReview({
+                                pendingMember: member,
+                                existingMember: existingMatch,
+                                matchReason: duplicateInfo.matchReason,
+                                confidence: duplicateInfo.confidence,
+                              })
+                            }
                             disabled={approvingId === member.id || rejectingId === member.id}
-                            className="btn-primary text-[11px] py-1.5 px-3 flex-1 font-bold justify-center bg-blue-600 hover:bg-blue-700 text-white"
+                            className="btn-primary text-[11px] py-1.5 px-3 flex-1 font-bold justify-center bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
                           >
-                            {approvingId === member.id ? (
-                              <Loader2 size={12} className="animate-spin" />
-                            ) : (
-                              <RotateCcw size={12} />
-                            )}
-                            Approve & Replace Old Profile
+                            <RotateCcw size={12} />
+                            Review & Resolve
                           </button>
                           <button
                             type="button"
                             onClick={() => handleApproveMember(member)}
                             disabled={approvingId === member.id || rejectingId === member.id}
-                            className="btn-secondary text-[11px] py-1.5 px-2.5 font-bold justify-center"
+                            className="btn-secondary text-[11px] py-1.5 px-2.5 font-bold justify-center cursor-pointer"
                             title="Approve as separate new entry"
                           >
                             New Entry
@@ -700,7 +712,7 @@ export default function NiaPanel({ onLock }) {
                           type="button"
                           onClick={() => handleApproveMember(member)}
                           disabled={approvingId === member.id || rejectingId === member.id}
-                          className="btn-primary text-[11px] py-1.5 px-3 flex-1 font-bold justify-center"
+                          className="btn-primary text-[11px] py-1.5 px-3 flex-1 font-bold justify-center cursor-pointer"
                         >
                           {approvingId === member.id ? (
                             <Loader2 size={12} className="animate-spin" />
@@ -715,7 +727,7 @@ export default function NiaPanel({ onLock }) {
                         type="button"
                         onClick={() => handleRejectMember(member)}
                         disabled={approvingId === member.id || rejectingId === member.id}
-                        className="btn-danger text-[11px] py-1.5 px-3 font-bold justify-center"
+                        className="btn-danger text-[11px] py-1.5 px-3 font-bold justify-center cursor-pointer"
                       >
                         {rejectingId === member.id ? (
                           <Loader2 size={12} className="animate-spin" />
@@ -1215,6 +1227,34 @@ export default function NiaPanel({ onLock }) {
           </div>
         </form>
       </Modal>
+
+      {/* ── Duplicate Profile Comparison & Resolution Modal ───────────────────── */}
+      {duplicateReview && (
+        <DuplicateComparisonModal
+          isOpen={Boolean(duplicateReview)}
+          onClose={() => setDuplicateReview(null)}
+          pendingMember={duplicateReview.pendingMember}
+          existingMember={duplicateReview.existingMember}
+          matchReason={duplicateReview.matchReason}
+          confidence={duplicateReview.confidence}
+          isProcessing={
+            approvingId === duplicateReview.pendingMember?.id ||
+            rejectingId === duplicateReview.pendingMember?.id
+          }
+          onApproveAndMerge={async (pending, existing) => {
+            await handleApproveAndReplace(pending, existing);
+            setDuplicateReview(null);
+          }}
+          onApproveAsNew={async (pending) => {
+            await handleApproveMember(pending);
+            setDuplicateReview(null);
+          }}
+          onReject={async (pending) => {
+            await handleRejectMember(pending);
+            setDuplicateReview(null);
+          }}
+        />
+      )}
     </div>
   );
 }

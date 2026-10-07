@@ -13,14 +13,17 @@ import { useApp } from '../../contexts/AppContext';
 import { computeMemberSynergy } from '../../utils/executiveAnalytics';
 import { STAGES, STAGE_OPTIONS, getCountryFlag } from '../../utils/constants';
 import { useDebounce } from '../../utils/useDebounce';
+import { enhancedMemberMatchesSearch } from '../../utils/searchEngine';
 import ProfileCard from '../directory/ProfileCard';
 import EmptyState from '../directory/EmptyState';
+import ScoreExplainerModal from '../common/ScoreExplainerModal';
 
 export default function MatchRadarView() {
   const { activeMembers: members, refreshMembers } = useApp();
   const [targetMemberId, setTargetMemberId] = useState(members[0]?.id || '');
   const [searchQuery, setSearchQuery] = useState('');
   const [stageFilter, setStageFilter] = useState('all');
+  const [explainingCandidate, setExplainingCandidate] = useState(null);
 
   const debouncedSearch = useDebounce(searchQuery, 150);
 
@@ -42,17 +45,9 @@ export default function MatchRadarView() {
       list = list.filter((m) => m.stage === stageFilter);
     }
 
-    // Apply search
+    // Apply search with multilingual stemming
     if (debouncedSearch) {
-      const q = debouncedSearch.toLowerCase().trim();
-      list = list.filter(
-        (m) =>
-          m.name?.toLowerCase().includes(q) ||
-          m.business?.toLowerCase().includes(q) ||
-          m.role?.toLowerCase().includes(q) ||
-          m.canHelp?.toLowerCase().includes(q) ||
-          m.lookingFor?.toLowerCase().includes(q)
-      );
+      list = list.filter((m) => enhancedMemberMatchesSearch(m, debouncedSearch));
     }
 
     // Compute synergy scores, filter strictly to related members (>0), and sort descending
@@ -242,17 +237,57 @@ export default function MatchRadarView() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {rankedMembers.map((m) => (
-            <ProfileCard
-              key={m.id}
-              member={m}
-              synergyScore={m.synergyScore}
-              onDeleted={refreshMembers}
-              onUpdated={refreshMembers}
-            />
-          ))}
+        <div className="space-y-4">
+          <div className="p-3 bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-transparent border border-orange-200/80 dark:border-orange-900/40 rounded-xl flex items-center justify-between text-xs text-stone-700 dark:text-stone-300">
+            <div className="flex items-center gap-2">
+              <Sparkles size={14} className="text-orange-500" />
+              <span>
+                Found <strong>{rankedMembers.length}</strong> complementary founders for{' '}
+                <strong>{targetMember?.name}</strong>.
+              </span>
+            </div>
+            <span className="text-[11px] text-stone-500 font-medium">
+              Click any match to inspect reciprocity & score breakdown
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {rankedMembers.map((m) => (
+              <div key={m.id} className="relative group/radar">
+                <ProfileCard
+                  member={m}
+                  synergyScore={m.synergyScore}
+                  onDeleted={refreshMembers}
+                  onUpdated={refreshMembers}
+                />
+                {/* 1-Click Synergy Breakdown Trigger */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExplainingCandidate(m);
+                  }}
+                  className="absolute top-4 left-18 z-10 px-2 py-0.5 rounded-md bg-orange-600 hover:bg-orange-700 text-white font-mono font-black text-[9.5px] shadow-sm transition-all cursor-pointer flex items-center gap-1 opacity-90 group-hover/radar:opacity-100"
+                  title="View AI Matchmaker Synergy Breakdown"
+                >
+                  <Sparkles size={10} />
+                  <span>Breakdown</span>
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
+      )}
+
+      {/* ── AI Synergy Explainer Modal ────────────────────────────────────────── */}
+      {explainingCandidate && (
+        <ScoreExplainerModal
+          isOpen={Boolean(explainingCandidate)}
+          onClose={() => setExplainingCandidate(null)}
+          type="synergy_match"
+          targetMember={targetMember}
+          candidateMember={explainingCandidate}
+        />
       )}
     </div>
   );

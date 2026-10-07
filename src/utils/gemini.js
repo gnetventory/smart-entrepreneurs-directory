@@ -931,11 +931,12 @@ ${rawText}
     const text = result.response.text();
     const parsed = extractJSON(text);
 
-    // Post-process extracted links to guarantee none are missed
-    const allFoundUrls = extractUrls(rawText).map(formatWebsiteUrl);
-    const mergedWebsites = Array.from(
-      new Set([...(parsed.websites || []).map(formatWebsiteUrl), ...allFoundUrls])
-    ).filter(Boolean);
+    // Post-process extracted links to guarantee only genuine valid URLs are kept
+    const allFoundUrls = extractUrls(rawText).map(formatWebsiteUrl).filter(Boolean);
+    const rawParsedWebsites = Array.isArray(parsed.websites)
+      ? parsed.websites.flatMap(extractUrls).map(formatWebsiteUrl).filter(Boolean)
+      : [];
+    const mergedWebsites = Array.from(new Set([...rawParsedWebsites, ...allFoundUrls]));
 
     // Separate LinkedIn if present (both /in/ and /company/)
     const linkedInUrl = mergedWebsites.find((u) => u.toLowerCase().includes('linkedin.com/'));
@@ -943,19 +944,21 @@ ${rawText}
       (u) => !u.toLowerCase().includes('linkedin.com/')
     );
 
+    const validParsedLinkedin = formatWebsiteUrl(parsed.linkedin);
+
     return {
       ...parsed,
       name: (parsed.name || '').replace(/[♡♥★☆✨❤️😍🥰😊]/g, '').trim() || 'Community Member',
-      linkedin: parsed.linkedin || linkedInUrl || '',
-      website: parsed.website || nonLinkedInWebsites[0] || '',
-      secondaryWebsite: parsed.secondaryWebsite || nonLinkedInWebsites[1] || '',
+      linkedin: validParsedLinkedin || linkedInUrl || '',
+      website: nonLinkedInWebsites[0] || '',
+      secondaryWebsite: nonLinkedInWebsites[1] || '',
       websites: nonLinkedInWebsites,
       originalText: rawText,
     };
   } catch (err) {
     console.warn('AI Parsing failed, using enhanced local rule parser fallback:', err.message);
     const fallback = parseLocalRuleBased(rawText);
-    const allFoundUrls = extractUrls(rawText).map(formatWebsiteUrl);
+    const allFoundUrls = extractUrls(rawText).map(formatWebsiteUrl).filter(Boolean);
     const nonLinkedIn = allFoundUrls.filter((u) => !u.toLowerCase().includes('linkedin.com/'));
     const linkedIn = allFoundUrls.find((u) => u.toLowerCase().includes('linkedin.com/'));
 

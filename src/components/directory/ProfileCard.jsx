@@ -39,8 +39,10 @@ import {
   toggleBookmarkId,
   generateWhatsAppWarmIntro,
 } from '../../utils/psychologyHelpers';
+import { explainProfileStrength } from '../../utils/explainability';
 import Modal from '../common/Modal';
 import EditMemberModal from '../parser/EditMemberModal';
+import ScoreExplainerModal from '../common/ScoreExplainerModal';
 
 export default function ProfileCard({ member, onDeleted, onUpdated, synergyScore = null }) {
   const { notify } = useApp();
@@ -48,6 +50,7 @@ export default function ProfileCard({ member, onDeleted, onUpdated, synergyScore
   const [showEdit, setShowEdit] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
+  const [showScoreExplainer, setShowScoreExplainer] = useState(false);
 
   // Admin-only WhatsApp Intro Hub state
   const [showAdminWAHub, setShowAdminWAHub] = useState(false);
@@ -65,8 +68,8 @@ export default function ProfileCard({ member, onDeleted, onUpdated, synergyScore
   const linkedInHref = isLinkedInValid ? formatLinkedInUrl(member.linkedin) : null;
   const waUrl = buildWhatsAppUrl(member.phone);
 
-  // Calculate Endowed Progress Profile Strength
-  const profileStrength = calculateProfileStrength(member);
+  // Calculate Endowed Progress Profile Strength & Gamification Badges
+  const profileStrength = explainProfileStrength(member);
 
   useEffect(() => {
     setBookmarked(isMemberBookmarked(member.id));
@@ -255,24 +258,41 @@ export default function ProfileCard({ member, onDeleted, onUpdated, synergyScore
             )}
           </div>
 
-          {/* 5. Sector Tags */}
-          {Array.isArray(member.tags) && member.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {member.tags.slice(0, 3).map((t) => (
-                <span
-                  key={t}
-                  className="px-2 py-0.5 rounded-md bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 text-[11px] font-semibold border border-stone-200/80 dark:border-stone-700"
-                >
-                  #{t}
-                </span>
-              ))}
-              {member.tags.length > 3 && (
-                <span className="text-[10px] font-bold text-stone-400 self-center">
-                  +{member.tags.length - 3}
-                </span>
-              )}
-            </div>
-          )}
+          {/* 5. Sector Tags & Gamification Badges */}
+          <div className="space-y-1.5">
+            {Array.isArray(member.tags) && member.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {member.tags.slice(0, 3).map((t) => (
+                  <span
+                    key={t}
+                    className="px-2 py-0.5 rounded-md bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 text-[11px] font-semibold border border-stone-200/80 dark:border-stone-700"
+                  >
+                    #{t}
+                  </span>
+                ))}
+                {member.tags.length > 3 && (
+                  <span className="text-[10px] font-bold text-stone-400 self-center">
+                    +{member.tags.length - 3}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {profileStrength.specialBadges.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 pt-0.5">
+                {profileStrength.specialBadges.map((b) => (
+                  <span
+                    key={b.id}
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${b.color}`}
+                    title={b.description}
+                  >
+                    <span>{b.icon}</span>
+                    <span>{b.title}</span>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* 6. Footer Actions */}
@@ -384,25 +404,48 @@ export default function ProfileCard({ member, onDeleted, onUpdated, synergyScore
           </div>
 
           {/* ── Endowed Progress Profile Strength Ribbon ─────────────────────── */}
-          <div className="p-3.5 bg-gradient-to-r from-stone-900 via-stone-850 to-stone-900 text-white rounded-2xl border border-stone-800 shadow-md space-y-2.5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Award size={15} className="text-orange-400" />
-                <span className="text-xs font-black tracking-wide">
-                  Profile Strength & Ecosystem Readiness
-                </span>
+          <div className="p-4 bg-gradient-to-r from-stone-900 via-stone-850 to-stone-900 text-white rounded-2xl border border-stone-800 shadow-md space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2.5">
+                <span className="text-xl">{profileStrength.tier.icon}</span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black tracking-wide block text-white">
+                      {profileStrength.tier.name}
+                    </span>
+                    <span
+                      className={`text-[10px] font-extrabold px-2 py-0.2 rounded-full border ${profileStrength.tier.color}`}
+                    >
+                      Tier {profileStrength.tier.level}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-stone-400 font-medium">
+                    Ecosystem Readiness & Discovery Tier
+                  </span>
+                </div>
               </div>
-              <span className={`text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border ${profileStrength.badgeColor}`}>
-                {profileStrength.level}
-              </span>
+
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowScoreExplainer(true)}
+                  className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-orange-300 border border-white/15 text-[10.5px] font-bold transition-colors cursor-pointer flex items-center gap-1"
+                >
+                  <span>📊 Why this score?</span>
+                </button>
+                <div className="text-right">
+                  <span className="text-base font-mono font-black text-orange-400 block leading-none">
+                    {profileStrength.score}%
+                  </span>
+                  <span className="text-[9px] text-stone-400 uppercase tracking-wider font-bold">
+                    Score
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* Endowed Progress Bar */}
             <div className="space-y-1">
-              <div className="flex justify-between text-[11px] font-bold text-stone-400">
-                <span>Ecosystem Discovery Score</span>
-                <span className="text-orange-400 font-mono">{profileStrength.score}%</span>
-              </div>
               <div className="h-2 rounded-full bg-stone-800 overflow-hidden border border-stone-700">
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-emerald-500 transition-all duration-700"
@@ -411,21 +454,11 @@ export default function ProfileCard({ member, onDeleted, onUpdated, synergyScore
               </div>
             </div>
 
-            {/* Actionable Micro-Milestones */}
-            {!profileStrength.isComplete && (
-              <div className="flex flex-wrap gap-2 pt-1">
-                {profileStrength.checklist
-                  .filter((item) => !item.done)
-                  .map((item, idx) => (
-                    <span
-                      key={idx}
-                      className="text-[10.5px] px-2 py-0.5 rounded-md bg-white/10 text-orange-200 border border-white/10 font-semibold"
-                    >
-                      +{item.points}% {item.label}
-                    </span>
-                  ))}
-              </div>
-            )}
+            {/* Actionable Micro-Milestones & Boost Hint */}
+            <div className="text-[11px] text-orange-200/90 font-medium flex items-center gap-1.5 pt-0.5">
+              <span className="text-orange-400">💡</span>
+              <span>{profileStrength.boostAdvice}</span>
+            </div>
           </div>
 
           {/* Needs & Offers Full Sections */}
@@ -672,6 +705,16 @@ export default function ProfileCard({ member, onDeleted, onUpdated, synergyScore
             </div>
           </div>
         </Modal>
+      )}
+
+      {/* Score Explainer Modal */}
+      {showScoreExplainer && (
+        <ScoreExplainerModal
+          isOpen={showScoreExplainer}
+          onClose={() => setShowScoreExplainer(false)}
+          type="profile_strength"
+          member={member}
+        />
       )}
     </>
   );

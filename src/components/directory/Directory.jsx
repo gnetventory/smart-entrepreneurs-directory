@@ -41,6 +41,7 @@ import {
   isMemberBookmarked,
   toggleBookmarkId,
 } from '../../utils/psychologyHelpers';
+import { explainSurpriseSynergy } from '../../utils/explainability';
 import ProfileCard from './ProfileCard';
 import EmptyState from './EmptyState';
 import Modal from '../common/Modal';
@@ -666,6 +667,16 @@ export default function Directory() {
                 <Dices size={14} className={isRollingDice ? 'animate-spin' : ''} />
                 <span>Re-Roll</span>
               </button>
+            </div>
+
+            {/* Why This Surprise Pairing */}
+            <div className="p-3 rounded-xl bg-orange-50/80 dark:bg-orange-950/40 border border-orange-200/80 dark:border-orange-900/50 text-xs space-y-1">
+              <span className="font-extrabold text-orange-900 dark:text-orange-200 block text-[10.5px] uppercase tracking-wider">
+                🎲 Why this Surprise Synergy:
+              </span>
+              <p className="text-[11.5px] text-orange-950 dark:text-orange-100 font-medium leading-relaxed">
+                {explainSurpriseSynergy(serendipityFounder)}
+              </p>
             </div>
 
             {/* Need & Offer Breakdown */}

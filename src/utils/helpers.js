@@ -140,29 +140,166 @@ export function getLinkedInHandle(url = '') {
   return clean || null;
 }
 
+const VALID_TLDS = new Set([
+  'com',
+  'org',
+  'net',
+  'io',
+  'ai',
+  'co',
+  'app',
+  'dev',
+  'me',
+  'eg',
+  'sa',
+  'ae',
+  'uk',
+  'us',
+  'de',
+  'fr',
+  'tech',
+  'agency',
+  'store',
+  'online',
+  'club',
+  'space',
+  'site',
+  'info',
+  'biz',
+  'design',
+  'global',
+  'cloud',
+  'digital',
+  'link',
+  'page',
+  'social',
+  'group',
+  'media',
+  'news',
+  'tv',
+  'fm',
+  'xyz',
+  'cc',
+  'gg',
+  'ly',
+  'sh',
+  'to',
+  'is',
+  'world',
+  'network',
+  'pro',
+  'solutions',
+]);
+
+const KNOWN_PLATFORM_DOMAINS = [
+  'tiktok.com',
+  'facebook.com',
+  'fb.me',
+  'fb.com',
+  'fb.watch',
+  'instagram.com',
+  'instagr.am',
+  'youtube.com',
+  'youtu.be',
+  'linkedin.com',
+  'twitter.com',
+  'x.com',
+  'github.com',
+  'behance.net',
+  'dribbble.com',
+  'medium.com',
+  't.me',
+  'wa.me',
+  'threads.net',
+  'pinterest.com',
+  'snapchat.com',
+  'substack.com',
+  'spotify.com',
+  'soundcloud.com',
+  'calendly.com',
+];
+
+export function isValidUrlOrDomain(input = '') {
+  if (!input || typeof input !== 'string') return false;
+  const clean = input.trim().toLowerCase();
+  if (clean.length < 4 || clean.includes(' ') || clean.includes('\n') || clean.includes('\r'))
+    return false;
+
+  // Ignore invalid words / phrases
+  const INVALID_TOKENS = new Set([
+    'null',
+    'undefined',
+    'false',
+    'true',
+    'n/a',
+    'na',
+    'none',
+    'nil',
+    'no',
+    'name:',
+    'role:',
+    'e.g.',
+    'i.e.',
+    'etc.',
+    'starting',
+    'running',
+    'growing',
+    'idea',
+    'logistics',
+    'consultant',
+  ]);
+  if (INVALID_TOKENS.has(clean)) return false;
+
+  if (clean.startsWith('http://') || clean.startsWith('https://')) {
+    try {
+      const parsed = new URL(clean);
+      return Boolean(parsed.hostname && parsed.hostname.includes('.'));
+    } catch {
+      return false;
+    }
+  }
+
+  // Check known platforms
+  if (
+    KNOWN_PLATFORM_DOMAINS.some(
+      (domain) => clean.startsWith(domain) || clean.startsWith('www.' + domain)
+    )
+  ) {
+    return true;
+  }
+
+  // Check standard domain pattern with valid TLD
+  const match = clean.match(/^(?:www\.)?([a-z0-9\-_]+(?:\.[a-z0-9\-_]+)*)\.([a-z]{2,})(?:\/.*)?$/);
+  if (match) {
+    const tld = match[2].toLowerCase();
+    return VALID_TLDS.has(tld);
+  }
+
+  return false;
+}
+
 // ─── Multi-Website & Resource URL Helpers ─────────────────────────────────────
 export function extractUrls(input) {
   if (!input) return [];
-  if (Array.isArray(input)) return input.flatMap(extractUrls);
+  if (Array.isArray(input)) return input.flatMap(extractUrls).filter(Boolean);
   const str = String(input);
-  // Match standard URLs or web address patterns
+
+  // Match full URLs with protocols or known domain patterns
   const urlRegex =
-    /(?:https?:\/\/|www\.)[^\s,;"'<>]+|(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?:\/[^\s,;"'<>]*)?/gi;
+    /(?:https?:\/\/|www\.)[^\s,;"'<>]+|(?:[a-zA-Z0-9-]+\.)+(?:com|org|net|io|ai|co|app|dev|me|eg|sa|ae|uk|us|de|fr|tech|agency|store|online|club|space|site|info|biz|design|global|cloud|digital|link|page|social|group|media|news|tv|fm|xyz|cc|gg|ly|sh|to|is|world|network|pro|solutions)(?:\/[^\s,;"'<>]*)?/gi;
+
   const matches = str.match(urlRegex) || [];
-  if (matches.length > 0) {
-    return matches.map((u) => u.trim());
-  }
-  // Fallback: split by newlines, commas, semicolons
-  return str
-    .split(/[\n,;]+/)
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const validUrls = matches
+    .map((u) => u.trim().replace(/[.,;:]+$/, ''))
+    .filter((u) => isValidUrlOrDomain(u));
+
+  return Array.from(new Set(validUrls));
 }
 
 export function formatWebsiteUrl(url = '') {
   if (!url || typeof url !== 'string') return '';
-  const clean = url.trim();
-  if (!clean) return '';
+  const clean = url.trim().replace(/[.,;:]+$/, '');
+  if (!clean || !isValidUrlOrDomain(clean)) return '';
   if (clean.startsWith('http://') || clean.startsWith('https://')) {
     return clean;
   }
@@ -324,52 +461,11 @@ export function normalizeSearchText(str = '') {
   );
 }
 
+import { enhancedMemberMatchesSearch } from './searchEngine';
+
 // ─── Search helpers ───────────────────────────────────────────────────────────
 export function memberMatchesSearch(member, query) {
-  if (!query || !query.trim()) return true;
-  const qNorm = normalizeSearchText(query);
-  const qRaw = query.toLowerCase().trim();
-
-  // Aggregate all possible fields into searchable text blobs
-  const locStr =
-    typeof member.location === 'string'
-      ? member.location
-      : `${member.location?.city || ''} ${member.location?.district || ''} ${member.location?.country || ''}`;
-
-  const stageLabel = STAGES[member.stage]?.label || '';
-  const stageTenure = STAGES[member.stage]?.tenure || '';
-
-  const allFields = [
-    member.name,
-    member.role,
-    member.business,
-    member.canHelp,
-    member.lookingFor,
-    member.email,
-    member.phone,
-    member.handle,
-    member.stage,
-    stageLabel,
-    stageTenure,
-    locStr,
-    member.linkedin,
-    member.website,
-    member.secondaryWebsite,
-    member.instagram,
-    ...(Array.isArray(member.tags) ? member.tags : []),
-    ...(Array.isArray(member.catalogues) ? member.catalogues : []),
-  ]
-    .filter(Boolean)
-    .join(' ');
-
-  const fieldsNorm = normalizeSearchText(allFields);
-  const fieldsRaw = allFields.toLowerCase();
-
-  // Match either exact normalized tokens or raw substring
-  const searchTokens = qNorm.split(' ').filter(Boolean);
-  if (searchTokens.length === 0) return true;
-
-  return searchTokens.every((token) => fieldsNorm.includes(token) || fieldsRaw.includes(token));
+  return enhancedMemberMatchesSearch(member, query);
 }
 
 // ─── Unique ID ────────────────────────────────────────────────────────────────
