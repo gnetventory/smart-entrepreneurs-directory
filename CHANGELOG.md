@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.22.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.21.0...v1.22.0) (2026-10-08)
+
+
+### Features
+
+* enhance sheets 2-way sync webhook, update ProfileCard actions, and optimize searchEngine ([0ccec54](https://github.com/gnetventory/smart-entrepreneurs-directory/commit/0ccec54060ad3d505438bf89a36ccb698422c85f))
+
 ## [1.21.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.20.0...v1.21.0) (2026-10-08)
 
 
