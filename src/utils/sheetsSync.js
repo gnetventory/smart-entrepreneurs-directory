@@ -195,14 +195,46 @@ function normalizeHeader(header) {
 export function normalizeSheetRow(row = {}) {
   if (!row || typeof row !== 'object') return null;
 
-  // Extract name
-  const name = String(row.name || row.founderName || row.full_name || '').trim();
+  // Helper: search row for a value by trying multiple key patterns
+  const pick = (...keys) => {
+    for (const k of keys) {
+      if (row[k] !== undefined && String(row[k]).trim()) return String(row[k]).trim();
+    }
+    // Also try searching all keys for partial matches
+    for (const k of keys) {
+      const found = Object.keys(row).find((rk) => rk.toLowerCase().includes(k.toLowerCase()));
+      if (found && String(row[found]).trim()) return String(row[found]).trim();
+    }
+    return '';
+  };
+
+  // Extract name (supports raw column variations, numbered questions, and Arabic headers)
+  const name =
+    pick('name', 'founder', 'fullname', 'full_name', 'الاسم', 'اسم') ||
+    String(
+      row.name ||
+        row.founderName ||
+        row.full_name ||
+        row['1__full_name'] ||
+        row['1_full_name'] ||
+        row['1__name'] ||
+        row['1_name'] ||
+        ''
+    ).trim();
   if (!name) return null;
+
+  // Extract email
+  const email = pick('email', 'mail', 'emailAddress', 'email_address', 'بريد', 'عنوان_البريد');
 
   // Determine stage — handles the actual Google Form Q9 answers:
   // "💡 Idea" | "Less Than a year" | "1–3 years" | "3–5 years" | "5+ years"
   // NOTE: Form uses en dashes (–), so we normalize before checking
-  const rawStageRaw = String(row.stage || row.businessAge || '');
+  const rawStageRaw = String(
+    row.stage ||
+      row.businessAge ||
+      pick('stage', 'businessAge', 'how_long', 'been_running', 'business_age', 'مرحلة', 'عمر') ||
+      ''
+  );
   const rawStage = rawStageRaw.toLowerCase().replace(/[–—]/g, '-'); // normalize en/em dash → hyphen
   let stage = 'idea';
   // Exact form answer patterns (checked first, most specific)
@@ -243,36 +275,28 @@ export function normalizeSheetRow(row = {}) {
 
   // Tags
   let tags = [];
-  if (Array.isArray(row.tags)) {
-    tags = row.tags;
-  } else if (typeof row.tags === 'string' && row.tags.trim()) {
-    tags = row.tags
+  const rawTags = row.tags || pick('tags', 'tag', 'industry', 'sector', 'مجال', 'قطاع');
+  if (Array.isArray(rawTags)) {
+    tags = rawTags;
+  } else if (typeof rawTags === 'string' && rawTags.trim()) {
+    tags = rawTags
       .split(/[,;|]/)
       .map((t) => t.trim())
       .filter(Boolean);
   }
 
   // Country & City
-  const country = String(row.country || 'Egypt').trim();
-  const city = String(row.city || 'Cairo').trim();
+  const country = String(row.country || pick('country', 'دولة', 'بلد') || 'Egypt').trim();
+  const city = String(
+    row.city ||
+      pick('city', 'district', 'governorate', 'location', 'where_are_you', 'based', 'مدينة', 'مكان') ||
+      'Cairo'
+  ).trim();
 
   // Unique Form ID key for stable matching
   const formTimestamp = row.formTimestamp || row.timestamp || '';
   const sheetRowIndex = row.sheetRowIndex || null;
   const sheetId = `sheet-row-${sheetRowIndex || name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
-
-  // Helper: search row for a value by trying multiple key patterns
-  const pick = (...keys) => {
-    for (const k of keys) {
-      if (row[k] !== undefined && String(row[k]).trim()) return String(row[k]).trim();
-    }
-    // Also try searching all keys for partial matches
-    for (const k of keys) {
-      const found = Object.keys(row).find((rk) => rk.toLowerCase().includes(k.toLowerCase()));
-      if (found && String(row[found]).trim()) return String(row[found]).trim();
-    }
-    return '';
-  };
 
   // Determine approval status:
   // - New form submissions (no App_Status) → 'pending' (awaiting admin approval)
@@ -289,7 +313,7 @@ export function normalizeSheetRow(row = {}) {
 
   // Extract websites, secondary websites & catalogues (supports multiple URLs)
   const rawWebsites = [];
-  const primaryWeb = pick('website', 'site', 'url', 'link', 'portfolio');
+  const primaryWeb = pick('website', 'site', 'url', 'link', 'portfolio', 'موقع');
   const secondaryWeb = pick(
     'secondaryWebsite',
     'secondary_website',
@@ -312,14 +336,27 @@ export function normalizeSheetRow(row = {}) {
     id: sheetId,
     sheetRowIndex,
     name,
-    role: pick('role', 'profession', 'title') || 'Founder & CEO',
-    business: pick('business', 'pitch', 'project', 'venture', 'company'),
+    email: email || '',
+    role:
+      pick('role', 'profession', 'title', 'what_do_you_do', 'do_you_do', 'وظيفة', 'عمل') ||
+      'Founder',
+    business: pick('business', 'pitch', 'project', 'venture', 'company', 'مشروع', 'بيزنس', 'فكرة'),
     stage,
-    lookingFor: pick('lookingFor', 'looking_for', 'seeking'),
-    canHelp: pick('canHelp', 'can_help', 'what_can_you_help', '8__what_can_you_help'),
+    lookingFor: pick('lookingFor', 'looking_for', 'seeking', 'looking', 'تبحث', 'احتياج', 'محتاج'),
+    canHelp: pick(
+      'canHelp',
+      'can_help',
+      'what_can_you_help',
+      'offer',
+      'offering',
+      '8__what_can_you_help',
+      'مساعدة',
+      'تقدم',
+      'خبرة'
+    ),
     location: { country, city },
-    phone: pick('phone', 'whatsapp', 'mobile'),
-    linkedin: pick('linkedin'),
+    phone: pick('phone', 'whatsapp', 'mobile', 'هاتف', 'واتساب', 'موبايل', 'تليفون'),
+    linkedin: pick('linkedin', 'لينكد'),
     website,
     secondaryWebsite,
     websites: websitesList,
@@ -380,11 +417,13 @@ export async function syncFromGoogleSheets() {
       (m) => m && !String(m.id || '').startsWith('seed-') && !m.isDemoSeed
     );
 
-    // Map existing members by Name (normalized) and sheetRowIndex for lookup
+    // Map existing members by Name (normalized), Email, and sheetRowIndex for lookup
     const existingByName = new Map();
     const existingById = new Map();
+    const existingByEmail = new Map();
     existingMembers.forEach((m) => {
       if (m.name) existingByName.set(m.name.trim().toLowerCase(), m);
+      if (m.email) existingByEmail.set(m.email.trim().toLowerCase(), m);
       if (m.id) existingById.set(m.id, m);
       if (m.sheetRowIndex) existingById.set(`sheet-row-${m.sheetRowIndex}`, m);
     });
@@ -414,16 +453,39 @@ export async function syncFromGoogleSheets() {
 
       // 2. Check if member already exists in our app
       const existing =
-        existingByName.get(normName) || existingById.get(rowKey) || existingById.get(normalized.id);
+        existingByName.get(normName) ||
+        (normalized.email ? existingByEmail.get(normalized.email.toLowerCase()) : null) ||
+        existingById.get(rowKey) ||
+        existingById.get(normalized.id);
 
       if (existing) {
-        // If the user has manually edited this record in the app, preserve their edits!
+        // If the record was previously rejected in the app, but is now valid/pending in the sheet,
+        // resurrect it into pending approvals!
+        if (existing.status === 'rejected' && normalized.status === 'pending') {
+          const idx = mergedList.findIndex((m) => m.id === existing.id);
+          if (idx !== -1) {
+            mergedList[idx] = {
+              ...existing,
+              ...normalized,
+              status: 'pending',
+              appStatus: 'PENDING',
+              locallyEdited: false,
+              id: existing.id,
+              sheetRowIndex: normalized.sheetRowIndex || existing.sheetRowIndex,
+            };
+            updatedCount++;
+            addedCount++;
+          }
+          return;
+        }
+
+        // If the user has manually edited this active record in the app, preserve their edits!
         if (existing.locallyEdited) {
           // Keep local edits intact, do not overwrite
           return;
         }
 
-        // Otherwise update with fresh sheet data if timestamp is newer
+        // Otherwise update with fresh sheet data
         const idx = mergedList.findIndex((m) => m.id === existing.id);
         if (idx !== -1) {
           mergedList[idx] = {
@@ -438,6 +500,7 @@ export async function syncFromGoogleSheets() {
         // 3. New submission from Google Form!
         mergedList.push(normalized);
         existingByName.set(normName, normalized);
+        if (normalized.email) existingByEmail.set(normalized.email.toLowerCase(), normalized);
         addedCount++;
       }
     });

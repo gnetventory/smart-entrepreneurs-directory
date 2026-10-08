@@ -261,6 +261,13 @@ export function enhancedMemberMatchesSearch(member, query) {
   if (!query || !query.trim()) return true;
   if (!member || typeof member !== 'object') return false;
 
+  const qRaw = query.trim().toLowerCase();
+
+  // Fast direct match on email, phone, and handle
+  if (member.email && member.email.toLowerCase().includes(qRaw)) return true;
+  if (member.phone && member.phone.replace(/[\s\-_+()]+/g, '').includes(qRaw.replace(/[\s\-_+()]+/g, ''))) return true;
+  if (member.handle && member.handle.toLowerCase().includes(qRaw.replace(/^@/, ''))) return true;
+
   const qNorm = normalizeSearchString(query);
   const queryTokens = qNorm.split(/\s+/).filter(Boolean);
   if (queryTokens.length === 0) return true;
@@ -309,7 +316,7 @@ export function enhancedMemberMatchesSearch(member, query) {
   return queryTokens.every((qToken, idx) => {
     const qStem = queryStems[idx];
 
-    // 1. Direct substring match (e.g. "karim", "software", "logistic")
+    // 1. Direct substring match (e.g. "karim", "software", "logistic", "jimm21stt")
     if (qToken.length >= 2 && targetRawJoined.includes(qToken)) return true;
 
     // 2. Direct token exact or prefix match (prevents small unrelated words matching)
@@ -347,6 +354,12 @@ export function calculateSearchRelevance(member, query) {
   if (!member) return 0;
 
   let score = 0;
+  const qRaw = query.trim().toLowerCase();
+
+  // Immediate boost for exact email, phone, or name matches
+  if (member.email && member.email.toLowerCase().includes(qRaw)) score += 50;
+  if (member.phone && member.phone.replace(/[\s\-_+()]+/g, '').includes(qRaw.replace(/[\s\-_+()]+/g, ''))) score += 40;
+
   const qNorm = normalizeSearchString(query);
   const queryTokens = qNorm.split(/\s+/).filter(Boolean);
   const queryStems = queryTokens.map(stemToken);
@@ -374,10 +387,12 @@ export function calculateSearchRelevance(member, query) {
     });
   };
 
-  // High weight: Name, Role, Business
+  // High weight: Name, Email, Role, Business, Phone
   checkField(member.name, 10);
+  checkField(member.email, 10);
   checkField(member.role, 8);
   checkField(member.business, 7);
+  checkField(member.phone, 6);
 
   // Medium weight: Asks, Offers, Tags
   checkField(member.lookingFor, 5);

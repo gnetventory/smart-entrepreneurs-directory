@@ -177,6 +177,18 @@ export default function NiaPanel({ onLock }) {
 
   const handleRemoveTombstone = (key) => {
     removeTombstone(key);
+    const clean = String(key).trim().toLowerCase();
+    const currentMembers = getMembers().filter(
+      (m) =>
+        !(
+          m.status === 'rejected' &&
+          (m.name?.trim().toLowerCase() === clean ||
+            m.id?.toLowerCase() === clean ||
+            `sheet-row-${m.sheetRowIndex}` === clean)
+        )
+    );
+    saveMembers(currentMembers);
+    refreshMembers();
     const updated = getTombstones();
     setTombstonesList(updated);
     notify(`Restored "${key}" to allowed sync list`);
@@ -184,8 +196,11 @@ export default function NiaPanel({ onLock }) {
 
   const handleClearAllTombstones = () => {
     clearTombstones();
+    const currentMembers = getMembers().filter((m) => m.status !== 'rejected');
+    saveMembers(currentMembers);
+    refreshMembers();
     setTombstonesList([]);
-    notify('All deletion tombstones cleared');
+    notify('All deletion tombstones cleared & rejected stubs reset');
   };
 
   const handleSaveNiaEmail = async (e) => {

@@ -314,6 +314,16 @@ export default function ProfileCard({ member, onDeleted, onUpdated, synergyScore
               </a>
             )}
 
+            {member.email && (
+              <a
+                href={`mailto:${member.email}`}
+                className="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 hover:bg-amber-600 hover:text-white transition-all text-xs font-bold"
+                title={`Email: ${member.email}`}
+              >
+                <Mail size={13} />
+              </a>
+            )}
+
             {/* Admin-Only 1-Click WhatsApp Warm Intro Hub */}
             {isAdmin && member.phone && (
               <button
