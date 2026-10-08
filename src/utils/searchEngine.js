@@ -303,23 +303,31 @@ export function enhancedMemberMatchesSearch(member, query) {
   const targetRawJoined = normalizeSearchString(memberTextBlob);
 
   // Every token in the query must match either:
-  // 1. As an exact substring in the text blob
-  // 2. As an exact raw token match
-  // 3. As a stemmed token match (e.g. "developers" -> "develop" matches "developer")
+  // 1. As an exact substring in the text blob (for tokens >= 2 chars)
+  // 2. As an exact or prefix token match (e.g. "dev" -> "developer", "kar" -> "karim")
+  // 3. As a stemmed root match (e.g. "developers" -> stem "develop" matches "developer" -> stem "develop")
   return queryTokens.every((qToken, idx) => {
     const qStem = queryStems[idx];
 
-    // 1. Direct substring match
-    if (targetRawJoined.includes(qToken)) return true;
+    // 1. Direct substring match (e.g. "karim", "software", "logistic")
+    if (qToken.length >= 2 && targetRawJoined.includes(qToken)) return true;
 
-    // 2. Direct token match
-    if (targetTokensAndStems.rawTokens.some((t) => t.includes(qToken) || qToken.includes(t))) {
+    // 2. Direct token exact or prefix match (prevents small unrelated words matching)
+    if (
+      targetTokensAndStems.rawTokens.some(
+        (t) => t === qToken || (qToken.length >= 3 && t.startsWith(qToken))
+      )
+    ) {
       return true;
     }
 
-    // 3. Stemmed match
+    // 3. Stemmed / morphological match
     if (qStem && qStem.length >= 3) {
-      if (targetTokensAndStems.stems.some((s) => s.includes(qStem) || qStem.includes(s))) {
+      if (
+        targetTokensAndStems.stems.some(
+          (s) => s === qStem || (qStem.length >= 4 && s.startsWith(qStem))
+        )
+      ) {
         return true;
       }
       if (targetRawJoined.includes(qStem)) {
@@ -350,11 +358,19 @@ export function calculateSearchRelevance(member, query) {
 
     queryTokens.forEach((qToken, idx) => {
       const qStem = queryStems[idx];
-      if (valNorm === qToken) score += weight * 4;
-      else if (valNorm.includes(qToken)) score += weight * 2;
-      else if (rawTokens.includes(qToken)) score += weight * 2;
-      else if (qStem && stems.includes(qStem)) score += weight * 1.5;
-      else if (qStem && valNorm.includes(qStem)) score += weight * 1.2;
+      if (valNorm === qToken) {
+        score += weight * 5;
+      } else if (rawTokens.includes(qToken)) {
+        score += weight * 4;
+      } else if (rawTokens.some((t) => qToken.length >= 3 && t.startsWith(qToken))) {
+        score += weight * 3;
+      } else if (valNorm.includes(qToken)) {
+        score += weight * 2;
+      } else if (qStem && stems.includes(qStem)) {
+        score += weight * 2;
+      } else if (qStem && qStem.length >= 4 && stems.some((s) => s.startsWith(qStem))) {
+        score += weight * 1.5;
+      }
     });
   };
 
