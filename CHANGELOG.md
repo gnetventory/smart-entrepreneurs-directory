@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.21.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.20.0...v1.21.0) (2026-10-08)
+
+
+### Features
+
+* improve search token prefix matching and relevance weighting ([3534050](https://github.com/gnetventory/smart-entrepreneurs-directory/commit/3534050cb646039dab84f0918e969912ae611950))
+
 ## [1.20.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.19.0...v1.20.0) (2026-10-07)
 
 
