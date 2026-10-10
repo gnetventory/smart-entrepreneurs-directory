@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.25.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.24.0...v1.25.0) (2026-10-10)
+
+
+### Features
+
+* mobile bottom navigation, directory view optimizations, and database sync ([5da07da](https://github.com/gnetventory/smart-entrepreneurs-directory/commit/5da07daa586ce59c25249053f377a26a6b4bbde1))
+
 ## [1.24.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.23.0...v1.24.0) (2026-10-10)
 
 
