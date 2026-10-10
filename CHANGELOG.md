@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.23.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.22.0...v1.23.0) (2026-10-10)
+
+
+### Features
+
+* sync 135 members, FounderArchMarquee, eventsData, and comprehensive UI revamp ([ef2cf56](https://github.com/gnetventory/smart-entrepreneurs-directory/commit/ef2cf560848cb2691c26f4d43b28cb1b21e0b0eb))
+
 ## [1.22.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.21.0...v1.22.0) (2026-10-08)
 
 
