@@ -25,13 +25,13 @@
     -webkit-text-size-adjust: 100%;
   }
 
-  /* ── Warm Premium Light Mode ──────────────────────────────────────────── */
+  /* ── Warm Editorial Light Mode ─────────────────────────────────────────── */
   body {
-    @apply bg-[#FAFAF7] text-stone-900 font-sans tracking-tight antialiased min-h-screen text-[15px] leading-normal;
+    @apply bg-[#F8F9FA] text-stone-900 font-sans tracking-tight antialiased min-h-screen text-[15px] leading-normal;
     background-image:
-      radial-gradient(at 5% 5%, rgba(5, 150, 105, 0.06) 0%, transparent 45%),
-      radial-gradient(at 92% 15%, rgba(249, 115, 22, 0.05) 0%, transparent 45%),
-      radial-gradient(at 50% 90%, rgba(5, 150, 105, 0.03) 0%, transparent 55%);
+      radial-gradient(at 10% 10%, rgba(254, 215, 170, 0.22) 0%, transparent 45%),
+      radial-gradient(at 90% 15%, rgba(254, 226, 226, 0.25) 0%, transparent 45%);
+    background-attachment: fixed;
     transition: background-color 0.2s;
   }
 
@@ -40,8 +40,8 @@
     @apply bg-stone-950 text-stone-100;
     background-image:
       radial-gradient(at 5% 5%, rgba(16, 185, 129, 0.07) 0%, transparent 45%),
-      radial-gradient(at 92% 15%, rgba(249, 115, 22, 0.06) 0%, transparent 45%),
-      radial-gradient(at 50% 90%, rgba(16, 185, 129, 0.04) 0%, transparent 55%);
+      radial-gradient(at 92% 15%, rgba(249, 115, 22, 0.06) 0%, transparent 45%);
+    background-attachment: fixed;
   }
 
   /* ── Display font ─────────────────────────────────────────────────────── */
@@ -55,8 +55,8 @@
 
   /* ── Custom scrollbar ─────────────────────────────────────────────────── */
   ::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
+    width: 6px;
+    height: 6px;
   }
   ::-webkit-scrollbar-track {
     background: transparent;
@@ -65,93 +65,85 @@
     @apply bg-stone-300 dark:bg-stone-700 rounded-full;
   }
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-orange-400/60 dark:bg-stone-600;
+    @apply bg-stone-400 dark:bg-stone-600;
   }
 
   /* ── Selection ────────────────────────────────────────────────────────── */
   ::selection {
-    background: rgba(249, 115, 22, 0.18);
+    background: rgba(28, 25, 23, 0.15);
   }
 }
 
 @layer components {
-  /* ── Quad-Hybrid Anti-Slop Cards ───────────────────────────────────────── */
+  /* ── Modern Editorial Bento Cards ──────────────────────────────────────── */
   .card {
     @apply bg-white dark:bg-stone-900
-           border-[1.5px] border-stone-300 dark:border-stone-800
+           border border-stone-200/80 dark:border-stone-800
            rounded-2xl
-           shadow-tactile-sm dark:shadow-none
-           transition-all duration-150;
+           shadow-sm hover:shadow-md
+           transition-all duration-200;
   }
 
   .card-anti-slop {
     @apply bg-white dark:bg-stone-900
-           border-[1.5px] border-stone-900 dark:border-stone-700
+           border border-stone-300/90 dark:border-stone-750
            rounded-2xl
-           shadow-tactile dark:shadow-tactile-dark
-           transition-all duration-150;
+           shadow-sm hover:shadow-md
+           transition-all duration-200;
   }
 
   .card-hover {
     @apply card cursor-pointer;
   }
   .card-hover:hover {
-    @apply -translate-y-0.5 border-stone-900 dark:border-stone-600 shadow-tactile dark:shadow-tactile-dark;
+    @apply -translate-y-0.5 border-stone-300 dark:border-stone-700 shadow-md;
   }
 
-  /* ── Buttons (Tactile & Anti-Slop) ─────────────────────────────────────── */
+  /* ── Buttons (Editorial High-Craft) ────────────────────────────────────── */
 
-  /* Primary — Emerald */
+  /* Primary — Deep Obsidian Stone-900 */
   .btn-primary {
-    @apply bg-emerald-600 hover:bg-emerald-700
-           active:translate-x-[1px] active:translate-y-[1px]
+    @apply bg-stone-900 hover:bg-stone-800
            text-white font-bold
            px-4 py-2.5 rounded-xl
-           border-[1.5px] border-emerald-800 dark:border-emerald-500
-           shadow-tactile-sm dark:shadow-none
-           transition-all duration-100
-           flex items-center justify-center gap-2 text-sm
-           disabled:opacity-50 disabled:cursor-not-allowed
-           disabled:hover:bg-emerald-600 disabled:active:translate-x-0 disabled:active:translate-y-0;
-  }
-
-  /* Accent — Terracotta / Orange */
-  .btn-accent {
-    @apply bg-orange-600 hover:bg-orange-700
-           active:translate-x-[1px] active:translate-y-[1px]
-           text-white font-bold
-           px-4 py-2.5 rounded-xl
-           border-[1.5px] border-orange-800 dark:border-orange-500
-           shadow-tactile-sm dark:shadow-none
-           transition-all duration-100
-           flex items-center justify-center gap-2 text-sm
+           shadow-sm hover:shadow-md
+           transition-all duration-150
+           flex items-center justify-center gap-2 text-xs sm:text-sm
            disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
-  /* Secondary — Warm neutral */
-  .btn-secondary {
-    @apply bg-stone-100 dark:bg-stone-800
-           hover:bg-stone-200 dark:hover:bg-stone-700
-           active:translate-x-[1px] active:translate-y-[1px]
-           text-stone-900 dark:text-stone-100
-           font-bold px-4 py-2.5 rounded-xl
-           border-[1.5px] border-stone-300 dark:border-stone-700
-           shadow-tactile-sm dark:shadow-none
-           transition-all duration-100
-           flex items-center justify-center gap-2 text-sm;
+  /* Accent — Warm Amber / Terracotta */
+  .btn-accent {
+    @apply bg-amber-600 hover:bg-amber-700
+           text-white font-bold
+           px-4 py-2.5 rounded-xl
+           shadow-sm hover:shadow-md
+           transition-all duration-150
+           flex items-center justify-center gap-2 text-xs sm:text-sm
+           disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
-  /* Neo-Brutalist Tactile Dark Button */
+  /* Secondary — Crisp Stone Alabaster */
+  .btn-secondary {
+    @apply bg-white dark:bg-stone-800
+           hover:bg-stone-50 dark:hover:bg-stone-700
+           text-stone-800 dark:text-stone-100
+           font-bold px-4 py-2.5 rounded-xl
+           border border-stone-200/90 dark:border-stone-700
+           shadow-sm hover:shadow-md
+           transition-all duration-150
+           flex items-center justify-center gap-2 text-xs sm:text-sm;
+  }
+
+  /* Tactile / Neutral Dark Button */
   .btn-tactile {
     @apply bg-stone-900 dark:bg-stone-100
            text-white dark:text-stone-950
            hover:bg-black dark:hover:bg-white
-           active:translate-x-[1px] active:translate-y-[1px]
            font-bold px-4 py-2.5 rounded-xl
-           border-[1.5px] border-stone-950 dark:border-white
-           shadow-tactile-sm dark:shadow-none
-           transition-all duration-100
-           flex items-center justify-center gap-2 text-sm;
+           shadow-sm hover:shadow-md
+           transition-all duration-150
+           flex items-center justify-center gap-2 text-xs sm:text-sm;
   }
 
   /* WhatsApp Direct Action */

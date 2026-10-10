@@ -44,6 +44,7 @@ export default {
         },
       },
       boxShadow: {
+        'xs':            '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
         '2xs':           '0 1px 2px 0 rgba(0, 0, 0, 0.04)',
         'card':          '0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.04)',
         'card-hover':    '0 6px 24px 0 rgba(0,0,0,0.10), 0 2px 6px -1px rgba(0,0,0,0.05)',

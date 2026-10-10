@@ -3,8 +3,6 @@ import Header from './components/layout/Header';
 import Sidebar from './components/layout/Sidebar';
 import Directory from './components/directory/Directory';
 import MatchRadarView from './components/radar/MatchRadarView';
-import AIParser from './components/parser/AIParser';
-import AIMatchmaker from './components/matchmaker/AIMatchmaker';
 import WorldMapView from './components/map/WorldMapView';
 import CommunityDashboard from './components/dashboard/CommunityDashboard';
 import { useApp } from './contexts/AppContext';
@@ -20,10 +18,6 @@ export default function App() {
         return <Directory />;
       case 'radar':
         return <MatchRadarView />;
-      case 'add':
-        return <AIParser />;
-      case 'matchmaker':
-        return <AIMatchmaker />;
       case 'map':
         return <WorldMapView />;
       default:
@@ -47,9 +41,9 @@ export default function App() {
         </div>
       )}
       <Header />
-      <div className="flex-1 flex max-w-[1800px] w-full mx-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-8 gap-8">
+      <div className="flex-1 flex items-start max-w-[1800px] w-full mx-auto px-4 sm:px-6 lg:px-10 gap-8">
         <Sidebar />
-        <main className="flex-1 min-w-0">{renderTabContent()}</main>
+        <main className="flex-1 min-w-0 py-6 sm:py-8">{renderTabContent()}</main>
       </div>
     </div>
   );

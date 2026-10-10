@@ -38,14 +38,14 @@ export default function Sidebar() {
         bg-[#FAFAF7] dark:bg-stone-950/95
         border-r border-stone-200/80 dark:border-stone-800
         lg:bg-transparent lg:border-none
-        flex flex-col pt-20 pb-4 lg:pt-0
+        flex flex-col pt-20 pb-4
         transition-transform duration-200
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:sticky lg:top-24 lg:translate-x-0 lg:h-[calc(100vh-7rem)] lg:z-0
+        lg:sticky lg:top-[69px] lg:translate-x-0 lg:h-[calc(100vh-69px)] lg:z-10 lg:pt-6 lg:pb-6
       `}
       >
         {/* Navigation */}
-        <nav className="flex-1 space-y-1.5 overflow-y-auto pr-1 lg:pr-2">
+        <nav className="flex-1 space-y-2 overflow-y-auto pr-1 lg:pr-2">
           {NAV_TABS.map((tab) => {
             const Icon = ICONS[tab.icon];
             const isActive = activeTab === tab.id;
@@ -55,42 +55,37 @@ export default function Sidebar() {
                 onClick={() => handleNav(tab.id)}
                 title={tab.description}
                 className={`
-                  w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-left
-                  transition-all duration-100 group relative border-[1.5px]
+                  w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left
+                  transition-all duration-150 group relative border
                   ${
                     isActive
-                      ? 'bg-emerald-600 text-white font-black border-emerald-800 dark:border-emerald-500 shadow-tactile-sm dark:shadow-none'
-                      : 'bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-300 border-stone-200 dark:border-stone-800/80 hover:border-stone-400 dark:hover:border-stone-700 hover:text-stone-950 dark:hover:text-white font-bold hover:shadow-tactile-sm dark:hover:shadow-none active:translate-x-[1px] active:translate-y-[1px]'
+                      ? 'bg-stone-900 text-white font-bold border-stone-900 shadow-sm'
+                      : 'bg-white dark:bg-stone-900 text-stone-700 dark:text-stone-300 border-stone-200/80 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-850 hover:text-stone-950 dark:hover:text-white font-semibold shadow-xs'
                   }
                 `}
               >
-                {/* Terracotta left indicator bar for active */}
-                {isActive && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-orange-400 rounded-r-full -ml-[1.5px]" />
-                )}
-
                 {Icon && (
                   <Icon
                     size={17}
                     className={
                       isActive
                         ? 'text-white flex-shrink-0'
-                        : 'text-stone-400 dark:text-stone-500 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 flex-shrink-0 transition-colors'
+                        : 'text-stone-400 group-hover:text-stone-900 dark:group-hover:text-white flex-shrink-0 transition-colors'
                     }
                   />
                 )}
 
                 <div className="flex-1 min-w-0">
-                  <span className="text-[14.5px] leading-none tracking-tight">{tab.label}</span>
+                  <span className="text-[14px] font-medium leading-none tracking-tight">{tab.label}</span>
                 </div>
 
                 {/* Member count badge on Directory tab */}
                 {tab.id === 'directory' && (
                   <span
-                    className={`text-xs px-2 py-0.5 rounded-md font-mono font-black flex-shrink-0 border ${
+                    className={`text-xs px-2 py-0.5 rounded-full font-bold flex-shrink-0 border ${
                       isActive
                         ? 'bg-white/20 text-white border-white/30'
-                        : 'bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800'
+                        : 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700'
                     }`}
                   >
                     {members.length}
@@ -99,7 +94,7 @@ export default function Sidebar() {
 
                 {/* Dashboard "home" badge */}
                 {tab.id === 'dashboard' && !isActive && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 font-black uppercase tracking-wide flex-shrink-0">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-bold uppercase tracking-wider flex-shrink-0">
                     Home
                   </span>
                 )}
@@ -109,27 +104,27 @@ export default function Sidebar() {
         </nav>
 
         {/* Bottom section */}
-        <div className="pt-3 space-y-2 border-t-[1.5px] border-stone-200 dark:border-stone-800 mt-3">
+        <div className="pt-3 space-y-2 border-t border-stone-200/80 dark:border-stone-800 mt-3">
           {/* Community stats card */}
-          <div className="card p-3.5 bg-white dark:bg-stone-900 border-[1.5px] border-stone-300 dark:border-stone-800 space-y-2">
+          <div className="card p-4 bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 space-y-2 shadow-xs">
             <div className="flex items-center gap-2">
               <TrendingUp
-                size={13}
-                className="text-orange-600 dark:text-orange-500 flex-shrink-0"
+                size={14}
+                className="text-emerald-600 flex-shrink-0"
               />
-              <span className="text-[11px] font-black text-stone-500 dark:text-stone-400 uppercase tracking-wider">
+              <span className="text-[10.5px] font-bold text-stone-500 uppercase tracking-widest">
                 Community Scale
               </span>
             </div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl font-black text-stone-950 dark:text-stone-50 font-display">
+              <span className="text-2xl font-extrabold text-stone-900 dark:text-stone-50 font-display">
                 {members.length}
               </span>
-              <span className="text-[13px] text-stone-500 font-bold">verified founders</span>
+              <span className="text-xs text-stone-500 font-medium">community members</span>
             </div>
-            <div className="h-1.5 rounded-full bg-stone-100 dark:bg-stone-800 overflow-hidden border border-stone-200 dark:border-stone-700">
+            <div className="h-1.5 rounded-full bg-stone-100 dark:bg-stone-800 overflow-hidden border border-stone-200/60 dark:border-stone-700">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-amber-500 to-orange-600 transition-all duration-700"
+                className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-teal-400 to-amber-500 transition-all duration-700"
                 style={{ width: `${Math.min(100, (members.length / 200) * 100)}%` }}
               />
             </div>

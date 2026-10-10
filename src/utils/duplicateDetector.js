@@ -22,7 +22,7 @@ export function normalizeMemberName(name = '') {
     .replace(/[أإآ]/g, 'ا')
     .replace(/ى/g, 'ي')
     .replace(/ة/g, 'ه')
-    .replace(/[\s\-_,.:;@()\[\]\/+]+/g, ' ')
+    .replace(/[\s\-_,.:;@()[\]/+]+/g, ' ')
     .trim();
 }
 

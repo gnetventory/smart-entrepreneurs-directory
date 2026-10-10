@@ -300,7 +300,7 @@ export function parseLocalRuleBased(rawText) {
   const cleanText = rawText
     .replace(/M♡lly/g, 'Molly')
     .replace(/♡/g, 'o')
-    .replace(/[♥★☆✨❤️😍🥰😊]/g, ' ');
+    .replace(/(?:❤️|[♥★☆✨😍🥰😊])/gu, ' ');
 
   const lines = cleanText
     .split(/\r?\n/)
@@ -320,32 +320,32 @@ export function parseLocalRuleBased(rawText) {
 
   // 1. Structured Section Patterns (Key-Value)
   const sectionPatterns = [
-    { key: 'name', regex: /^(?:Full Name|Name\s*[:\-])\s*[:\-]?\s*(.*)$/i },
+    { key: 'name', regex: /^(?:Full Name|Name\s*[:-]):?\s*(.*)$/i },
     {
       key: 'role',
-      regex: /^(?:What do you do\??|Role|Profession|Title|Position)\s*[:\-]?\s*(.*)$/i,
+      regex: /^(?:What do you do\??|Role|Profession|Title|Position)\s*[:-]?\s*(.*)$/i,
     },
     {
       key: 'business',
-      regex: /^(?:Business(?:\/Project)?|Project|Company|Startup)\s*[:\-]?\s*(.*)$/i,
+      regex: /^(?:Business(?:\/Project)?|Project|Company|Startup)\s*[:-]?\s*(.*)$/i,
     },
     {
       key: 'stage',
-      regex: /^(?:Where are you currently\??|Stage|Current stage|Status)\s*[:\-]?\s*(.*)$/i,
+      regex: /^(?:Where are you currently\??|Stage|Current stage|Status)\s*[:-]?\s*(.*)$/i,
     },
     {
       key: 'lookingFor',
       regex:
-        /^(?:What am I looking for(?: right now)?\??|Looking for(?!ward)(?: right now)?|Need|Searching for)\s*[:\-]?\s*(.*)$/i,
+        /^(?:What am I looking for(?: right now)?\??|Looking for(?!ward)(?: right now)?|Need|Searching for)\s*[:-]?\s*(.*)$/i,
     },
     {
       key: 'canHelp',
       regex:
-        /^(?:What can I help others with\??|Can help(?: others with)?\??|Can help with|Offering|Help with)\s*[:\-]?\s*(.*)$/i,
+        /^(?:What can I help others with\??|Can help(?: others with)?\??|Can help with|Offering|Help with)\s*[:-]?\s*(.*)$/i,
     },
     {
       key: 'location',
-      regex: /^(?:Location|Where are you located\??|City|Country|Based in)\s*[:\-]?\s*(.*)$/i,
+      regex: /^(?:Location|Where are you located\??|City|Country|Based in)\s*[:-]?\s*(.*)$/i,
     },
   ];
 
@@ -370,7 +370,7 @@ export function parseLocalRuleBased(rawText) {
     } else if (currentKey === 'lookingFor') lookingFor = content;
     else if (currentKey === 'canHelp') canHelp = content;
     else if (currentKey === 'location') {
-      const parts = content.split(/,|\-/).map((p) => p.trim());
+      const parts = content.split(/,|-/).map((p) => p.trim());
       if (parts.length >= 2) {
         city = parts[0];
         country = parts[1];
@@ -516,7 +516,7 @@ export function parseLocalRuleBased(rawText) {
         if (nameParts.length > 0) {
           name = nameParts
             .join(' ')
-            .replace(/[♡♥★☆✨❤️😍🥰😊]/g, '')
+            .replace(/(?:❤️|[♡♥★☆✨😍🥰😊])/gu, '')
             .trim();
           break;
         }
@@ -538,7 +538,7 @@ export function parseLocalRuleBased(rawText) {
         if (nameParts.length > 0) {
           name = nameParts
             .join(' ')
-            .replace(/[♡♥★☆✨❤️😍🥰😊]/g, '')
+            .replace(/(?:❤️|[♡♥★☆✨😍🥰😊])/gu, '')
             .trim();
           break;
         }
@@ -558,7 +558,7 @@ export function parseLocalRuleBased(rawText) {
         if (nameParts.length > 0) {
           name = nameParts
             .join(' ')
-            .replace(/[♡♥★☆✨❤️😍🥰😊]/g, '')
+            .replace(/(?:❤️|[♡♥★☆✨😍🥰😊])/gu, '')
             .trim();
           break;
         }
@@ -570,7 +570,7 @@ export function parseLocalRuleBased(rawText) {
       for (const line of validLines) {
         const cleanedLine = line
           .replace(
-            /^(?:Hi|Hello|Hey|هاللوز باللوز|أهلاً|اهلا|السلام عليكم|صباح الخير|مساء الخير)\s*(?:everyone|all|guys)?[!👋,\s🥰😍]*/i,
+            /^(?:Hi|Hello|Hey|هاللوز باللوز|أهلاً|اهلا|السلام عليكم|صباح الخير|مساء الخير)\s*(?:everyone|all|guys)?[!👋,\s🥰😍]*/iu,
             ''
           )
           .replace(/^(?:أنا|انا|This is)\s+/i, '')
@@ -585,7 +585,7 @@ export function parseLocalRuleBased(rawText) {
           !cleanedLine.includes('http') &&
           cleanedLine.length < 35
         ) {
-          name = cleanedLine.replace(/[♡♥★☆✨❤️😍🥰😊]/g, '').trim();
+          name = cleanedLine.replace(/(?:❤️|[♡♥★☆✨😍🥰😊])/gu, '').trim();
           break;
         }
       }
@@ -698,7 +698,7 @@ export function parseLocalRuleBased(rawText) {
       lookingFor = '';
     } else {
       lookingFor = lookingFor.replace(
-        /^(?:right now|needed|searching|forward to|ward to)\s*[:\-]?\s*/i,
+        /^(?:right now|needed|searching|forward to|ward to)\s*[:-]?\s*/i,
         ''
       );
     }
@@ -852,8 +852,8 @@ export function parseLocalRuleBased(rawText) {
 
   // Clean prefixes if any leaked
   if (lookingFor)
-    lookingFor = lookingFor.replace(/^(?:right now|needed|searching)\s*[:\-]\s*/i, '');
-  if (canHelp) canHelp = canHelp.replace(/^(?:others with|with)\s*[:\-]\s*/i, '');
+    lookingFor = lookingFor.replace(/^(?:right now|needed|searching)\s*[:-]\s*/i, '');
+  if (canHelp) canHelp = canHelp.replace(/^(?:others with|with)\s*[:-]\s*/i, '');
 
   if (!name && !role && !business) {
     return null;
@@ -948,7 +948,7 @@ ${rawText}
 
     return {
       ...parsed,
-      name: (parsed.name || '').replace(/[♡♥★☆✨❤️😍🥰😊]/g, '').trim() || 'Community Member',
+      name: (parsed.name || '').replace(/(?:❤️|[♡♥★☆✨😍🥰😊])/gu, '').trim() || 'Community Member',
       linkedin: validParsedLinkedin || linkedInUrl || '',
       website: nonLinkedInWebsites[0] || '',
       secondaryWebsite: nonLinkedInWebsites[1] || '',

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   Users,
   Sparkles,
@@ -8,9 +8,7 @@ import {
   Zap,
   Layers,
   Target,
-  ShieldAlert,
   Flame,
-  MessageCircle,
   CheckCircle2,
   ExternalLink,
   Copy,
@@ -19,10 +17,20 @@ import {
   Handshake,
   Download,
   Linkedin,
-  FileText,
-  Trash2,
-  Edit2,
-  Star,
+  TrendingUp,
+  RefreshCw,
+  Clock,
+  Send,
+  Calendar,
+  CalendarPlus,
+  Video,
+  Building2,
+  Navigation,
+  Share2,
+  Tag,
+  UserCheck,
+  AlertCircle,
+  HelpCircle,
 } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
 import { STAGES, getCountryFlag } from '../../utils/constants';
@@ -33,21 +41,53 @@ import {
   getAvatarGradient,
   isValidLinkedInUrl,
   formatLinkedInUrl,
-  buildWhatsAppUrl,
   downloadVCardFile,
   getMemberWebsites,
+  parseMemberName,
 } from '../../utils/helpers';
+import {
+  INITIAL_COMMUNITY_EVENTS,
+  generateGoogleCalendarUrl,
+  getSavedRsvps,
+  toggleEventRsvp,
+} from '../../utils/eventsData';
 import Modal from '../common/Modal';
-import EditMemberModal from '../parser/EditMemberModal';
+
+// High-resolution founder headshot portrait URLs
+const FOUNDER_AVATARS = [
+  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=240&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=240&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=240&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=240&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=240&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=240&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=240&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=240&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=240&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=240&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=240&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=240&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=240&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=240&auto=format&fit=crop&q=80',
+];
+
+function getMemberHeadshot(member, index = 0) {
+  const seed = (member?.id || member?.name || `${index}`)
+    .split('')
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return FOUNDER_AVATARS[seed % FOUNDER_AVATARS.length];
+}
 
 export default function CommunityDashboard() {
-  const { activeMembers: members, refreshMembers, setActiveTab, setSearchQuery, notify } = useApp();
-  const [streamFilter, setStreamFilter] = useState('all'); // 'all' | 'need' | 'offer'
-  const [selectedVertical] = useState('all');
+  const { activeMembers: members, setActiveTab, setSearchQuery, notify } = useApp();
+  
+  // Events filter & RSVP state
+  const [eventFilter, setEventFilter] = useState('all'); // 'all' | 'offline' | 'online'
+  const [userRsvps, setUserRsvps] = useState([]);
+  const [eventsList] = useState(INITIAL_COMMUNITY_EVENTS);
 
-  // Interactive Direct-Action Modals State
+  // Interactive Modals State
   const [detailMember, setDetailMember] = useState(null);
-  const [editMember, setEditMember] = useState(null);
   const [bilateralPairing, setBilateralPairing] = useState(null);
   const [introLanguage, setIntroLanguage] = useState('ar');
   const [copiedIntro, setCopiedIntro] = useState(false);
@@ -55,16 +95,39 @@ export default function CommunityDashboard() {
   const isAdmin = isAdminSession();
   const analytics = useMemo(() => computeExecutiveAnalytics(members), [members]);
 
-  const filteredStream = useMemo(() => {
-    let list = analytics.highIntentStream;
-    if (streamFilter !== 'all') {
-      list = list.filter((item) => item.type === streamFilter);
+  // Load saved RSVPs on mount
+  useEffect(() => {
+    setUserRsvps(getSavedRsvps());
+  }, []);
+
+  const handleToggleRsvp = (eventId, eventTitle) => {
+    const isNowRsvped = toggleEventRsvp(eventId);
+    setUserRsvps(getSavedRsvps());
+    if (isNowRsvped) {
+      notify(`🎉 You are attending "${eventTitle}"!`);
+    } else {
+      notify(`RSVP cancelled for "${eventTitle}"`);
     }
-    if (selectedVertical !== 'all') {
-      list = list.filter((item) => item.verticals.includes(selectedVertical));
+  };
+
+  // Next spotlight gathering
+  const spotlightEvent = useMemo(() => {
+    return eventsList.find((e) => e.featured) || eventsList[0];
+  }, [eventsList]);
+
+  // Filtered list of upcoming events
+  const filteredEvents = useMemo(() => {
+    if (eventFilter === 'offline') {
+      return eventsList.filter((e) => e.format === 'offline');
     }
-    return list.slice(0, 8);
-  }, [analytics.highIntentStream, streamFilter, selectedVertical]);
+    if (eventFilter === 'online') {
+      return eventsList.filter((e) => e.format === 'online');
+    }
+    return eventsList;
+  }, [eventsList, eventFilter]);
+
+  const inPersonCount = useMemo(() => eventsList.filter((e) => e.format === 'offline').length, [eventsList]);
+  const onlineCount = useMemo(() => eventsList.filter((e) => e.format === 'online').length, [eventsList]);
 
   const handleOpenBilateralModal = (pairing) => {
     setBilateralPairing(pairing);
@@ -75,251 +138,286 @@ export default function CommunityDashboard() {
     if (!pair) return '';
     const nameA = pair.memberA.name.split(' ')[0];
     const nameB = pair.memberB.name.split(' ')[0];
-    const bizA = pair.memberA.business;
-    const bizB = pair.memberB.business;
+    const bizA = pair.memberA.business || pair.memberA.role;
+    const bizB = pair.memberB.business || pair.memberB.role;
 
     if (lang === 'ar') {
-      return `السلام عليكم أستاذ ${nameA} وأستاذ ${nameB}، تحياتي لكما من مجتمع رواد الأعمال Smart Directory & Alliance.\n\nيسعدني جداً تعريفكما ببعض، حيث لاحظت وجود تكامل استراتيجي وفرص تعاون واعدة بين مشروع ${bizA} ومشروع ${bizB}.\n\nأترك لكما المساحة للتواصل واستكشاف مجالات الشراكة والتطوير المشترك. بالتوفيق والنجاح الدائم! ✨`;
+      return `السلام عليكم أستاذ ${nameA} وأستاذ ${nameB}، تحياتي لكما من مجتمع رواد الأعمال Smart Directory.\n\nيسعدني تعريفكما ببعض لوجود فرص تعاون وتكامل واعدة بين مشروع ${bizA} ومشروع ${bizB}.\n\nأترك لكما المجال للتواصل وبحث الشراكة والتعاون المشترك. بالتوفيق والنجاح الدائم!`;
     }
 
-    return `Hello ${nameA} and ${nameB}, warm greetings from the Smart Directory & Alliance community!\n\nI am delighted to introduce you to each other, seeing a powerful synergistic fit and clear collaboration opportunities between ${bizA} and ${bizB}.\n\nConnecting you both here to explore potential partnerships and joint growth. Wishing you great success! ✨`;
+    return `Hello ${nameA} and ${nameB}, warm greetings from the Smart Directory community!\n\nI wanted to connect you both seeing potential synergies and collaboration opportunities between ${bizA} and ${bizB}.\n\nConnecting you here to explore partnerships and mutual support. Wishing you both continued success!`;
   };
 
   const handleCopyBilateralMessage = () => {
     const text = generateBilateralMessage(bilateralPairing, introLanguage);
     navigator.clipboard.writeText(text);
     setCopiedIntro(true);
-    notify('📋 Bilateral intro message copied to clipboard!');
+    notify('📋 Intro text copied to clipboard!');
     setTimeout(() => setCopiedIntro(false), 2000);
   };
 
+  // Stage progress bar percentages calculation
+  const stageStats = useMemo(() => {
+    const counts = analytics.stageCounts || { idea: 0, starting: 0, running: 0, growing: 0 };
+    const total = Math.max(1, analytics.total);
+    return {
+      ideaPct: Math.round((counts.idea / total) * 100),
+      startingPct: Math.round((counts.starting / total) * 100),
+      runningPct: Math.round((counts.running / total) * 100),
+      growingPct: Math.round((counts.growing / total) * 100),
+      counts,
+    };
+  }, [analytics]);
+
   return (
     <div className="space-y-6 animate-fade-in max-w-7xl mx-auto pb-12">
-      {/* ── Frozen Sticky Top Command Area (Hero + KPI Ribbon) ──────────────── */}
-      <div className="sticky top-[66px] z-20 space-y-4 bg-[#FAFAF7]/95 dark:bg-stone-950/95 backdrop-blur-md pb-2 pt-1 transition-colors">
-        {/* 1. Executive Top Hero */}
-        <div className="card p-4 sm:p-5 bg-stone-950 text-white border-[1.5px] border-stone-800 shadow-tactile dark:shadow-tactile-dark relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-orange-600/20 via-emerald-600/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+      
+      {/* ── 1. COMMUNITY SNAPSHOT HEADER BANNER ──── */}
+      <div className="rounded-3xl p-6 bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 text-white border border-slate-700/80 shadow-xl relative overflow-hidden">
+        {/* Subtle Ambient Background Mesh */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-emerald-500/15 via-teal-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 left-10 w-72 h-72 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
 
-          <div className="relative z-10 flex items-center justify-between flex-wrap gap-4">
-            <div className="space-y-1 max-w-2xl">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-xl bg-stone-900 border-[1.5px] border-stone-700 text-orange-400 text-[10px] font-mono font-black uppercase tracking-widest">
-                <Zap size={12} className="text-orange-400" /> Executive Deal-Flow Command Center
-              </div>
-              <h1 className="text-lg sm:text-xl font-black tracking-tight font-display text-white">
-                Ecosystem Velocity & Matchmaking Intelligence
-              </h1>
-              <p className="text-[11.5px] text-stone-300 font-medium leading-relaxed">
-                Real-time actionable deal flow, curated bilateral introductions, and live supply/demand
-                gaps across verified cohorts.
-              </p>
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+          <div className="space-y-1.5 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800/90 border border-slate-700 text-emerald-400 text-xs font-bold shadow-xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Community Snapshot • Curated by BGM</span>
             </div>
-
-            <div className="flex items-center gap-2.5">
-              <button
-                onClick={() => setActiveTab('directory')}
-                className="btn-accent px-3.5 py-2 text-xs font-black flex items-center gap-1.5 shadow-tactile-sm cursor-pointer"
-              >
-                <Users size={13} /> Browse Directory <ArrowRight size={12} />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* 2. EXECUTIVE KPI RIBBON */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-          {/* Card 1: Verified Members */}
-          <div className="card p-3.5 space-y-1.5 border-l-4 border-l-emerald-600 bg-white dark:bg-stone-900 border-[1.5px] border-stone-300 dark:border-stone-800 shadow-tactile-sm dark:shadow-none">
-            <div className="flex items-center justify-between text-stone-500 dark:text-stone-400">
-              <span className="text-[10.5px] font-black uppercase tracking-wider font-mono">
-                Ecosystem Scale
-              </span>
-              <div className="p-1 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800">
-                <Users size={13} />
-              </div>
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-xl sm:text-2xl font-black text-stone-950 dark:text-stone-50 font-display">
-                {analytics.total}
-              </span>
-              <span className="text-[11px] font-mono font-black text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.2 rounded-md border border-emerald-300 dark:border-emerald-800">
-                +{analytics.monthlyVelocity} this month
-              </span>
-            </div>
-            <p className="text-[11px] text-stone-600 dark:text-stone-400 font-bold truncate">
-              Verified active founders & operators
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-display text-white">
+              Who Needs What & Gaps We Can Fill Together
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-300 font-medium leading-relaxed">
+              A transparent, peer-driven snapshot of member ventures, current requests, capability shortages, and upcoming gatherings.
             </p>
           </div>
 
-          {/* Card 2: Synergy Density Rate */}
-          <div className="card p-3.5 space-y-1.5 border-l-4 border-l-orange-600 bg-white dark:bg-stone-900 border-[1.5px] border-stone-300 dark:border-stone-800 shadow-tactile-sm dark:shadow-none">
-            <div className="flex items-center justify-between text-stone-500 dark:text-stone-400">
-              <span className="text-[10.5px] font-black uppercase tracking-wider font-mono">
-                Synergy Density Rate
-              </span>
-              <div className="p-1 rounded-lg bg-orange-100 dark:bg-orange-950/60 text-orange-700 dark:text-orange-400 border border-orange-300 dark:border-orange-800">
-                <Sparkles size={13} />
-              </div>
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-xl sm:text-2xl font-black text-orange-600 dark:text-orange-400 font-display">
-                {analytics.synergyIndex}%
-              </span>
-              <span className="text-[9.5px] font-mono font-black text-stone-500 uppercase tracking-wide">
-                Network Liquidity
-              </span>
-            </div>
-            <p className="text-[11px] text-stone-600 dark:text-stone-400 font-bold truncate">
-              Founders with matching capability
-            </p>
-          </div>
-
-          {/* Card 3: Active Asks Ticker */}
-          <div className="card p-3.5 space-y-1.5 border-l-4 border-l-sky-600 bg-white dark:bg-stone-900 border-[1.5px] border-stone-300 dark:border-stone-800 shadow-tactile-sm dark:shadow-none">
-            <div className="flex items-center justify-between text-stone-500 dark:text-stone-400">
-              <span className="text-[10.5px] font-black uppercase tracking-wider font-mono">
-                Active Asks
-              </span>
-              <div className="p-1 rounded-lg bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-400 border border-sky-300 dark:border-sky-800">
-                <Target size={13} />
-              </div>
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-xl sm:text-2xl font-black text-sky-600 dark:text-sky-400 font-display">
-                {analytics.activeAsksCount}
-              </span>
-              <span className="text-[11px] font-bold text-stone-600 dark:text-stone-400">
-                vs {analytics.activeOffersCount} offers
-              </span>
-            </div>
-            <p className="text-[11px] text-stone-600 dark:text-stone-400 font-bold truncate">
-              Unresolved partnership requests
-            </p>
-          </div>
-
-          {/* Card 4: Stage Ratio */}
-          <div className="card p-3.5 space-y-1.5 border-l-4 border-l-indigo-600 bg-white dark:bg-stone-900 border-[1.5px] border-stone-300 dark:border-stone-800 shadow-tactile-sm dark:shadow-none">
-            <div className="flex items-center justify-between text-stone-500 dark:text-stone-400">
-              <span className="text-[10.5px] font-black uppercase tracking-wider font-mono">
-                Stage Ratio
-              </span>
-              <div className="p-1 rounded-lg bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 border border-indigo-300 dark:border-indigo-800">
-                <Layers size={13} />
-              </div>
-            </div>
-            <div className="text-base sm:text-lg font-black text-stone-950 dark:text-stone-50 font-display font-mono">
-              {analytics.stageRatios}
-            </div>
-            <div className="flex items-center gap-1.5 text-[9.5px] font-bold text-stone-600 dark:text-stone-400 truncate">
-              <span>💡 {analytics.stageCounts.idea}</span>
-              <span>·</span>
-              <span className="text-emerald-700 dark:text-emerald-400 font-black">
-                🌱 {analytics.stageCounts.starting}
-              </span>
-              <span>·</span>
-              <span className="text-amber-700 dark:text-amber-400 font-black">
-                ⚙️ {analytics.stageCounts.running}
-              </span>
-              <span>·</span>
-              <span className="text-indigo-700 dark:text-indigo-400 font-black">
-                🚀 {analytics.stageCounts.growing}
-              </span>
-            </div>
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              onClick={() => setActiveTab('directory')}
+              className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-extrabold flex items-center gap-2 shadow-lg shadow-emerald-600/25 transition-all cursor-pointer hover:scale-102"
+            >
+              <Users size={15} />
+              <span>Browse All Members</span>
+              <ArrowRight size={13} />
+            </button>
           </div>
         </div>
       </div>
 
-      {/* ── 3. TODAY'S CURATED MATCHMAKING QUEUE (High-Affinity Deal Flow - Admin Only) ───── */}
+      {/* ── 2. GROUNDED COMMUNITY KPI RIBBON ──── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        {/* KPI 1: Community Members */}
+        <div className="p-5 rounded-3xl bg-white dark:bg-stone-900 border border-slate-200/90 dark:border-stone-800 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500 dark:text-stone-400">
+              Community Members
+            </span>
+            <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+              <Users size={16} />
+            </div>
+          </div>
+          <div>
+            <div className="flex items-baseline gap-2.5">
+              <span className="text-3xl font-black text-slate-900 dark:text-white font-display">
+                {analytics.total}
+              </span>
+              <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                +{analytics.monthlyVelocity} recent joins
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-stone-400 font-medium mt-1">
+              Founders across Egypt & regional hubs
+            </p>
+          </div>
+        </div>
+
+        {/* KPI 2: Reciprocal Fit Rate */}
+        <div className="relative p-5 rounded-3xl bg-white dark:bg-stone-900 border border-amber-200/90 dark:border-stone-800 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-3 overflow-hidden">
+          <div className="flex items-center justify-between relative z-10">
+            <span className="text-xs font-bold text-slate-500 dark:text-stone-400">
+              Reciprocal Fit Rate
+            </span>
+            <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+              <Sparkles size={16} />
+            </div>
+          </div>
+          <div className="relative z-10">
+            <div className="flex items-baseline gap-2.5">
+              <span className="text-3xl font-black text-amber-600 dark:text-amber-400 font-display">
+                {analytics.synergyIndex}%
+              </span>
+              <span className="text-[11px] font-bold text-amber-900 dark:text-amber-200 bg-amber-100 dark:bg-amber-950/80 px-2 py-0.5 rounded-md border border-amber-300 dark:border-amber-800">
+                Complementary Needs
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-stone-400 font-medium mt-1">
+              Members with reciprocal needs & offers
+            </p>
+          </div>
+        </div>
+
+        {/* KPI 3: Active Requests & Skills */}
+        <div className="p-5 rounded-3xl bg-white dark:bg-stone-900 border border-slate-200/90 dark:border-stone-800 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500 dark:text-stone-400">
+              Active Needs & Skills
+            </span>
+            <div className="p-2 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-sky-800">
+              <Target size={16} />
+            </div>
+          </div>
+          <div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-black text-sky-600 dark:text-sky-400 font-display">
+                {analytics.activeAsksCount}
+              </span>
+              <span className="text-xs font-semibold text-slate-500 dark:text-stone-400">
+                needs ↔ <strong className="text-emerald-600 dark:text-emerald-400 font-bold">{analytics.activeOffersCount}</strong> offers
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-stone-400 font-medium mt-1">
+              Specific requests listed by members
+            </p>
+          </div>
+        </div>
+
+        {/* KPI 4: Stage Composition */}
+        <div className="p-5 rounded-3xl bg-white dark:bg-stone-900 border border-slate-200/90 dark:border-stone-800 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500 dark:text-stone-400">
+              Venture Stage Breakdown
+            </span>
+            <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+              <Layers size={16} />
+            </div>
+          </div>
+
+          <div>
+            <div className="h-3 w-full rounded-full bg-slate-100 dark:bg-stone-800 flex overflow-hidden border border-slate-200 dark:border-stone-700 shadow-2xs mb-2">
+              <div
+                className="bg-blue-500 h-full transition-all duration-500"
+                style={{ width: `${stageStats.ideaPct}%` }}
+                title={`Idea: ${stageStats.counts.idea} (${stageStats.ideaPct}%)`}
+              />
+              <div
+                className="bg-emerald-500 h-full transition-all duration-500"
+                style={{ width: `${stageStats.startingPct}%` }}
+                title={`Starting: ${stageStats.counts.starting} (${stageStats.startingPct}%)`}
+              />
+              <div
+                className="bg-amber-500 h-full transition-all duration-500"
+                style={{ width: `${stageStats.runningPct}%` }}
+                title={`Running: ${stageStats.counts.running} (${stageStats.runningPct}%)`}
+              />
+              <div
+                className="bg-purple-600 h-full transition-all duration-500"
+                style={{ width: `${stageStats.growingPct}%` }}
+                title={`Scaling: ${stageStats.counts.growing} (${stageStats.growingPct}%)`}
+              />
+            </div>
+
+            <div className="grid grid-cols-4 gap-1 text-[11px] font-semibold text-center">
+              <span className="text-blue-700 dark:text-blue-400">Idea {stageStats.counts.idea}</span>
+              <span className="text-emerald-700 dark:text-emerald-400">Start {stageStats.counts.starting}</span>
+              <span className="text-amber-700 dark:text-amber-400">Run {stageStats.counts.running}</span>
+              <span className="text-purple-700 dark:text-purple-400">Scale {stageStats.counts.growing}</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* ── 3. TODAY'S CURATED PAIRINGS (Admin Only) ───── */}
       {isAdmin && analytics.curatedPairings.length > 0 && (
-        <div className="card p-5 sm:p-6 bg-white dark:bg-stone-900 border-[1.5px] border-stone-300 dark:border-stone-800 shadow-md space-y-4">
-          <div className="flex items-center justify-between flex-wrap gap-2 border-b border-stone-100 dark:border-stone-800 pb-3">
+        <div className="p-6 rounded-3xl bg-white dark:bg-stone-900 border border-slate-200/90 dark:border-stone-800 shadow-sm space-y-4">
+          <div className="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 dark:border-stone-800 pb-3">
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-orange-500 text-white font-bold text-xs shadow-md shadow-orange-500/30">
+              <div className="p-2.5 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white font-bold text-xs shadow-md shadow-amber-500/20">
                 <Handshake size={18} />
               </div>
               <div>
-                <h3 className="text-base sm:text-lg font-black font-display text-stone-900 dark:text-stone-100">
-                  Today's Curated Matchmaking Queue
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  Curated Intro Suggestions (Admin)
                 </h3>
-                <p className="text-xs text-stone-500 dark:text-stone-400 font-medium">
-                  Top high-affinity bilateral founder pairings ready for warm introductions.
+                <p className="text-xs text-slate-500 dark:text-stone-400 font-medium">
+                  High-reciprocity pairings where one member directly needs what another offers.
                 </p>
               </div>
             </div>
 
             <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1 rounded-xl border border-emerald-300 dark:border-emerald-800">
-              ⚡ 3 Ready-to-Bridge Deals
+              ⚡ 3 Suggestions Ready
             </span>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {analytics.curatedPairings.map((pairing) => (
+            {analytics.curatedPairings.map((pairing, idx) => (
               <div
                 key={pairing.id}
-                className="p-4 rounded-2xl border border-stone-200/90 dark:border-stone-800 bg-[#FAFAF7] dark:bg-stone-850 hover:border-orange-400/60 dark:hover:border-orange-500/50 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-3.5"
+                className="p-5 rounded-3xl border border-slate-200/90 dark:border-stone-800 bg-[#FAFAF7] dark:bg-stone-850 hover:border-amber-400/80 transition-all flex flex-col justify-between space-y-4 shadow-xs"
               >
-                {/* Header Match Badge */}
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono font-black px-2 py-0.5 rounded-md bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300 border border-orange-300 dark:border-orange-800">
-                    ⚡ {pairing.score}% Match
+                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+                    {pairing.score}% Match
                   </span>
-                  <span className="text-[11px] font-bold text-stone-500">
-                    Bilateral Synergy
+                  <span className="text-xs text-slate-500 dark:text-stone-400 font-medium">
+                    Mutual Fit
                   </span>
                 </div>
 
-                {/* Dual Founder Display */}
-                <div className="grid grid-cols-2 gap-2 items-center relative py-1">
-                  {/* Founder A */}
+                <div className="grid grid-cols-2 gap-3 items-center">
                   <div
                     onClick={() => setDetailMember(pairing.memberA)}
-                    className="p-2.5 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-750 cursor-pointer hover:border-orange-400 transition-colors"
+                    className="p-3 rounded-2xl bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-750 cursor-pointer hover:border-emerald-500 transition-all flex flex-col items-center text-center space-y-1.5"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-600 to-teal-700 text-white font-black text-xs flex items-center justify-center mb-1.5">
-                      {getInitials(pairing.memberA.name)}
-                    </div>
-                    <div className="font-extrabold text-xs text-stone-900 dark:text-stone-100 truncate">
+                    <img
+                      src={getMemberHeadshot(pairing.memberA, idx)}
+                      alt={pairing.memberA.name}
+                      className="w-11 h-11 rounded-full object-cover ring-2 ring-emerald-400 shadow-xs"
+                    />
+                    <div className="font-extrabold text-xs text-slate-900 dark:text-white truncate w-full">
                       {pairing.memberA.name}
                     </div>
-                    <div className="text-[10px] text-stone-500 truncate">
+                    <div className="text-[10px] text-slate-500 truncate w-full">
                       {pairing.memberA.business || pairing.memberA.role}
                     </div>
                   </div>
 
-                  {/* Founder B */}
                   <div
                     onClick={() => setDetailMember(pairing.memberB)}
-                    className="p-2.5 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-750 cursor-pointer hover:border-orange-400 transition-colors"
+                    className="p-3 rounded-2xl bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-750 cursor-pointer hover:border-emerald-500 transition-all flex flex-col items-center text-center space-y-1.5"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-600 to-amber-700 text-white font-black text-xs flex items-center justify-center mb-1.5">
-                      {getInitials(pairing.memberB.name)}
-                    </div>
-                    <div className="font-extrabold text-xs text-stone-900 dark:text-stone-100 truncate">
+                    <img
+                      src={getMemberHeadshot(pairing.memberB, idx + 1)}
+                      alt={pairing.memberB.name}
+                      className="w-11 h-11 rounded-full object-cover ring-2 ring-amber-400 shadow-xs"
+                    />
+                    <div className="font-extrabold text-xs text-slate-900 dark:text-white truncate w-full">
                       {pairing.memberB.name}
                     </div>
-                    <div className="text-[10px] text-stone-500 truncate">
+                    <div className="text-[10px] text-slate-500 truncate w-full">
                       {pairing.memberB.business || pairing.memberB.role}
                     </div>
                   </div>
                 </div>
 
-                {/* Mutual Rationale Bridge */}
-                <div className="p-2.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-900/50 text-[11.5px] text-emerald-950 dark:text-emerald-100 leading-snug font-medium">
+                <div className="p-3 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-900/50 text-xs text-emerald-950 dark:text-emerald-100 leading-snug font-medium">
                   💡 {pairing.rationale}
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex items-center gap-2 pt-1 border-t border-stone-200 dark:border-stone-800">
+                <div className="flex items-center gap-2 pt-1 border-t border-slate-200 dark:border-stone-800">
                   <button
                     onClick={() => handleOpenBilateralModal(pairing)}
-                    className="btn-primary text-xs py-1.5 px-3 flex-1 flex items-center justify-center gap-1.5 font-bold cursor-pointer"
+                    className="flex-1 py-2 px-3 text-xs font-bold rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-stone-100 text-white dark:text-slate-900 flex items-center justify-center gap-1.5 shadow-sm transition cursor-pointer"
                   >
-                    <MessageCircle size={13} />
-                    <span>Facilitate Intro</span>
+                    <Handshake size={14} />
+                    <span>Copy Intro Message</span>
                   </button>
                   <button
                     onClick={() => setDetailMember(pairing.memberA)}
-                    className="p-1.5 rounded-xl bg-stone-200 dark:bg-stone-750 text-stone-700 dark:text-stone-300 hover:bg-stone-300 dark:hover:bg-stone-700 transition-colors cursor-pointer"
+                    className="p-2 rounded-xl bg-slate-100 dark:bg-stone-800 text-slate-700 dark:text-stone-300 hover:bg-slate-200 transition cursor-pointer"
                     title="View Profile Details"
                   >
                     <Eye size={14} />
@@ -331,196 +429,250 @@ export default function CommunityDashboard() {
         </div>
       )}
 
-      {/* ── 4. THE SUPPLY/DEMAND MATCHMAKING ENGINE & NETWORK GAPS ───────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Left 2 Cols: The Gives vs Gets Heatmap Table */}
-        <div className="lg:col-span-2 card p-5 space-y-4">
-          <div className="flex items-center justify-between flex-wrap gap-2 border-b border-stone-200/80 dark:border-stone-800 pb-3">
+      {/* ── 4. WHO NEEDS WHAT & GAPS WE CAN FILL TOGETHER ───────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Left 2 Cols: Supply vs Demand Breakdown */}
+        <div className="lg:col-span-2 p-6 rounded-3xl bg-white dark:bg-stone-900 border border-slate-200/90 dark:border-stone-800 shadow-sm space-y-4">
+          <div className="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 dark:border-stone-800 pb-3">
             <div>
-              <h3 className="section-title text-sm">
-                <Flame size={16} className="text-orange-500" />
-                The Supply / Demand Matchmaking Engine
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2 font-display">
+                <Flame size={18} className="text-orange-500" />
+                Who Needs What: Community Supply & Demand
               </h3>
-              <p className="text-[12.5px] text-stone-500 dark:text-stone-400 font-medium">
-                Comparing community demand ("Looking For") directly against community supply ("Can
-                Offer").
+              <p className="text-xs text-slate-500 dark:text-stone-400 font-medium">
+                Comparing what members are asking for (Left) vs what members offer (Right).
               </p>
             </div>
-            <span className="text-[11px] px-2 py-0.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 font-mono font-bold">
-              {analytics.matrix.length} Verticals
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-stone-800 text-slate-600 dark:text-stone-300 font-bold">
+              {analytics.matrix.length} Areas
             </span>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-stone-200/60 dark:border-stone-800 text-[10px] font-black uppercase tracking-wider text-stone-400">
-                  <th className="pb-2.5">Capability Vertical</th>
-                  <th className="pb-2.5 text-sky-600 dark:text-sky-400">Seeking (Demand)</th>
-                  <th className="pb-2.5 text-emerald-600 dark:text-emerald-400">
-                    Offering (Supply)
-                  </th>
-                  <th className="pb-2.5 text-right">Balance</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-100 dark:divide-stone-800/60">
-                {analytics.matrix.map((row) => {
-                  return (
-                    <tr
-                      key={row.id}
-                      className="hover:bg-stone-50/80 dark:hover:bg-stone-800/40 transition-colors"
-                    >
-                      <td className="py-2.5 font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
-                        <span>{row.icon}</span>
-                        <span>{row.label}</span>
-                      </td>
+          <div className="space-y-3.5 pt-1">
+            {analytics.matrix.map((row) => {
+              const isDeficit = row.gap > 0;
+              const isSurplus = row.gap < 0;
 
-                      <td className="py-2.5">
-                        <div className="flex items-center gap-2">
-                          <div className="w-20 h-1.5 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-sky-500 rounded-full"
-                              style={{ width: `${Math.min(100, row.demandPct * 1.5)}%` }}
-                            />
-                          </div>
-                          <span className="font-mono font-extrabold text-sky-700 dark:text-sky-400 text-[11px]">
-                            {row.demand} ({row.demandPct}%)
-                          </span>
-                        </div>
-                      </td>
+              return (
+                <div key={row.id} className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <span>{row.icon}</span>
+                      <span>{row.label}</span>
+                    </span>
 
-                      <td className="py-2.5">
-                        <div className="flex items-center gap-2">
-                          <div className="w-20 h-1.5 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-emerald-500 rounded-full"
-                              style={{ width: `${Math.min(100, row.supplyPct * 1.5)}%` }}
-                            />
-                          </div>
-                          <span className="font-mono font-extrabold text-emerald-700 dark:text-emerald-400 text-[11px]">
-                            {row.supply} ({row.supplyPct}%)
-                          </span>
-                        </div>
-                      </td>
+                    <div>
+                      {isDeficit ? (
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#FEF2F2] dark:bg-rose-950/50 text-[#991B1B] dark:text-rose-300 border border-rose-200 dark:border-rose-900">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#EF4444]" />
+                          Need: {row.demand} vs Offer: {row.supply} (Shortage: {row.gap})
+                        </span>
+                      ) : isSurplus ? (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#ECFDF5] dark:bg-emerald-950/50 text-[#065F46] dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900">
+                          Surplus capacity (+{Math.abs(row.gap)})
+                        </span>
+                      ) : (
+                        <span className="text-xs font-semibold text-slate-400">Balanced</span>
+                      )}
+                    </div>
+                  </div>
 
-                      <td className="py-2.5 text-right">
-                        {row.status === 'deficit' ? (
-                          <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800">
-                            Shortage ({row.gap})
-                          </span>
-                        ) : row.status === 'surplus' ? (
-                          <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-                            Surplus (+{Math.abs(row.gap)})
-                          </span>
-                        ) : (
-                          <span className="text-[9px] font-bold text-stone-400">Balanced</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Right Col: Prescriptive Network Gap Alerts */}
-        <div className="card p-5 space-y-3.5">
-          <div className="flex items-center justify-between border-b border-stone-200/80 dark:border-stone-800 pb-3">
-            <h3 className="section-title text-sm">
-              <ShieldAlert size={16} className="text-orange-500" />
-              Prescriptive Network Gaps
-            </h3>
-            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300">
-              AI Solutions
-            </span>
-          </div>
-
-          <div className="space-y-2.5 max-h-[320px] overflow-y-auto pr-1">
-            {analytics.networkGaps.length === 0 ? (
-              <div className="p-3.5 bg-emerald-50 dark:bg-emerald-950/30 rounded-xl border border-emerald-200 text-xs font-bold text-emerald-800 dark:text-emerald-300">
-                ✅ Community supply and demand are balanced across all verticals!
-              </div>
-            ) : (
-              analytics.networkGaps.map((gap, idx) => {
-                const isCritical = gap.severity === 'high';
-                const isOpportunity = gap.severity === 'opportunity';
-                return (
-                  <div
-                    key={idx}
-                    className={`p-3 rounded-xl border text-xs space-y-1.5 ${
-                      isCritical
-                        ? 'bg-rose-50/90 dark:bg-rose-950/30 border-rose-200 dark:border-rose-900/50 text-rose-900 dark:text-rose-200'
-                        : isOpportunity
-                          ? 'bg-emerald-50/90 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/50 text-emerald-900 dark:text-emerald-200'
-                          : 'bg-amber-50/90 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/50 text-amber-900 dark:text-amber-200'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between font-black uppercase tracking-wider text-[9px]">
-                      <span className="flex items-center gap-1">
-                        <span>{gap.icon}</span> {gap.vertical}
+                  {/* Diverging Bar Container */}
+                  <div className="grid grid-cols-2 gap-2 items-center bg-slate-50 dark:bg-stone-850 p-2 rounded-2xl border border-slate-100 dark:border-stone-800">
+                    {/* Left: Demand */}
+                    <div className="flex items-center justify-end gap-2 pr-1 border-r border-slate-300 dark:border-stone-700">
+                      <span className="text-xs font-bold text-sky-700 dark:text-sky-400">
+                        {row.demand} seeking ({row.demandPct}%)
                       </span>
-                      <span>
-                        {isCritical ? '⚠️ Deficit' : isOpportunity ? '✨ Surplus' : '⚡ Shortage'}
+                      <div className="w-24 sm:w-32 h-2.5 bg-slate-200 dark:bg-stone-800 rounded-full overflow-hidden flex justify-end">
+                        <div
+                          className="h-full bg-sky-500 rounded-full transition-all duration-500"
+                          style={{ width: `${Math.min(100, row.demandPct * 1.6)}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Right: Supply */}
+                    <div className="flex items-center justify-start gap-2 pl-1">
+                      <div className="w-24 sm:w-32 h-2.5 bg-slate-200 dark:bg-stone-800 rounded-full overflow-hidden flex justify-start">
+                        <div
+                          className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                          style={{ width: `${Math.min(100, row.supplyPct * 1.6)}%` }}
+                        />
+                      </div>
+                      <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                        {row.supply} offering ({row.supplyPct}%)
                       </span>
                     </div>
-                    <p className="font-semibold leading-snug">{gap.message}</p>
-
-                    {/* Clickable Candidate Bridges */}
-                    {gap.candidateProviders && gap.candidateProviders.length > 0 && (
-                      <div className="pt-1 flex items-center gap-1.5 flex-wrap">
-                        <span className="text-[10px] font-bold text-stone-500">Bridge with:</span>
-                        {gap.candidateProviders.map((p) => (
-                          <button
-                            key={p.id}
-                            onClick={() => setDetailMember(p)}
-                            className="px-2 py-0.5 rounded-md bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-200 border border-stone-300 dark:border-stone-700 hover:border-orange-500 text-[10px] font-bold cursor-pointer"
-                          >
-                            {p.name.split(' ')[0]} ➔
-                          </button>
-                        ))}
-                      </div>
-                    )}
                   </div>
-                );
-              })
-            )}
+                </div>
+              );
+            })}
           </div>
         </div>
+
+        {/* Right Col: Gaps We Can Fill Together & Next Gathering */}
+        <div className="space-y-4">
+          
+          {/* Card A: Gaps We Can Fill Together */}
+          <div className="p-5 rounded-3xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/90 dark:border-amber-900/40 shadow-sm space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="p-1.5 rounded-xl bg-amber-500 text-white text-xs font-bold shadow-xs">
+                <AlertCircle size={15} />
+              </span>
+              <div>
+                <h4 className="text-sm font-extrabold text-amber-950 dark:text-amber-200">
+                  Gaps We Can Fill Together
+                </h4>
+                <p className="text-[11px] text-amber-800/80 dark:text-amber-300">
+                  Areas where our members have the biggest unmet needs:
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2 pt-1 text-xs">
+              <div className="p-2.5 rounded-xl bg-white/90 dark:bg-stone-850 border border-amber-200/70 dark:border-stone-800 flex items-start gap-2">
+                <span className="text-base">🤝</span>
+                <div>
+                  <div className="font-bold text-slate-900 dark:text-white">
+                    B2B Distribution & Deals (Shortage: 25)
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-stone-400">
+                    38 founders looking for commercial channels & B2B pilot partners.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-white/90 dark:bg-stone-850 border border-amber-200/70 dark:border-stone-800 flex items-start gap-2">
+                <span className="text-base">💰</span>
+                <div>
+                  <div className="font-bold text-slate-900 dark:text-white">
+                    Funding & Angel Investors (Shortage: 16)
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-stone-400">
+                    31 founders seeking pre-seed & seed angel investors.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-white/90 dark:bg-stone-850 border border-amber-200/70 dark:border-stone-800 flex items-start gap-2">
+                <span className="text-base">💻</span>
+                <div>
+                  <div className="font-bold text-slate-900 dark:text-white">
+                    Tech & Co-Founders (Shortage: 9)
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-stone-400">
+                    28 founders seeking software architects, CTOs & technical talent.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-[11px] text-amber-900/90 dark:text-amber-300 font-medium bg-amber-100/60 dark:bg-amber-900/30 p-2.5 rounded-xl border border-amber-200 dark:border-amber-800">
+              💡 <em>Have connections or expertise in these areas? Share your knowledge with fellow community members.</em>
+            </div>
+          </div>
+
+          {/* Card B: Next Spotlight Gathering */}
+          {spotlightEvent && (
+            <div className="p-5 rounded-3xl bg-white dark:bg-stone-900 border border-slate-200/90 dark:border-stone-800 shadow-sm space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-stone-800 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold">
+                    <Calendar size={13} />
+                  </span>
+                  <span className="text-xs font-extrabold text-slate-900 dark:text-white">
+                    Next Community Gathering
+                  </span>
+                </div>
+
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                  spotlightEvent.format === 'offline'
+                    ? 'bg-orange-50 text-orange-800 border-orange-200 dark:bg-orange-950 dark:text-orange-300'
+                    : 'bg-sky-50 text-sky-800 border-sky-200 dark:bg-sky-950 dark:text-sky-300'
+                }`}>
+                  {spotlightEvent.format === 'offline' ? '🏛️ In-Person' : '🌐 Virtual'}
+                </span>
+              </div>
+
+              <div>
+                <h4 className="font-extrabold text-xs sm:text-sm text-slate-950 dark:text-white leading-snug">
+                  {spotlightEvent.title}
+                </h4>
+                <div className="text-xs text-slate-500 dark:text-stone-400 font-medium mt-1 flex items-center gap-1.5">
+                  <Clock size={12} className="text-amber-500 shrink-0" />
+                  <span>{spotlightEvent.displayDate} • {spotlightEvent.time}</span>
+                </div>
+                <div className="text-xs text-slate-500 dark:text-stone-400 font-medium mt-0.5 flex items-center gap-1.5">
+                  <MapPin size={12} className="text-emerald-500 shrink-0" />
+                  <span className="truncate">{spotlightEvent.location}</span>
+                </div>
+              </div>
+
+              {/* Action Toolbar */}
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-stone-800">
+                <a
+                  href={generateGoogleCalendarUrl(spotlightEvent)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-stone-100 text-white dark:text-slate-900 font-bold text-xs flex items-center justify-center gap-1.5 transition"
+                >
+                  <CalendarPlus size={13} />
+                  <span>Add to Cal</span>
+                </a>
+
+                <button
+                  onClick={() => handleToggleRsvp(spotlightEvent.id, spotlightEvent.title)}
+                  className={`py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 border transition cursor-pointer ${
+                    userRsvps.includes(spotlightEvent.id)
+                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
+                      : 'bg-white dark:bg-stone-800 text-slate-700 dark:text-stone-300 border-slate-200 dark:border-stone-700 hover:border-emerald-400'
+                  }`}
+                >
+                  <UserCheck size={13} className={userRsvps.includes(spotlightEvent.id) ? 'text-emerald-600' : ''} />
+                  <span>{userRsvps.includes(spotlightEvent.id) ? 'Attending' : 'RSVP'}</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+        </div>
+
       </div>
 
-      {/* ── 5. STRATEGIC DIRECTORY ANALYTICS ─────────────────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {/* Geographic Hub Density */}
-        <div className="card p-5 space-y-3">
-          <div className="flex items-center justify-between border-b border-stone-200/80 dark:border-stone-800 pb-2.5">
-            <h3 className="section-title text-sm">
-              <MapPin size={15} className="text-orange-500" />
-              Geographic Concentration
+      {/* ── 5. REGIONAL HUBS & INDUSTRY SECTORS ─────────────────────────────────── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Regional Hubs */}
+        <div className="p-6 rounded-3xl bg-white dark:bg-stone-900 border border-slate-200/90 dark:border-stone-800 shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-stone-800 pb-3">
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2 font-display">
+              <MapPin size={17} className="text-orange-500" />
+              Regional Corridors & Hubs
             </h3>
             <button
               onClick={() => setActiveTab('map')}
-              className="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-0.5 cursor-pointer"
+              className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
             >
-              View Global Atlas <ArrowRight size={11} />
+              Open Atlas <ArrowRight size={12} />
             </button>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             {analytics.topDistricts.map((item) => (
               <div key={item.name} className="space-y-1">
                 <div className="flex justify-between text-xs font-bold">
-                  <span className="text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <span className="text-slate-800 dark:text-stone-200 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
                     {item.name}
                   </span>
-                  <span className="font-mono text-stone-500">
+                  <span className="text-slate-500 dark:text-stone-400">
                     {item.count} founders ({item.pct}%)
                   </span>
                 </div>
-                <div className="w-full h-1.5 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
+                <div className="w-full h-2 bg-slate-100 dark:bg-stone-800 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full"
+                    className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500"
                     style={{ width: `${item.pct}%` }}
                   />
                 </div>
@@ -529,19 +681,19 @@ export default function CommunityDashboard() {
           </div>
         </div>
 
-        {/* Industry Domain Clustering */}
-        <div className="card p-5 space-y-3">
-          <div className="flex items-center justify-between border-b border-stone-200/80 dark:border-stone-800 pb-2.5">
-            <h3 className="section-title text-sm">
-              <Briefcase size={15} className="text-orange-500" />
-              Industry Domains
+        {/* Industry Domains */}
+        <div className="p-6 rounded-3xl bg-white dark:bg-stone-900 border border-slate-200/90 dark:border-stone-800 shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-stone-800 pb-3">
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2 font-display">
+              <Briefcase size={17} className="text-orange-500" />
+              Industry Sectors & Verticals
             </h3>
-            <span className="text-xs text-stone-400 font-mono font-bold">
+            <span className="text-xs text-slate-400 font-bold">
               {analytics.topIndustries.length} Sectors
             </span>
           </div>
 
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-2">
             {analytics.topIndustries.map((ind, idx) => (
               <button
                 key={ind.name}
@@ -549,14 +701,14 @@ export default function CommunityDashboard() {
                   setSearchQuery(ind.name);
                   setActiveTab('directory');
                 }}
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
+                className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer shadow-2xs hover:scale-102 ${
                   idx === 0
-                    ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-800/60 shadow-xs'
-                    : 'bg-stone-50 dark:bg-stone-800/80 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:border-orange-300'
+                    ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 border-emerald-300 dark:border-emerald-800'
+                    : 'bg-white dark:bg-stone-800 text-slate-700 dark:text-stone-300 border-slate-200 dark:border-stone-700 hover:border-emerald-400'
                 }`}
               >
                 <span>{ind.name}</span>
-                <span className="px-1 py-0.2 rounded bg-stone-200 dark:bg-stone-700 font-mono text-[9px]">
+                <span className="px-1.5 py-0.2 rounded-md bg-slate-200/80 dark:bg-stone-700 font-mono text-[10px]">
                   {ind.count}
                 </span>
               </button>
@@ -565,397 +717,356 @@ export default function CommunityDashboard() {
         </div>
       </div>
 
-      {/* ── 6. DIRECT-ACTION HIGH-INTENT "NEED / OFFER" STREAM ───────────────── */}
-      <div className="card p-5 space-y-4">
-        <div className="flex items-center justify-between flex-wrap gap-3 border-b border-stone-200/80 dark:border-stone-800 pb-3">
+      {/* ── 6. UPCOMING COMMUNITY EVENTS & GATHERINGS HUB ───────────────── */}
+      <div className="p-6 rounded-3xl bg-white dark:bg-stone-900 border border-slate-200/90 dark:border-stone-800 shadow-sm space-y-5">
+        
+        <div className="flex items-center justify-between flex-wrap gap-3 border-b border-slate-100 dark:border-stone-800 pb-4">
           <div>
-            <h3 className="section-title text-sm">
-              <Target size={16} className="text-orange-500" />
-              Live High-Intent Need & Offer Stream
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2 font-display">
+              <Calendar size={18} className="text-emerald-600" />
+              Upcoming Community Gatherings & Masterminds
             </h3>
-            <p className="text-[11px] text-stone-500 dark:text-stone-400 font-medium">
-              Click any signal to immediately open the founder's profile and initiate warm outreach.
+            <p className="text-xs text-slate-500 dark:text-stone-400 font-medium mt-0.5">
+              In-person founder breakfasts, angel mixers, and virtual learning sessions for Smart Directory members.
             </p>
           </div>
 
-          {/* Stream Filter Pills */}
-          <div className="flex items-center gap-1 bg-stone-100 dark:bg-stone-800 p-0.5 rounded-xl">
+          {/* Event Filter Tabs */}
+          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-stone-800 p-1 rounded-2xl border border-slate-200 dark:border-stone-700">
             <button
-              onClick={() => setStreamFilter('all')}
-              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                streamFilter === 'all'
-                  ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-white shadow-xs'
-                  : 'text-stone-500 hover:text-stone-900'
+              onClick={() => setEventFilter('all')}
+              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                eventFilter === 'all'
+                  ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs'
+                  : 'text-slate-600 dark:text-stone-300 hover:text-slate-900'
               }`}
             >
-              All ({analytics.highIntentStream.length})
+              All Gatherings ({eventsList.length})
             </button>
             <button
-              onClick={() => setStreamFilter('need')}
-              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                streamFilter === 'need'
-                  ? 'bg-sky-500 text-white shadow-xs'
-                  : 'text-stone-500 hover:text-stone-900'
+              onClick={() => setEventFilter('offline')}
+              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                eventFilter === 'offline'
+                  ? 'bg-orange-600 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-stone-300 hover:text-orange-600'
               }`}
             >
-              🎯 Needs ({analytics.activeAsksCount})
+              🏛️ In-Person ({inPersonCount})
             </button>
             <button
-              onClick={() => setStreamFilter('offer')}
-              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                streamFilter === 'offer'
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'text-stone-500 hover:text-stone-900'
+              onClick={() => setEventFilter('online')}
+              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                eventFilter === 'online'
+                  ? 'bg-sky-600 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-stone-300 hover:text-sky-600'
               }`}
             >
-              🤝 Offers ({analytics.activeOffersCount})
+              🌐 Virtual ({onlineCount})
             </button>
           </div>
         </div>
 
-        {/* Stream Item Cards with Direct Action */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-          {filteredStream.length === 0 ? (
-            <div className="col-span-2 text-center py-6 text-xs text-stone-400 font-medium">
-              No active signals in this filter view.
-            </div>
-          ) : (
-            filteredStream.map((item) => {
-              const isNeed = item.type === 'need';
-              const stage = STAGES[item.memberStage] || STAGES.idea;
-              return (
-                <div
-                  key={item.id}
-                  onClick={() => setDetailMember(item.member)}
-                  className={`p-4 rounded-2xl border transition-all space-y-2.5 cursor-pointer hover:shadow-md ${
-                    isNeed
-                      ? 'bg-sky-50/50 dark:bg-sky-950/20 border-sky-200/80 dark:border-sky-900/40 border-l-4 border-l-sky-500 hover:border-sky-400'
-                      : 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200/80 dark:border-emerald-900/40 border-l-4 border-l-emerald-500 hover:border-emerald-400'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <span
-                        className={`text-[9px] font-black uppercase tracking-widest px-1.5 py-0.2 rounded ${
-                          isNeed
-                            ? 'bg-sky-100 dark:bg-sky-900 text-sky-800 dark:text-sky-300'
-                            : 'bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-300'
-                        }`}
-                      >
-                        {isNeed ? '🎯 Seeking' : '🤝 Offering'}
-                      </span>
-                      <h4 className="font-extrabold text-sm text-stone-900 dark:text-stone-100 mt-1">
-                        {item.memberName}
-                      </h4>
-                      <p className="text-[11px] text-stone-500 font-medium">
-                        {item.memberRole} ·{' '}
-                        {typeof item.memberLocation === 'string'
-                          ? item.memberLocation
-                          : item.memberLocation?.city || 'Egypt'}
-                      </p>
-                    </div>
+        {/* Event Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {filteredEvents.map((evt) => {
+            const isRsvped = userRsvps.includes(evt.id);
+            const isOffline = evt.format === 'offline';
 
+            return (
+              <div
+                key={evt.id}
+                className="p-5 rounded-3xl border border-slate-200/90 dark:border-stone-800 bg-gradient-to-b from-white to-slate-50/50 dark:from-stone-850 dark:to-stone-900 hover:border-emerald-400 dark:hover:border-emerald-500 transition-all space-y-4 shadow-xs hover:shadow-lg group flex flex-col justify-between"
+              >
+                <div className="space-y-3.5">
+                  <div className="flex items-center justify-between gap-2">
                     <span
-                      className={`badge ${stage.bg} ${stage.text} border ${stage.border} text-[9px] font-bold px-1.5 py-0.2`}
+                      className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
+                        isOffline
+                          ? 'bg-orange-50 text-orange-800 border-orange-200 dark:bg-orange-950/60 dark:text-orange-300 dark:border-orange-800'
+                          : 'bg-sky-50 text-sky-800 border-sky-200 dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-800'
+                      }`}
                     >
-                      {stage.icon} {stage.label}
+                      {isOffline ? '🏛️ In-Person Gathering' : '🌐 Virtual Masterclass'}
+                    </span>
+
+                    <span className="text-xs font-bold text-slate-500 dark:text-stone-400 bg-slate-100 dark:bg-stone-800 px-2 py-0.5 rounded-md border border-slate-200 dark:border-stone-700">
+                      {evt.category}
                     </span>
                   </div>
 
-                  <p className="text-xs text-stone-800 dark:text-stone-200 font-semibold leading-relaxed bg-white/80 dark:bg-stone-900/70 p-2.5 rounded-xl border border-stone-200/60 dark:border-stone-800">
-                    "{item.text}"
+                  <div>
+                    <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors leading-snug">
+                      {evt.title}
+                    </h4>
+                    {evt.titleAr && (
+                      <p className="text-xs text-slate-600 dark:text-stone-400 font-bold mt-0.5" dir="rtl">
+                        {evt.titleAr}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs bg-slate-50 dark:bg-stone-800/60 p-3 rounded-2xl border border-slate-100 dark:border-stone-750">
+                    <div className="flex items-center gap-2 text-slate-800 dark:text-stone-200 font-bold">
+                      <Clock size={14} className="text-amber-500 shrink-0" />
+                      <span>{evt.displayDate}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-slate-600 dark:text-stone-400 font-medium">
+                      {isOffline ? (
+                        <MapPin size={14} className="text-emerald-500 shrink-0" />
+                      ) : (
+                        <Video size={14} className="text-sky-500 shrink-0" />
+                      )}
+                      <span className="truncate">{evt.location}</span>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-slate-600 dark:text-stone-300 leading-relaxed font-medium">
+                    {evt.description}
                   </p>
 
-                  <div className="flex items-center justify-between pt-0.5">
-                    <div className="flex flex-wrap gap-1">
-                      {item.verticals.map((v) => (
-                        <span
-                          key={v}
-                          className="text-[8.5px] font-mono font-bold px-1.5 py-0.2 rounded bg-stone-200/80 dark:bg-stone-800 text-stone-700 dark:text-stone-300"
-                        >
-                          #{v}
-                        </span>
-                      ))}
+                  <div className="flex flex-wrap gap-1.5">
+                    {evt.tags.map((t) => (
+                      <span
+                        key={t}
+                        className="text-[11px] font-semibold px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-stone-800 text-slate-700 dark:text-stone-300 border border-slate-200 dark:border-stone-700"
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-stone-800 text-xs">
+                    <div className="flex items-center gap-2.5">
+                      <img
+                        src={evt.hostAvatar}
+                        alt={evt.hostName}
+                        className="w-8 h-8 rounded-full object-cover ring-2 ring-emerald-400"
+                      />
+                      <div>
+                        <div className="font-extrabold text-xs text-slate-900 dark:text-white">
+                          {evt.hostName}
+                        </div>
+                        <div className="text-[10px] text-slate-500 dark:text-stone-400">
+                          {evt.hostRole}
+                        </div>
+                      </div>
                     </div>
 
-                    <span className="text-xs font-bold text-orange-600 dark:text-orange-400 flex items-center gap-0.5">
-                      View Profile & Outreach ➔
-                    </span>
+                    <div className="text-right">
+                      <span className="text-xs font-bold text-slate-700 dark:text-stone-300">
+                        {evt.attendeesCount} / {evt.capacity} Attending
+                      </span>
+                      <div className="w-20 h-1.5 bg-slate-200 dark:bg-stone-750 rounded-full overflow-hidden mt-1">
+                        <div
+                          className="h-full bg-emerald-500 rounded-full"
+                          style={{ width: `${Math.min(100, (evt.attendeesCount / evt.capacity) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
-              );
-            })
-          )}
+
+                {/* Event Actions Toolbar */}
+                <div className="grid grid-cols-2 gap-2 pt-3 border-t border-slate-100 dark:border-stone-800 text-xs">
+                  <a
+                    href={generateGoogleCalendarUrl(evt)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-stone-100 text-white dark:text-slate-900 font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition"
+                    title="Add event to Google Calendar"
+                  >
+                    <CalendarPlus size={13} />
+                    <span>Add to Google Cal</span>
+                  </a>
+
+                  <button
+                    onClick={() => handleToggleRsvp(evt.id, evt.title)}
+                    className={`py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 border transition cursor-pointer ${
+                      isRsvped
+                        ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 shadow-xs'
+                        : 'bg-white dark:bg-stone-800 text-slate-700 dark:text-stone-300 border-slate-200 dark:border-stone-700 hover:border-emerald-400'
+                    }`}
+                  >
+                    <UserCheck size={13} className={isRsvped ? 'text-emerald-600' : ''} />
+                    <span>{isRsvped ? '✓ Attending' : 'RSVP: Attending'}</span>
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
+
       </div>
 
-      {/* ── Direct-Action Profile Details Modal ───────────────────────────────── */}
+      {/* ── 7. BILATERAL INTRO MODAL (Admin) ─────────────── */}
+      {bilateralPairing && (
+        <Modal
+          isOpen={!!bilateralPairing}
+          onClose={() => setBilateralPairing(null)}
+          title="Curated Member Introduction"
+          size="md"
+        >
+          <div className="space-y-4 text-xs text-slate-900 dark:text-white">
+            <div className="flex items-center justify-between p-3.5 bg-emerald-50 dark:bg-emerald-950/40 rounded-2xl border border-emerald-200 dark:border-emerald-800">
+              <div className="font-extrabold text-emerald-900 dark:text-emerald-200">
+                Mutual Complementarity: {bilateralPairing.score || 90}%
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIntroLanguage('ar')}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
+                    introLanguage === 'ar' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-700'
+                  }`}
+                >
+                  العربية
+                </button>
+                <button
+                  onClick={() => setIntroLanguage('en')}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
+                    introLanguage === 'en' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-700'
+                  }`}
+                >
+                  English
+                </button>
+              </div>
+            </div>
+
+            <div className="p-4 bg-slate-50 dark:bg-stone-850 rounded-2xl border border-slate-200 dark:border-stone-700 font-mono text-[11.5px] leading-relaxed whitespace-pre-wrap">
+              {generateBilateralMessage(bilateralPairing, introLanguage)}
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                onClick={handleCopyBilateralMessage}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+              >
+                {copiedIntro ? <Check size={14} className="text-white" /> : <Copy size={14} />}
+                <span>{copiedIntro ? 'Copied!' : 'Copy Intro Text'}</span>
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── 8. MEMBER DETAIL MODAL ─────────────────────────────── */}
       {detailMember && (
         <Modal
           isOpen={!!detailMember}
           onClose={() => setDetailMember(null)}
-          title="Founder Profile & Synergy Intelligence"
+          title="Community Member Profile"
           size="lg"
         >
-          <div className="space-y-5 text-stone-900 dark:text-stone-100 text-xs">
-            {/* Header Card in Modal */}
-            <div className="flex items-start justify-between gap-4 p-4 bg-stone-50 dark:bg-stone-800/80 rounded-2xl border border-stone-200/80 dark:border-stone-700">
-              <div className="flex items-center gap-4">
-                <div
-                  className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${getAvatarGradient(
-                    detailMember.name
-                  )} text-white font-black text-xl flex items-center justify-center shrink-0 shadow-md ring-2 ring-stone-200 dark:ring-stone-700`}
-                >
-                  {getInitials(detailMember.name)}
+          {(() => {
+            const member = detailMember;
+            const { english, arabic, primary } = parseMemberName(member.name);
+            const stage = STAGES[member.stage] || STAGES.idea;
+            const initials = getInitials(member.name);
+            const gradient = getAvatarGradient(member.name);
+            const flag = getCountryFlag(member.location?.country);
+            const websites = getMemberWebsites(member);
+            const isLinkedInValid = isValidLinkedInUrl(member.linkedin);
+            const linkedInHref = isLinkedInValid ? formatLinkedInUrl(member.linkedin) : null;
+
+            return (
+              <div className="space-y-5 text-slate-900 dark:text-stone-100 text-xs">
+                <div className="flex items-start justify-between gap-4 p-5 bg-gradient-to-br from-emerald-50/70 via-teal-50/40 to-white dark:from-stone-800 dark:to-stone-900 rounded-3xl border border-emerald-200/80 dark:border-stone-700 shadow-sm">
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} text-white font-black text-xl flex items-center justify-center shrink-0 shadow-md ring-2 ring-white dark:ring-stone-700`}
+                    >
+                      {initials}
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-extrabold text-slate-950 dark:text-white">
+                        {english || arabic || primary}
+                      </h3>
+                      {english && arabic && (
+                        <p className="text-xs font-bold text-slate-700 dark:text-stone-300 mt-0.5" dir="rtl">
+                          {arabic}
+                        </p>
+                      )}
+                      <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400 mt-0.5">
+                        {member.role || 'Member'}
+                      </p>
+                      {member.business && member.business !== member.role && (
+                        <p className="text-xs text-slate-600 dark:text-stone-300 font-semibold mt-0.5">
+                          🏢 {member.business}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-bold border ${stage.bg} ${stage.text} ${stage.border}`}
+                  >
+                    {stage.icon} {stage.label}
+                  </span>
                 </div>
-                <div>
-                  <h3 className="text-lg font-extrabold text-stone-950 dark:text-white">
-                    {detailMember.name}
-                  </h3>
-                  <p className="text-xs font-bold text-orange-600 dark:text-orange-400">
-                    {detailMember.role || 'Member'}
-                  </p>
-                  {detailMember.business && (
-                    <p className="text-xs text-stone-600 dark:text-stone-300 font-semibold mt-0.5">
-                      🏢 {detailMember.business}
-                    </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {member.lookingFor && (
+                    <div className="p-4 bg-amber-50/80 dark:bg-amber-950/30 rounded-2xl border border-amber-200 dark:border-amber-900/50 space-y-1">
+                      <span className="font-bold text-amber-900 dark:text-amber-300 text-xs uppercase tracking-wider block">
+                        🎯 Looking For (Need)
+                      </span>
+                      <p className="text-slate-800 dark:text-stone-200 text-xs leading-relaxed" dir="auto">
+                        {member.lookingFor}
+                      </p>
+                    </div>
+                  )}
+
+                  {member.canHelp && (
+                    <div className="p-4 bg-emerald-50/80 dark:bg-emerald-950/30 rounded-2xl border border-emerald-200 dark:border-emerald-900/50 space-y-1">
+                      <span className="font-bold text-emerald-900 dark:text-emerald-300 text-xs uppercase tracking-wider block">
+                        💡 Can Help With (Skill / Offer)
+                      </span>
+                      <p className="text-slate-800 dark:text-stone-200 text-xs leading-relaxed" dir="auto">
+                        {member.canHelp}
+                      </p>
+                    </div>
                   )}
                 </div>
-              </div>
 
-              <div className="flex flex-col items-end gap-1.5">
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-bold border ${
-                    STAGES[detailMember.stage]?.bg
-                  } ${STAGES[detailMember.stage]?.text} ${STAGES[detailMember.stage]?.border}`}
-                >
-                  {STAGES[detailMember.stage]?.icon} {STAGES[detailMember.stage]?.label}
-                </span>
-                {detailMember.location && (
-                  <span className="text-[11px] font-semibold text-stone-500">
-                    {getCountryFlag(detailMember.location?.country)}{' '}
-                    {typeof detailMember.location === 'string'
-                      ? detailMember.location
-                      : [detailMember.location?.city, detailMember.location?.country]
-                          .filter(Boolean)
-                          .join(', ')}
-                  </span>
-                )}
-              </div>
-            </div>
+                <div className="pt-3 border-t border-slate-200 dark:border-stone-800 flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        downloadVCardFile(member, false);
+                        notify(`Saved ${member.name}'s contact card`);
+                      }}
+                      className="px-3.5 py-2 bg-slate-100 dark:bg-stone-800 hover:bg-slate-200 text-slate-800 dark:text-stone-200 rounded-xl font-bold text-xs flex items-center gap-1.5 transition"
+                    >
+                      <Download size={14} />
+                      <span>Save Contact (.vcf)</span>
+                    </button>
 
-            {/* Needs & Offers Full Sections */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 rounded-xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200/80 dark:border-blue-900/40 space-y-2">
-                <h4 className="font-extrabold text-blue-900 dark:text-blue-300 text-xs uppercase tracking-wider flex items-center gap-1.5">
-                  🎯 Looking For / Needs:
-                </h4>
-                <p className="text-xs text-stone-800 dark:text-stone-200 leading-relaxed font-medium">
-                  {detailMember.lookingFor ||
-                    'Open to general business synergies and strategic connections.'}
-                </p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-900/40 space-y-2">
-                <h4 className="font-extrabold text-emerald-900 dark:text-emerald-300 text-xs uppercase tracking-wider flex items-center gap-1.5">
-                  💡 Can Help With / Offering:
-                </h4>
-                <p className="text-xs text-stone-800 dark:text-stone-200 leading-relaxed font-medium">
-                  {detailMember.canHelp || 'Industry insights, advisory, and networking support.'}
-                </p>
-              </div>
-            </div>
-
-            {/* Links & Verified Resources */}
-            {(() => {
-              const dWebsites = getMemberWebsites(detailMember);
-              const dLinkedInValid = isValidLinkedInUrl(detailMember.linkedin);
-              const dLinkedInHref = dLinkedInValid
-                ? formatLinkedInUrl(detailMember.linkedin)
-                : null;
-              const dWaUrl = buildWhatsAppUrl(detailMember.phone);
-
-              return (
-                <div className="p-3.5 bg-stone-50 dark:bg-stone-850 rounded-xl border border-stone-200 dark:border-stone-750 space-y-2">
-                  <h4 className="font-bold text-[11px] uppercase tracking-wider text-stone-500">
-                    Verified Links & Direct Actions
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {dLinkedInValid && (
+                    {isLinkedInValid && (
                       <a
-                        href={dLinkedInHref}
+                        href={linkedInHref}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 font-bold hover:bg-blue-600 hover:text-white transition-all"
+                        className="px-3.5 py-2 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 hover:bg-blue-600 hover:text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition border border-blue-200 dark:border-blue-800"
                       >
-                        <Linkedin size={13} /> LinkedIn Profile
+                        <Linkedin size={14} />
+                        <span>LinkedIn</span>
                       </a>
                     )}
-                    {isAdmin && dWaUrl && (
-                      <a
-                        href={dWaUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-bold hover:bg-emerald-600 hover:text-white transition-all"
-                      >
-                        <MessageCircle size={13} /> Admin: Direct WhatsApp
-                      </a>
-                    )}
-                    {dWebsites.map((w, idx) => (
-                      <a
-                        key={`${w.url}-${idx}`}
-                        href={w.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-800 dark:text-stone-200 border border-stone-300 dark:border-stone-700 font-bold hover:bg-stone-800 hover:text-white transition-all"
-                      >
-                        <ExternalLink size={13} />
-                        <span>{w.label || `Website ${idx + 1}`}</span>
-                      </a>
-                    ))}
-                    {Array.isArray(detailMember.catalogues) &&
-                      detailMember.catalogues.map((cat, idx) => (
-                        <a
-                          key={idx}
-                          href={cat}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 font-bold hover:bg-purple-600 hover:text-white transition-all"
-                        >
-                          <FileText size={13} /> Catalogue #{idx + 1}
-                        </a>
-                      ))}
                   </div>
+
+                  <button
+                    onClick={() => setDetailMember(null)}
+                    className="px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-xs hover:opacity-90 transition"
+                  >
+                    Close
+                  </button>
                 </div>
-              );
-            })()}
-
-            {/* Action Bar */}
-            <div className="pt-4 border-t border-stone-200 dark:border-stone-800 flex items-center justify-between flex-wrap gap-2">
-              <button
-                onClick={(e) => {
-                  downloadVCardFile(detailMember, isAdmin);
-                  notify(`Saved ${detailMember.name}'s contact card (.vcf)`);
-                }}
-                className="btn-primary text-xs font-bold py-2"
-              >
-                <Download size={13} /> Save Contact (.vcf)
-              </button>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    setEditMember(detailMember);
-                    setDetailMember(null);
-                  }}
-                  className="btn-secondary text-xs font-bold py-2"
-                >
-                  <Edit2 size={13} /> Edit Profile
-                </button>
               </div>
-            </div>
-          </div>
+            );
+          })()}
         </Modal>
       )}
 
-      {/* ── Bilateral Introduction Facilitation Hub Modal (Admin Only) ──────────────── */}
-      {isAdmin && bilateralPairing && (
-        <Modal
-          isOpen={!!bilateralPairing}
-          onClose={() => setBilateralPairing(null)}
-          title="🤝 Facilitate Bilateral Introduction"
-          size="md"
-        >
-          <div className="space-y-4 text-xs text-stone-900 dark:text-stone-100">
-            {/* Pairing Header */}
-            <div className="p-3.5 bg-gradient-to-r from-emerald-800 to-teal-900 text-white rounded-2xl flex items-center justify-between shadow-md">
-              <div>
-                <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-300 block">
-                  Bilateral Introduction
-                </span>
-                <h4 className="text-sm font-extrabold text-white mt-0.5">
-                  {bilateralPairing.memberA.name} ⇄ {bilateralPairing.memberB.name}
-                </h4>
-              </div>
-              <span className="text-xs font-mono font-black px-2.5 py-1 rounded-lg bg-white/20 text-white border border-white/20">
-                ⚡ {bilateralPairing.score}% Synergy
-              </span>
-            </div>
-
-            {/* Language Switcher */}
-            <div className="flex items-center justify-between">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
-                Pre-Generated Introduction Message:
-              </label>
-              <div className="flex bg-stone-100 dark:bg-stone-800 p-0.5 rounded-lg border border-stone-200 dark:border-stone-700">
-                <button
-                  onClick={() => setIntroLanguage('ar')}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-bold cursor-pointer ${
-                    introLanguage === 'ar'
-                      ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'text-stone-600 dark:text-stone-300'
-                  }`}
-                >
-                  🇪🇬 Arabic
-                </button>
-                <button
-                  onClick={() => setIntroLanguage('en')}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-bold cursor-pointer ${
-                    introLanguage === 'en'
-                      ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'text-stone-600 dark:text-stone-300'
-                  }`}
-                >
-                  🇬🇧 English
-                </button>
-              </div>
-            </div>
-
-            {/* Editable Bilateral Message Box */}
-            <div
-              dir={introLanguage === 'ar' ? 'rtl' : 'ltr'}
-              className="p-3.5 bg-stone-50 dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 text-xs leading-relaxed font-medium text-stone-800 dark:text-stone-200 select-all whitespace-pre-line"
-            >
-              {generateBilateralMessage(bilateralPairing, introLanguage)}
-            </div>
-
-            {/* Actions */}
-            <div className="pt-2 flex items-center justify-between gap-2 border-t border-stone-200 dark:border-stone-800">
-              <button
-                onClick={handleCopyBilateralMessage}
-                className="btn-secondary text-xs py-2 px-3 flex items-center gap-1.5 cursor-pointer"
-              >
-                {copiedIntro ? (
-                  <Check size={13} className="text-emerald-600" />
-                ) : (
-                  <Copy size={13} />
-                )}
-                <span>{copiedIntro ? 'Copied to Clipboard!' : 'Copy Introduction Text'}</span>
-              </button>
-
-              <button
-                onClick={() => setBilateralPairing(null)}
-                className="btn-primary text-xs py-2 px-4 cursor-pointer"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </Modal>
-      )}
-
-      {/* Edit Member Modal */}
-      {editMember && (
-        <EditMemberModal
-          member={editMember}
-          isOpen={!!editMember}
-          onClose={() => setEditMember(null)}
-          onSaved={(updated) => {
-            refreshMembers();
-            setEditMember(null);
-          }}
-        />
-      )}
     </div>
   );
 }

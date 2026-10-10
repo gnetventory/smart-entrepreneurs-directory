@@ -39,7 +39,7 @@ export default function EmptyState({ isFiltered = false }) {
         Your community directory is empty
       </h3>
       <p className="text-stone-500 dark:text-stone-400 text-xs mb-6 max-w-sm leading-relaxed">
-        Paste any member introduction from WhatsApp — AI will automatically extract their profile,
+        Submit new member introductions via the intake form — AI will automatically structure their profile,
         role, skills, and stage.
       </p>
       <button onClick={() => setActiveTab('add')} className="btn-primary text-xs">

@@ -277,12 +277,6 @@ export default function GlobalAllianceMap({
           {isFullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
         </button>
       </div>
-
-      {/* Global Map Status Badge */}
-      <div className="absolute bottom-3 left-3 z-[1000] px-3 py-1.5 rounded-xl bg-white/95 dark:bg-stone-900/95 backdrop-blur-md shadow-md text-[11px] font-bold text-stone-700 dark:text-stone-300 border border-stone-200/80 dark:border-stone-700 flex items-center gap-2 pointer-events-none">
-        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-        <span>Esri World Street Map · Global Alliance GIS</span>
-      </div>
     </div>
   );
 }

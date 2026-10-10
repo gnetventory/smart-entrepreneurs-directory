@@ -37,11 +37,11 @@ export function parseWhatsAppChatText(rawText) {
 
   // Regex patterns for WhatsApp message headers
   const iosPattern =
-    /^\[(\d{1,2}[\/\.\-]\d{1,2}[\/\.\-]\d{2,4}),?\s+(\d{1,2}:\d{2}(?::\d{2})?(?:\s*[APap][Mm])?)\]\s+([^:]+?):\s+(.*)$/;
+    /^\[(\d{1,2}[-./]\d{1,2}[-./]\d{2,4}),?\s+(\d{1,2}:\d{2}(?::\d{2})?(?:\s*[APap][Mm])?)\]\s+([^:]+?):\s+(.*)$/;
   const androidPattern =
-    /^(\d{1,2}[\/\.\-]\d{1,2}[\/\.\-]\d{2,4}),?\s+(\d{1,2}:\d{2}(?::\d{2})?(?:\s*[APap][Mm])?)\s+-\s+([^:]+?):\s+(.*)$/;
+    /^(\d{1,2}[-./]\d{1,2}[-./]\d{2,4}),?\s+(\d{1,2}:\d{2}(?::\d{2})?(?:\s*[APap][Mm])?)\s+-\s+([^:]+?):\s+(.*)$/;
   const bracketPattern =
-    /^\[(\d{1,2}:\d{2}(?::\d{2})?(?:\s*[APap][Mm])?),?\s+(\d{1,2}[\/\.\-]\d{1,2}[\/\.\-]\d{2,4})\]\s+([^:]+?):\s+(.*)$/;
+    /^\[(\d{1,2}:\d{2}(?::\d{2})?(?:\s*[APap][Mm])?),?\s+(\d{1,2}[-./]\d{1,2}[-./]\d{2,4})\]\s+([^:]+?):\s+(.*)$/;
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -109,8 +109,8 @@ export function parseMarkdownNotes(rawMarkdown) {
     // Extract sender name from markdown header if present
     const headerMatch = trimmed.match(/^#{2,3}\s+(.+)$/m) || trimmed.match(/^#\s+(.+)$/m);
     const nameMatch =
-      trimmed.match(/\*\*(?:Full )?Name\*\*\s*[:\-]?\s*([^\n\r*]+)/i) ||
-      trimmed.match(/(?:Name\s*[:\-])\s*([^\n\r]+)/i);
+      trimmed.match(/\*\*(?:Full )?Name\*\*\s*[:-]?\s*([^\n\r*]+)/i) ||
+      trimmed.match(/(?:Name\s*[:-])\s*([^\n\r]+)/i);
 
     const sender = headerMatch
       ? headerMatch[1].trim()

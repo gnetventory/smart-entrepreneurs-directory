@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   getInitials,
+  parseMemberName,
   getAvatarGradient,
   normalizePhone,
   buildWhatsAppUrl,
@@ -10,8 +11,37 @@ import {
 } from '../src/utils/helpers';
 
 describe('helpers.js unit tests', () => {
+  it('parseMemberName splits English and Arabic names correctly', () => {
+    expect(parseMemberName('(WALAA SALMAN) ولاء سالمان')).toEqual({
+      english: 'WALAA SALMAN',
+      arabic: 'ولاء سالمان',
+      primary: 'WALAA SALMAN',
+    });
+    expect(parseMemberName('AHMAD KHALIL (أحمد خليل)')).toEqual({
+      english: 'AHMAD KHALIL',
+      arabic: 'أحمد خليل',
+      primary: 'AHMAD KHALIL',
+    });
+    expect(parseMemberName('محمد ناجح (MOHAMED NAGEH)')).toEqual({
+      english: 'MOHAMED NAGEH',
+      arabic: 'محمد ناجح',
+      primary: 'MOHAMED NAGEH',
+    });
+    expect(parseMemberName('John Doe')).toEqual({
+      english: 'John Doe',
+      arabic: '',
+      primary: 'John Doe',
+    });
+    expect(parseMemberName('أحمد علي')).toEqual({
+      english: '',
+      arabic: 'أحمد علي',
+      primary: 'أحمد علي',
+    });
+  });
+
   it('getInitials extracts initials correctly', () => {
     expect(getInitials('Maria Silva')).toBe('MS');
+    expect(getInitials('(WALAA SALMAN) ولاء سالمان')).toBe('WS');
     expect(getInitials('Ahmed')).toBe('AH');
     expect(getInitials('')).toBe('SE');
   });

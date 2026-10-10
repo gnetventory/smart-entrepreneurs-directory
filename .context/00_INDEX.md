@@ -1,8 +1,8 @@
 # Context Map & Selection Protocol
-To prevent context rot, read ONLY the file relevant to your immediate task:
+To prevent context rot, use `omni context <id>` to load ONLY the file relevant to your active phase:
 
-- **01_PRODUCT_AND_ROADMAP.md**: Strategy, feature specifications, sprint backlog.
-- **02_SYSTEM_ARCHITECTURE.md**: Tech stack, database models, directory map, API endpoints.
-- **03_DESIGN_SYSTEM.md**: Color tokens, typography scales, visual archetype specs.
-- **04_SECURITY_AND_OPS.md**: Secrets, environment limits, allowed/denied CLI commands.
-- **05_STATE.md**: Current sprint, architectural decision records (ADRs), open bugs.
+- **01 (roadmap)**: Strategy, feature specifications, sprint backlog.
+- **02 (arch)**: Tech stack, database models, directory map, deployment targets.
+- **03 (design)**: Color tokens, typography scales, visual archetype specs.
+- **04 (sec)**: Secrets, hosting limits, allowed/denied CLI commands.
+- **05 (state)**: Active sprint, ADRs, verification status.

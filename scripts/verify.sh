@@ -10,17 +10,16 @@ ATTEMPTS=$(cat "$ATTEMPT_FILE" 2>/dev/null || echo 0)
 ATTEMPTS=$((ATTEMPTS + 1))
 echo "$ATTEMPTS" > "$ATTEMPT_FILE"
 
-echo "🔍 Running Verification Pipeline (Attempt ${ATTEMPTS}/${MAX_ATTEMPTS})..."
+echo "🔍 [Omni Pipeline] Running Full Verification (Attempt ${ATTEMPTS}/${MAX_ATTEMPTS})..."
 
 if [ "$ATTEMPTS" -gt "$MAX_ATTEMPTS" ]; then
-    echo "🛑 MAXIMUM RETRY CAP REACHED (${MAX_ATTEMPTS}/${MAX_ATTEMPTS})."
-    echo "Execution halted to prevent infinite token loops."
+    echo "🛑 MAXIMUM RETRY CAP REACHED (${MAX_ATTEMPTS}/${MAX_ATTEMPTS}). Halting execution."
     exit 99
 fi
 
-if [ -f "./scripts/check-tokens.sh" ]; then
-    ./scripts/check-tokens.sh
-fi
+./scripts/scan-secrets.sh
+./scripts/check-env.sh
+[ -f "./scripts/check-tokens.sh" ] && ./scripts/check-tokens.sh
 
 if [ -f "package.json" ]; then
     if grep -q '"typecheck"' package.json; then npm run typecheck; fi
@@ -32,4 +31,4 @@ elif [ -f "pyproject.toml" ] || [ -f "requirements.txt" ]; then
 fi
 
 rm -f "$ATTEMPT_FILE"
-echo "✅ Verification succeeded!"
+echo "✅ Verification pipeline passed!"

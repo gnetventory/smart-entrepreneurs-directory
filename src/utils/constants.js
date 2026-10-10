@@ -40,7 +40,32 @@ export const STAGES = {
 
 export const STAGE_OPTIONS = ['idea', 'starting', 'running', 'growing'];
 
-// ─── Industry Tags ─────────────────────────────────────────────────────────────
+// ─── Controlled Canonical Sectors ──────────────────────────────────────────────
+export const CONTROLLED_SECTORS = [
+  { id: 'tech_saas', label: 'Technology, Software & AI', keywords: ['tech', 'software', 'saas', 'ai', 'ml', 'app', 'web', 'it', 'cloud', 'data', 'برمجة', 'تقنية'] },
+  { id: 'ecommerce_retail', label: 'E-Commerce, D2C & Retail', keywords: ['e-commerce', 'ecommerce', 'retail', 'd2c', 'shop', 'fashion', 'store', 'marketplace', 'تجارة إلكترونية', 'تسوق'] },
+  { id: 'marketing_media', label: 'Marketing, Media & Design', keywords: ['marketing', 'media', 'brand', 'design', 'content', 'social media', 'creative', 'ads', 'تسويق', 'إعلام'] },
+  { id: 'logistics_ops', label: 'Logistics & Supply Chain', keywords: ['logistic', 'supply chain', 'freight', 'shipping', 'warehouse', 'delivery', 'export', 'import', 'لوجستيات', 'شحن', 'تصدير'] },
+  { id: 'fintech_finance', label: 'FinTech & Financial Services', keywords: ['fintech', 'finance', 'payment', 'banking', 'invest', 'accounting', 'مدفوعات', 'مالية'] },
+  { id: 'health_wellness', label: 'Healthcare & HealthTech', keywords: ['health', 'medtech', 'pharma', 'clinic', 'wellness', 'biotech', 'صحة', 'طب'] },
+  { id: 'realestate_proptech', label: 'Real Estate & PropTech', keywords: ['proptech', 'real estate', 'property', 'broker', 'construction', 'عقارات', 'تطوير عقاري'] },
+  { id: 'food_beverage', label: 'Food, Beverage & AgTech', keywords: ['food', 'beverage', 'f&b', 'restaurant', 'cafe', 'agtech', 'agriculture', 'أغذية', 'مطاعم', 'زراعة'] },
+  { id: 'education_hr', label: 'EdTech, HR & Talent', keywords: ['edtech', 'education', 'hr', 'talent', 'recruit', 'hiring', 'training', 'تعليم', 'توظيف'] },
+  { id: 'advisory_legal', label: 'Advisory, Legal & Consulting', keywords: ['consulting', 'advisory', 'legal', 'law', 'strategy', 'tax', 'استشارات', 'قانوني'] },
+];
+
+export function getMemberCanonicalSector(member) {
+  if (!member) return 'General Venture';
+  const combined = `${member.business || ''} ${member.role || ''} ${(member.tags || []).join(' ')} ${member.lookingFor || ''} ${member.canHelp || ''}`.toLowerCase();
+  for (const s of CONTROLLED_SECTORS) {
+    if (s.keywords.some((k) => combined.includes(k))) {
+      return s.label;
+    }
+  }
+  return 'General Venture';
+}
+
+// ─── Legacy Industry Tags (kept for backwards-compatibility) ────────────────────
 export const INDUSTRY_TAGS = [
   'FinTech',
   'EdTech',
@@ -137,22 +162,22 @@ export const GOOGLE_FORM_URL =
 export const NAV_TABS = [
   {
     id: 'dashboard',
-    label: 'Dashboard',
+    label: 'Community Snapshot',
     icon: 'BarChart3',
-    description: 'Executive intelligence & KPI ribbon',
+    description: 'Overview of members, community needs & gaps',
   },
-  { id: 'directory', label: 'Directory', icon: 'Users', description: 'Browse all members' },
+  { id: 'directory', label: 'Directory', icon: 'Users', description: 'Browse all founders & ventures' },
   {
     id: 'radar',
-    label: 'Match Radar',
+    label: 'Find Your Match',
     icon: 'Radio',
-    description: 'Interactive synergy matching radar',
+    description: 'Complementary founder synergies & pairings',
   },
   {
     id: 'map',
     label: 'Alliance Atlas',
     icon: 'Globe',
-    description: 'Geographic ecosystem & founder distribution',
+    description: 'Egypt, Gulf & Regional founder distribution',
   },
 ];
 

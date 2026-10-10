@@ -45,6 +45,8 @@ import {
   saveNiaEmail,
   updateMember,
   deleteMember,
+  getMembers,
+  saveMembers,
 } from '../../utils/storage';
 import {
   syncFromGoogleSheets,
@@ -269,7 +271,7 @@ export default function NiaPanel({ onLock }) {
       };
 
       updateMember(existingMember.id, updatedFields);
-      deleteMember(pendingMember.id);
+      deleteMember(pendingMember.id, { skipNameTombstone: true });
 
       await approveMember({ ...existingMember, ...updatedFields });
       refreshMembers();

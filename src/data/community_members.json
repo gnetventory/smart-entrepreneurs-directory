@@ -2783,5 +2783,809 @@
     "originalLanguage": "ar",
     "createdAt": "2026-09-30T04:47:09.816Z",
     "updatedAt": "2026-10-04T15:47:09.816Z"
+  },
+  {
+    "id": "sheet-row-8",
+    "sheetRowIndex": 8,
+    "name": "Ehab Negm",
+    "email": "ehab@dars.education",
+    "role": "Founder",
+    "business": "Dars.education \nAI tutoring platform for STEM students",
+    "stage": "starting",
+    "lookingFor": "Mentorship, Co Founder",
+    "canHelp": "Advice / expertise",
+    "location": {
+      "country": "Egypt",
+      "city": "6th of October"
+    },
+    "phone": "+201558950484",
+    "linkedin": "https://www.linkedin.com/in/ehab-negm-216101394?utm_source=share_via&utm_content=profile&utm_medium=member_ios",
+    "website": "https://www.linkedin.com/in/ehab-negm-216101394?utm_source=share_via&utm_content=profile&utm_medium=member_ios",
+    "secondaryWebsite": "",
+    "websites": [
+      "https://www.linkedin.com/in/ehab-negm-216101394?utm_source=share_via&utm_content=profile&utm_medium=member_ios"
+    ],
+    "tags": [
+      "Education & Training"
+    ],
+    "appStatus": "EDITED_IN_APP",
+    "status": "active",
+    "formTimestamp": "2026-10-07T16:42:20.439Z",
+    "createdAt": "2026-10-07T16:42:20.439Z",
+    "updatedAt": "2026-10-10T02:09:38.736Z",
+    "isFromGoogleForm": true
+  },
+  {
+    "id": "sheet-row-9",
+    "sheetRowIndex": 9,
+    "name": "Mohamed Osama Saleh Ahmed",
+    "email": "mo99saleh@gmail.com",
+    "role": "Software Engineer",
+    "business": "Menuhatak is a digital menu platform that helps restaurants and cafés create branded, multilingual menus accessible through QR codes or a shareable link. We make it easy to update items and prices, receive orders via WhatsApp, and track customer engagement—all from one simple dashboard.",
+    "stage": "starting",
+    "lookingFor": "Networking, Business Advice, Collaboration, Clients/Customers, Funding/Investors, Job /Career opportunities",
+    "canHelp": "Software Technical Knowledge",
+    "location": {
+      "country": "Egypt",
+      "city": "Maadi"
+    },
+    "phone": "+201007025929",
+    "linkedin": "https://www.linkedin.com/in/mossssama",
+    "website": "https://www.linkedin.com/in/mossssama",
+    "secondaryWebsite": "",
+    "websites": [
+      "https://www.linkedin.com/in/mossssama"
+    ],
+    "tags": [
+      "Information Technology & Software"
+    ],
+    "appStatus": "EDITED_IN_APP",
+    "status": "active",
+    "formTimestamp": "2026-10-07T17:23:01.550Z",
+    "createdAt": "2026-10-07T17:23:01.550Z",
+    "updatedAt": "2026-10-10T02:09:38.736Z",
+    "isFromGoogleForm": true
+  },
+  {
+    "id": "sheet-row-10",
+    "sheetRowIndex": 10,
+    "name": "Shady emad",
+    "email": "shady.shahin@dtsgroupintl.com",
+    "role": "CMO",
+    "business": "DTS is a system integrator specialises in offering software for healthcare providers. Thanks to our portfolio we successfully onboarded 4 clients in a year and a half.",
+    "stage": "running",
+    "lookingFor": "Networking, Business Advice, Clients/Customers, Funding/Investors",
+    "canHelp": "Mentorship, Advice / expertise",
+    "location": {
+      "country": "Egypt",
+      "city": "New Cairo"
+    },
+    "phone": "+201222196245",
+    "linkedin": "https://www.linkedin.com/company/digital-transformation-solutions-mena/",
+    "website": "https://www.linkedin.com/company/digital-transformation-solutions-mena/",
+    "secondaryWebsite": "",
+    "websites": [
+      "https://www.linkedin.com/company/digital-transformation-solutions-mena/"
+    ],
+    "tags": [
+      "Information Technology & Software"
+    ],
+    "appStatus": "EDITED_IN_APP",
+    "status": "active",
+    "formTimestamp": "2026-10-07T17:32:59.096Z",
+    "createdAt": "2026-10-07T17:32:59.096Z",
+    "updatedAt": "2026-10-10T02:09:38.736Z",
+    "isFromGoogleForm": true
+  },
+  {
+    "id": "sheet-row-11",
+    "sheetRowIndex": 11,
+    "name": "Shams Eldien Sallam",
+    "email": "shamseldiensallam@gmail.com",
+    "role": "Founder",
+    "business": "EVO Business Solutions/ We are help the B2B companies to scale their businesses and go to the GCC market",
+    "stage": "running",
+    "lookingFor": "Networking",
+    "canHelp": "Advice / expertise",
+    "location": {
+      "country": "Egypt",
+      "city": "Nasr City"
+    },
+    "phone": "+201557809654",
+    "linkedin": "https://www.linkedin.com/in/shams-eldien-sallam",
+    "website": "https://www.linkedin.com/in/shams-eldien-sallam",
+    "secondaryWebsite": "",
+    "websites": [
+      "https://www.linkedin.com/in/shams-eldien-sallam"
+    ],
+    "tags": [
+      "Business Services & Consulting"
+    ],
+    "appStatus": "EDITED_IN_APP",
+    "status": "active",
+    "formTimestamp": "2026-10-07T17:42:32.954Z",
+    "createdAt": "2026-10-07T17:42:32.954Z",
+    "updatedAt": "2026-10-10T02:09:38.736Z",
+    "isFromGoogleForm": true
+  },
+  {
+    "id": "sheet-row-12",
+    "sheetRowIndex": 12,
+    "name": "Radwa kamel",
+    "email": "rkamel@marope-eg.com",
+    "role": "Founder",
+    "business": "Marketing agency offers digital solutions",
+    "stage": "growing",
+    "lookingFor": "Networking",
+    "canHelp": "Advice / expertise",
+    "location": {
+      "country": "Egypt",
+      "city": "Maadi"
+    },
+    "phone": "+1158487815",
+    "linkedin": "https://www.linkedin.com/in/radwa-kamel?utm_source=share_via&utm_content=profile&utm_medium=member_ios",
+    "website": "https://www.linkedin.com/in/radwa-kamel?utm_source=share_via&utm_content=profile&utm_medium=member_ios",
+    "secondaryWebsite": "",
+    "websites": [
+      "https://www.linkedin.com/in/radwa-kamel?utm_source=share_via&utm_content=profile&utm_medium=member_ios"
+    ],
+    "tags": [
+      "Advertising & Marketing"
+    ],
+    "appStatus": "EDITED_IN_APP",
+    "status": "active",
+    "formTimestamp": "2026-10-07T18:14:14.336Z",
+    "createdAt": "2026-10-07T18:14:14.336Z",
+    "updatedAt": "2026-10-10T02:09:38.736Z",
+    "isFromGoogleForm": true
+  },
+  {
+    "id": "sheet-row-13",
+    "sheetRowIndex": 13,
+    "name": "Ahmed Sayed",
+    "email": "ahmeedsayed6066@gmail.com",
+    "role": "Dentist/Freelance/Founder",
+    "business": "Dentora Academy",
+    "stage": "running",
+    "lookingFor": "Networking, Business Advice",
+    "canHelp": "Mentorship, Advice / expertise",
+    "location": {
+      "country": "Egypt",
+      "city": "Mohandessin"
+    },
+    "phone": "+201055985211",
+    "linkedin": "@dr.ahmedsayedd",
+    "website": "",
+    "secondaryWebsite": "",
+    "websites": [],
+    "tags": [
+      "Education & Training"
+    ],
+    "appStatus": "EDITED_IN_APP",
+    "status": "active",
+    "formTimestamp": "2026-10-07T18:36:20.089Z",
+    "createdAt": "2026-10-07T18:36:20.089Z",
+    "updatedAt": "2026-10-10T02:09:38.736Z",
+    "isFromGoogleForm": true
+  },
+  {
+    "id": "sheet-row-14",
+    "sheetRowIndex": 14,
+    "name": "Ahmed Abaza",
+    "email": "ahmed.abaza@dbsegypt.com",
+    "role": "Sales Manager",
+    "business": "Managing sustainable Building material manufacturing company with private business in trading many building materials",
+    "stage": "growing",
+    "lookingFor": "Networking",
+    "canHelp": "Mentorship, Advice / expertise, Workshops / sessions",
+    "location": {
+      "country": "Egypt",
+      "city": "Maadi"
+    },
+    "phone": "+201220005005",
+    "linkedin": "https://www.linkedin.com/in/ahmedabaza?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app",
+    "website": "https://www.linkedin.com/in/ahmedabaza?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app",
+    "secondaryWebsite": "",
+    "websites": [
+      "https://www.linkedin.com/in/ahmedabaza?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app"
+    ],
+    "tags": [
+      "Construction & Real Estate"
+    ],
+    "appStatus": "EDITED_IN_APP",
+    "status": "active",
+    "formTimestamp": "2026-10-07T19:19:37.230Z",
+    "createdAt": "2026-10-07T19:19:37.230Z",
+    "updatedAt": "2026-10-10T02:09:38.736Z",
+    "isFromGoogleForm": true
+  },
+  {
+    "id": "sheet-row-15",
+    "sheetRowIndex": 15,
+    "name": "Eslam salah hosny",
+    "email": "eslamssalah2014@gmail.com",
+    "role": "Operations Manager",
+    "business": "Scaloraa.online \nThis is the first Platform in egypt speciefied in recorded courses in Busineaa\n\nZaad.com \nNatural producta",
+    "stage": "starting",
+    "lookingFor": "Networking",
+    "canHelp": "Mentorship, Advice / expertise, Workshops / sessions",
+    "location": {
+      "country": "Egypt",
+      "city": "Maadi"
+    },
+    "phone": "+201020215885",
+    "linkedin": "https://www.linkedin.com/in/eslam-salah-565520183?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+    "website": "https://www.linkedin.com/in/eslam-salah-565520183?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+    "secondaryWebsite": "",
+    "websites": [
+      "https://www.linkedin.com/in/eslam-salah-565520183?utm_source=share_via&utm_content=profile&utm_medium=member_android"
+    ],
+    "tags": [
+      "Business Services & Consulting"
+    ],
+    "appStatus": "EDITED_IN_APP",
+    "status": "active",
+    "formTimestamp": "2026-10-07T19:50:28.618Z",
+    "createdAt": "2026-10-07T19:50:28.618Z",
+    "updatedAt": "2026-10-10T02:09:38.736Z",
+    "isFromGoogleForm": true
+  },
+  {
+    "id": "sheet-row-16",
+    "sheetRowIndex": 16,
+    "name": "Radwa Khalil",
+    "email": "radwa.k.m@gmail.com",
+    "role": "TA manager",
+    "business": "Talentera - Recruitment agency",
+    "stage": "idea",
+    "lookingFor": "Networking, Mentorship, Business Advice",
+    "canHelp": "Advice / expertise",
+    "location": {
+      "country": "Egypt",
+      "city": "Mokattam"
+    },
+    "phone": "+201033737956",
+    "linkedin": "https://www.linkedin.com/in/radwa-khalil6339725b?utm_source=share_via&utm_content=profile&utm_medium=member_ios",
+    "website": "https://www.linkedin.com/in/radwa-khalil6339725b?utm_source=share_via&utm_content=profile&utm_medium=member_ios",
+    "secondaryWebsite": "",
+    "websites": [
+      "https://www.linkedin.com/in/radwa-khalil6339725b?utm_source=share_via&utm_content=profile&utm_medium=member_ios"
+    ],
+    "tags": [
+      "Information Technology & Software"
+    ],
+    "appStatus": "EDITED_IN_APP",
+    "status": "active",
+    "formTimestamp": "2026-10-07T20:00:02.536Z",
+    "createdAt": "2026-10-07T20:00:02.536Z",
+    "updatedAt": "2026-10-10T02:09:38.736Z",
+    "isFromGoogleForm": true
+  },
+  {
+    "id": "sheet-row-17",
+    "sheetRowIndex": 17,
+    "name": "Violet",
+    "email": "violet.ashraf@gmail.com",
+    "role": "Brand Manager- Business Developer",
+    "business": "..",
+    "stage": "idea",
+    "lookingFor": "Networking, Mentorship, Business Advice, Collaboration, Job /Career opportunities",
+    "canHelp": "Mentorship, Advice / expertise, Workshops / sessions",
+    "location": {
+      "country": "Egypt",
+      "city": "Maadi"
+    },
+    "phone": "+201224122880",
+    "linkedin": "https://www.linkedin.com/in/violet-ashraf-605a0b182?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+    "website": "https://www.linkedin.com/in/violet-ashraf-605a0b182?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+    "secondaryWebsite": "",
+    "websites": [
+      "https://www.linkedin.com/in/violet-ashraf-605a0b182?utm_source=share_via&utm_content=profile&utm_medium=member_android"
+    ],
+    "tags": [
+      "Marketing"
+    ],
+    "appStatus": "EDITED_IN_APP",
+    "status": "active",
+    "formTimestamp": "2026-10-07T22:15:20.660Z",
+    "createdAt": "2026-10-07T22:15:20.660Z",
+    "updatedAt": "2026-10-10T02:09:38.736Z",
+    "isFromGoogleForm": true
+  },
+  {
+    "id": "sheet-row-18",
+    "sheetRowIndex": 18,
+    "name": "Ebrahim samer ahmed",
+    "email": "ebrahimsamer496@gmail.com",
+    "role": "مؤسس منصة  the founder hup",
+    "business": "The Founder Hub هي منصة حصرية مدعومة بالذكاء الاصطناعي لرواد الأعمال والمؤسسين العرب، تهدف إلى مساعدتهم على بناء وتطوير الشركات عالية النمو من خلال توفير التوجيه الاستراتيجي، والموارد، والخبرات، والفرص الاستثمارية، وربطهم بشبكة منتقاة من المستثمرين والخبراء ورواد الأعمال.",
+    "stage": "running",
+    "lookingFor": "Networking, Collaboration, Co Founder, بناء علاقات قوية مع رواد الأعمال والمؤسسين، وخلق فرص للتعاون والشراكة قد تؤدي إلى إطلاق مشاريع جديدة، واستثمارات، وفرص تجارية مشتركة.",
+    "canHelp": "Advice / expertise",
+    "location": {
+      "country": "Egypt",
+      "city": "Downtown"
+    },
+    "phone": "+201104178595",
+    "linkedin": "https://www.linkedin.com/in/ebrahim-saleh-166051396?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+    "website": "https://www.linkedin.com/in/ebrahim-saleh-166051396?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+    "secondaryWebsite": "",
+    "websites": [
+      "https://www.linkedin.com/in/ebrahim-saleh-166051396?utm_source=share_via&utm_content=profile&utm_medium=member_android"
+    ],
+    "tags": [
+      "Business Services & Consulting"
+    ],
+    "appStatus": "EDITED_IN_APP",
+    "status": "active",
+    "formTimestamp": "2026-10-07T22:16:38.098Z",
+    "createdAt": "2026-10-07T22:16:38.098Z",
+    "updatedAt": "2026-10-10T02:09:38.736Z",
+    "isFromGoogleForm": true
+  },
+  {
+    "id": "sheet-row-19",
+    "sheetRowIndex": 19,
+    "name": "Khaled Mohamed",
+    "email": "khaled.m2225@gmail.com",
+    "role": "iOS Developer",
+    "business": "MoreAI: an AI shopping app for local Egyptian fashion brands. Shoppers chat with MoreAI in Egyptian Arabic, and it builds whole outfits, finds items from a photo and prepares the order, while merchants pay a flat subscription with 0% commission.",
+    "stage": "idea",
+    "lookingFor": "Networking, Business Advice, Clients/Customers",
+    "canHelp": "Advice / expertise",
+    "location": {
+      "country": "Egypt",
+      "city": "6th of October"
+    },
+    "phone": "+201127000301",
+    "linkedin": "https://www.linkedin.com/in/khaledm2225",
+    "website": "https://www.linkedin.com/in/khaledm2225",
+    "secondaryWebsite": "",
+    "websites": [
+      "https://www.linkedin.com/in/khaledm2225"
+    ],
+    "tags": [
+      "Information Technology & Software"
+    ],
+    "appStatus": "EDITED_IN_APP",
+    "status": "active",
+    "formTimestamp": "2026-10-07T22:31:46.044Z",
+    "createdAt": "2026-10-07T22:31:46.044Z",
+    "updatedAt": "2026-10-10T02:09:38.736Z",
+    "isFromGoogleForm": true
+  },
+  {
+    "id": "sheet-row-20",
+    "sheetRowIndex": 20,
+    "name": "murad elmeligy",
+    "email": "plasticpinesaves@gmail.com",
+    "role": "founder founder",
+    "business": "otter .. save water \nanew ideas in save water",
+    "stage": "running",
+    "lookingFor": "Networking, Mentorship, Business Advice, Collaboration",
+    "canHelp": "Advice / expertise",
+    "location": {
+      "country": "Egypt",
+      "city": "Downtown"
+    },
+    "phone": "+201112728774",
+    "linkedin": "https://www.facebook.com/share/18KyGRisQ9/",
+    "website": "https://www.facebook.com/share/18KyGRisQ9/",
+    "secondaryWebsite": "",
+    "websites": [
+      "https://www.facebook.com/share/18KyGRisQ9/"
+    ],
+    "tags": [
+      "E-commerce & Retail"
+    ],
+    "appStatus": "EDITED_IN_APP",
+    "status": "active",
+    "formTimestamp": "2026-10-08T00:54:39.158Z",
+    "createdAt": "2026-10-08T00:54:39.158Z",
+    "updatedAt": "2026-10-10T02:09:38.737Z",
+    "isFromGoogleForm": true
+  },
+  {
+    "id": "sheet-row-21",
+    "sheetRowIndex": 21,
+    "name": "Ahmed Mahmoud Fyala",
+    "email": "afyala115@gmail.com",
+    "role": "Senior Mobile Developer",
+    "business": "nothing",
+    "stage": "idea",
+    "lookingFor": "Networking, Mentorship, Business Advice, Collaboration, Job /Career opportunities",
+    "canHelp": "Mentorship, Advice / expertise, Workshops / sessions",
+    "location": {
+      "country": "Egypt",
+      "city": "damietta"
+    },
+    "phone": "+201028418483",
+    "linkedin": "https://www.linkedin.com/in/ahmedfyala",
+    "website": "https://www.linkedin.com/in/ahmedfyala",
+    "secondaryWebsite": "",
+    "websites": [
+      "https://www.linkedin.com/in/ahmedfyala"
+    ],
+    "tags": [
+      "Information Technology & Software"
+    ],
+    "appStatus": "EDITED_IN_APP",
+    "status": "active",
+    "formTimestamp": "2026-10-09T18:25:40.470Z",
+    "createdAt": "2026-10-09T18:25:40.470Z",
+    "updatedAt": "2026-10-10T02:09:38.737Z",
+    "isFromGoogleForm": true
+  },
+  {
+    "id": "sheet-row-22",
+    "sheetRowIndex": 22,
+    "name": "Salma K Soliman",
+    "email": "salmakhaled.soliman5@gmail.com",
+    "role": "Founder Edtech startup",
+    "business": "Empowering students across Egypt by turning educational ambition into real opportunities, helping students access scholarships, internships, and career pathways, with over 20,000 students reached and 75+ securing opportunities for academic and professional growth",
+    "stage": "starting",
+    "lookingFor": "Networking, Mentorship, Business Advice, Collaboration, Funding/Investors, Job /Career opportunities, Learning/internship",
+    "canHelp": "Mentorship, Workshops / sessions",
+    "location": {
+      "country": "Egypt",
+      "city": "6th of October"
+    },
+    "phone": "+201064035378",
+    "linkedin": "https://www.linkedin.com/in/salma-soliman-220s",
+    "website": "https://www.linkedin.com/in/salma-soliman-220s",
+    "secondaryWebsite": "",
+    "websites": [
+      "https://www.linkedin.com/in/salma-soliman-220s"
+    ],
+    "tags": [
+      "Education & Training"
+    ],
+    "appStatus": "EDITED_IN_APP",
+    "status": "active",
+    "formTimestamp": "2026-10-09T18:29:13.779Z",
+    "createdAt": "2026-10-09T18:29:13.779Z",
+    "updatedAt": "2026-10-10T02:09:38.737Z",
+    "isFromGoogleForm": true
+  },
+  {
+    "id": "sheet-row-23",
+    "sheetRowIndex": 23,
+    "name": "Samah Osama",
+    "email": "samahosama157@gmail.com",
+    "role": "Mobile app developer",
+    "business": "I’m mobile app developer and currently I’m trying to expand my network in tech field .",
+    "stage": "idea",
+    "lookingFor": "Networking, Clients/Customers",
+    "canHelp": "Mentorship, Advice / expertise",
+    "location": {
+      "country": "Egypt",
+      "city": "Hadayek El Qobba"
+    },
+    "phone": "+201151442898",
+    "linkedin": "https://www.linkedin.com/in/samah-osama-140b75242",
+    "website": "https://www.linkedin.com/in/samah-osama-140b75242",
+    "secondaryWebsite": "",
+    "websites": [
+      "https://www.linkedin.com/in/samah-osama-140b75242"
+    ],
+    "tags": [
+      "Information Technology & Software"
+    ],
+    "appStatus": "EDITED_IN_APP",
+    "status": "active",
+    "formTimestamp": "2026-10-09T18:31:16.256Z",
+    "createdAt": "2026-10-09T18:31:16.256Z",
+    "updatedAt": "2026-10-10T02:09:38.737Z",
+    "isFromGoogleForm": true
+  },
+  {
+    "id": "sheet-row-24",
+    "sheetRowIndex": 24,
+    "name": "Dalia Ali",
+    "email": "daliaali.alawaad@gmail.com",
+    "role": "EV Engineer",
+    "business": "EV Engineer at the Pyramids site, with experience in electric bus operations, fleet availability, and charging systems.\n\nI’m also working on my master’s degree in EV battery degradation and health assessment.\n \nAlso, I’m a content creator and I share my experience in the automotive field on my Facebook page, 'CAR Q'.\"",
+    "stage": "idea",
+    "lookingFor": "Networking, Collaboration, Job /Career opportunities",
+    "canHelp": "Advice / expertise",
+    "location": {
+      "country": "Egypt",
+      "city": "6th of October"
+    },
+    "phone": "+201097449170",
+    "linkedin": "https://www.linkedin.com/in/dalia-ali-b173a0249?utm_source=share_via&utm_content=profile&utm_medium=member_ios",
+    "website": "https://www.linkedin.com/in/dalia-ali-b173a0249?utm_source=share_via&utm_content=profile&utm_medium=member_ios",
+    "secondaryWebsite": "",
+    "websites": [
+      "https://www.linkedin.com/in/dalia-ali-b173a0249?utm_source=share_via&utm_content=profile&utm_medium=member_ios"
+    ],
+    "tags": [
+      "Telecommunications"
+    ],
+    "appStatus": "EDITED_IN_APP",
+    "status": "active",
+    "formTimestamp": "2026-10-09T18:36:56.046Z",
+    "createdAt": "2026-10-09T18:36:56.046Z",
+    "updatedAt": "2026-10-10T02:09:38.737Z",
+    "isFromGoogleForm": true
+  },
+  {
+    "id": "sheet-row-25",
+    "sheetRowIndex": 25,
+    "name": "Basmala Tarek",
+    "email": "basmalatarek268@gmail.com",
+    "role": "Founder & CEO",
+    "business": "Eventocity for Events management/we help all business in it's business development plan, on ground existing and to reach out to new clients by networking and spending best budget with best ROI",
+    "stage": "growing",
+    "lookingFor": "Networking, Collaboration, Clients/Customers",
+    "canHelp": "Mentorship, Workshops / sessions",
+    "location": {
+      "country": "Egypt",
+      "city": "6th of October"
+    },
+    "phone": "+201154464788",
+    "linkedin": "https://www.linkedin.com/in/basmalatarek24?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+    "website": "https://www.linkedin.com/in/basmalatarek24?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+    "secondaryWebsite": "",
+    "websites": [
+      "https://www.linkedin.com/in/basmalatarek24?utm_source=share_via&utm_content=profile&utm_medium=member_android"
+    ],
+    "tags": [
+      "Advertising & Marketing"
+    ],
+    "appStatus": "EDITED_IN_APP",
+    "status": "active",
+    "formTimestamp": "2026-10-09T18:40:09.514Z",
+    "createdAt": "2026-10-09T18:40:09.514Z",
+    "updatedAt": "2026-10-10T02:09:38.737Z",
+    "isFromGoogleForm": true
+  },
+  {
+    "id": "sheet-row-26",
+    "sheetRowIndex": 26,
+    "name": "Mohamed Mostafa Abdulhadi",
+    "email": "m.abdulhadi2222@gmail.com",
+    "role": "Business Development Manager",
+    "business": "Craft Crew - out sourcing company specializing in customizable software solutions",
+    "stage": "running",
+    "lookingFor": "Networking, Collaboration",
+    "canHelp": "Mentorship, Advice / expertise, Workshops / sessions",
+    "location": {
+      "country": "Egypt",
+      "city": "Maadi"
+    },
+    "phone": "+201555733952",
+    "linkedin": "https://www.linkedin.com/in/mm82/",
+    "website": "https://www.linkedin.com/in/mm82/",
+    "secondaryWebsite": "",
+    "websites": [
+      "https://www.linkedin.com/in/mm82/"
+    ],
+    "tags": [
+      "Information Technology & Software"
+    ],
+    "appStatus": "EDITED_IN_APP",
+    "status": "active",
+    "formTimestamp": "2026-10-09T18:40:11.698Z",
+    "createdAt": "2026-10-09T18:40:11.698Z",
+    "updatedAt": "2026-10-10T02:09:38.737Z",
+    "isFromGoogleForm": true
+  },
+  {
+    "id": "sheet-row-27",
+    "sheetRowIndex": 27,
+    "name": "Ahmed Alabadla",
+    "email": "alabadla54@gmail.com",
+    "role": "E- commerce Founder",
+    "business": "mossfeld.com",
+    "stage": "starting",
+    "lookingFor": "Networking, Mentorship, Business Advice",
+    "canHelp": "Advice / expertise, Video editing",
+    "location": {
+      "country": "Egypt",
+      "city": "Nasr City"
+    },
+    "phone": "+1024047463",
+    "linkedin": "https://www.linkedin.com/in/ahmed-alabadla-3a4a19177?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+    "website": "https://www.linkedin.com/in/ahmed-alabadla-3a4a19177?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+    "secondaryWebsite": "",
+    "websites": [
+      "https://www.linkedin.com/in/ahmed-alabadla-3a4a19177?utm_source=share_via&utm_content=profile&utm_medium=member_android"
+    ],
+    "tags": [
+      "Entertainment & Media"
+    ],
+    "appStatus": "EDITED_IN_APP",
+    "status": "active",
+    "formTimestamp": "2026-10-09T18:43:56.762Z",
+    "createdAt": "2026-10-09T18:43:56.762Z",
+    "updatedAt": "2026-10-10T02:09:38.737Z",
+    "isFromGoogleForm": true
+  },
+  {
+    "id": "sheet-row-28",
+    "sheetRowIndex": 28,
+    "name": "Ahmed Saeed Elsayed",
+    "email": "ahmedsaidza901@gmail.com",
+    "role": "Business Development Professional | Strategic Marketing & Brand Strategy",
+    "business": "I help businesses understand their markets, identify growth opportunities, and develop practical marketing strategies based on market research, competitor analysis, consumer insights, and brand positioning to support sustainable business growth.",
+    "stage": "running",
+    "lookingFor": "Networking, Collaboration, Job /Career opportunities",
+    "canHelp": "Mentorship",
+    "location": {
+      "country": "Egypt",
+      "city": "Mohandessin"
+    },
+    "phone": "+201063555028",
+    "linkedin": "https://www.linkedin.com/in/ahmed-saeedz1?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+    "website": "https://www.linkedin.com/in/ahmed-saeedz1?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+    "secondaryWebsite": "",
+    "websites": [
+      "https://www.linkedin.com/in/ahmed-saeedz1?utm_source=share_via&utm_content=profile&utm_medium=member_android"
+    ],
+    "tags": [
+      "Business Services & Consulting"
+    ],
+    "appStatus": "EDITED_IN_APP",
+    "status": "active",
+    "formTimestamp": "2026-10-09T18:48:41.754Z",
+    "createdAt": "2026-10-09T18:48:41.754Z",
+    "updatedAt": "2026-10-10T02:09:38.737Z",
+    "isFromGoogleForm": true
+  },
+  {
+    "id": "sheet-row-29",
+    "sheetRowIndex": 29,
+    "name": "Hasnaa Lotfy Lotfy Kamel",
+    "email": "hasnaalotfy.hl@gmail.com",
+    "role": "Founder",
+    "business": "Medical company",
+    "stage": "idea",
+    "lookingFor": "Networking, Mentorship, Business Advice, Collaboration, Co Founder, Funding/Investors",
+    "canHelp": "Advice / expertise, Workshops / sessions",
+    "location": {
+      "country": "Egypt",
+      "city": "Mokattam"
+    },
+    "phone": "+201099739602",
+    "linkedin": "https://www.linkedin.com/in/hasnaa-lotfy-4b4778140?utm_source=share_via&utm_content=profile&utm_medium=member_ios",
+    "website": "https://www.linkedin.com/in/hasnaa-lotfy-4b4778140?utm_source=share_via&utm_content=profile&utm_medium=member_ios",
+    "secondaryWebsite": "",
+    "websites": [
+      "https://www.linkedin.com/in/hasnaa-lotfy-4b4778140?utm_source=share_via&utm_content=profile&utm_medium=member_ios"
+    ],
+    "tags": [
+      "AI"
+    ],
+    "appStatus": "EDITED_IN_APP",
+    "status": "active",
+    "formTimestamp": "2026-10-09T19:09:56.237Z",
+    "createdAt": "2026-10-09T19:09:56.237Z",
+    "updatedAt": "2026-10-10T02:09:38.737Z",
+    "isFromGoogleForm": true
+  },
+  {
+    "id": "sheet-row-30",
+    "sheetRowIndex": 30,
+    "name": "Ahmed Tarek Mahmoud Abdo",
+    "email": "ahmed.tarek.1102@gmail.com",
+    "role": "Procurement, Tenders and Contracts Management",
+    "business": "I provide legal advices in procurement, tenders and contract field",
+    "stage": "idea",
+    "lookingFor": "Collaboration, Co Founder, Clients/Customers, Job /Career opportunities",
+    "canHelp": "Advice / expertise, Workshops / sessions",
+    "location": {
+      "country": "Egypt",
+      "city": "Shorouk City"
+    },
+    "phone": "+201142717704",
+    "linkedin": "https://www.linkedin.com/in/ahmed-tarek-268895172",
+    "website": "https://www.linkedin.com/in/ahmed-tarek-268895172",
+    "secondaryWebsite": "",
+    "websites": [
+      "https://www.linkedin.com/in/ahmed-tarek-268895172"
+    ],
+    "tags": [
+      "Legal Services"
+    ],
+    "appStatus": "EDITED_IN_APP",
+    "status": "active",
+    "formTimestamp": "2026-10-09T19:19:14.136Z",
+    "createdAt": "2026-10-09T19:19:14.136Z",
+    "updatedAt": "2026-10-10T02:09:38.738Z",
+    "isFromGoogleForm": true
+  },
+  {
+    "id": "sheet-row-31",
+    "sheetRowIndex": 31,
+    "name": "Aya Omar",
+    "email": "oaya15629@gmail.com",
+    "role": "Markting",
+    "business": "Fashion",
+    "stage": "idea",
+    "lookingFor": "Networking",
+    "canHelp": "Workshops / sessions",
+    "location": {
+      "country": "Egypt",
+      "city": "Maadi"
+    },
+    "phone": "+201156975422",
+    "linkedin": "https://www.linkedin.com/in/aya-omar-5921373b5?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+    "website": "https://www.linkedin.com/in/aya-omar-5921373b5?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+    "secondaryWebsite": "",
+    "websites": [
+      "https://www.linkedin.com/in/aya-omar-5921373b5?utm_source=share_via&utm_content=profile&utm_medium=member_android"
+    ],
+    "tags": [
+      "AI"
+    ],
+    "appStatus": "EDITED_IN_APP",
+    "status": "active",
+    "formTimestamp": "2026-10-09T21:19:54.086Z",
+    "createdAt": "2026-10-09T21:19:54.086Z",
+    "updatedAt": "2026-10-10T02:09:38.738Z",
+    "isFromGoogleForm": true
+  },
+  {
+    "id": "sheet-row-32",
+    "sheetRowIndex": 32,
+    "name": "Mohamed Osama",
+    "email": "osammamohamed6@gmail.com",
+    "role": "Ai engineer and founder",
+    "business": "We build AI systems for small and medium businesses in sectors like real estate to increase the efficiency of the process of work and save companies time and money",
+    "stage": "starting",
+    "lookingFor": "Networking, Business Advice, Clients/Customers, Funding/Investors, Learning/internship",
+    "canHelp": "Mentorship, Advice / expertise",
+    "location": {
+      "country": "Egypt",
+      "city": "Mansoura"
+    },
+    "phone": "+201212511878",
+    "linkedin": "https://www.linkedin.com/in/mohamed-osamma-14413a25b",
+    "website": "https://www.linkedin.com/in/mohamed-osamma-14413a25b",
+    "secondaryWebsite": "",
+    "websites": [
+      "https://www.linkedin.com/in/mohamed-osamma-14413a25b"
+    ],
+    "tags": [
+      "AI"
+    ],
+    "appStatus": "EDITED_IN_APP",
+    "status": "active",
+    "formTimestamp": "2026-10-09T23:07:15.270Z",
+    "createdAt": "2026-10-09T23:07:15.270Z",
+    "updatedAt": "2026-10-10T02:09:38.738Z",
+    "isFromGoogleForm": true
+  },
+  {
+    "id": "sheet-row-33",
+    "sheetRowIndex": 33,
+    "name": "Reham Helmy",
+    "email": "rehamhelmy23@gmail.com",
+    "role": "Full-Stack Developer",
+    "business": "Still idea",
+    "stage": "idea",
+    "lookingFor": "Networking, Mentorship, Business Advice, Job /Career opportunities",
+    "canHelp": "Advice / expertise",
+    "location": {
+      "country": "Egypt",
+      "city": "Mokattam"
+    },
+    "phone": "+201114824325",
+    "linkedin": "https://linkedin.com/in/reham-helmy-716016171",
+    "website": "https://linkedin.com/in/reham-helmy-716016171",
+    "secondaryWebsite": "",
+    "websites": [
+      "https://linkedin.com/in/reham-helmy-716016171"
+    ],
+    "tags": [
+      "Information Technology & Software"
+    ],
+    "appStatus": "EDITED_IN_APP",
+    "status": "active",
+    "formTimestamp": "2026-10-09T23:21:06.521Z",
+    "createdAt": "2026-10-09T23:21:06.521Z",
+    "updatedAt": "2026-10-10T02:09:38.738Z",
+    "isFromGoogleForm": true
   }
 ]

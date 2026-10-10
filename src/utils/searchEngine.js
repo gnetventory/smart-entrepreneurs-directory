@@ -21,7 +21,7 @@ export function normalizeSearchString(str = '') {
       // Remove Arabic Tashkeel / Diacritics
       .replace(/[\u064B-\u065F\u0670]/g, '')
       // Remove special punctuation & symbols
-      .replace(/[\s\-_,.:;@()\[\]\/+،؛"'\`~!?]+/g, ' ')
+      .replace(/[\s\-_,.:;@()[\]/+،؛"'`~!?]+/g, ' ')
       .trim()
   );
 }

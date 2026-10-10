@@ -2,19 +2,79 @@
 import { AVATAR_GRADIENTS, STAGES } from './constants';
 import { formatDistanceToNow, differenceInDays } from 'date-fns';
 
-// ─── Avatar ────────────────────────────────────────────────────────────────────
+// ─── Avatar & Name Parsing ───────────────────────────────────────────────────
+export function parseMemberName(rawName = '') {
+  if (!rawName || typeof rawName !== 'string') {
+    return { english: '', arabic: '', primary: '' };
+  }
+
+  const str = rawName.trim();
+  const arabicRegex = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+  const englishRegex = /[a-zA-Z]/;
+
+  // Check if string contains parentheses e.g. "A (B)" or "(A) B" or "[A] B"
+  const match = str.match(/^(.*?)\s*[\(\[](.*?)[\)\]]\s*(.*?)$/);
+  if (match) {
+    const part1 = (match[1] || match[3] || '').trim();
+    const partInParen = (match[2] || '').trim();
+
+    let english = '';
+    let arabic = '';
+
+    if (englishRegex.test(part1) && arabicRegex.test(partInParen)) {
+      english = part1;
+      arabic = partInParen;
+    } else if (arabicRegex.test(part1) && englishRegex.test(partInParen)) {
+      arabic = part1;
+      english = partInParen;
+    } else if (englishRegex.test(part1)) {
+      english = part1;
+      arabic = partInParen;
+    } else if (arabicRegex.test(part1)) {
+      arabic = part1;
+      english = partInParen;
+    } else {
+      english = partInParen || part1;
+    }
+
+    return {
+      english: english.replace(/[\(\)\[\]]/g, '').trim(),
+      arabic: arabic.replace(/[\(\)\[\]]/g, '').trim(),
+      primary: english || arabic || str,
+    };
+  }
+
+  // If no parentheses, split by words
+  const words = str.split(/\s+/);
+  const engWords = [];
+  const arWords = [];
+  words.forEach((w) => {
+    if (arabicRegex.test(w)) arWords.push(w);
+    else if (englishRegex.test(w)) engWords.push(w);
+    else {
+      if (engWords.length > 0) engWords.push(w);
+      else if (arWords.length > 0) arWords.push(w);
+    }
+  });
+
+  const english = engWords.join(' ').replace(/[\(\)\[\]]/g, '').trim();
+  const arabic = arWords.join(' ').replace(/[\(\)\[\]]/g, '').trim();
+
+  return {
+    english,
+    arabic,
+    primary: english || arabic || str,
+  };
+}
+
 export function getInitials(name = '') {
   if (!name || typeof name !== 'string') return 'SE';
 
-  // 1. Remove parenthesized or bracketed content (e.g. Arabic names in parentheses)
-  const cleaned = name
-    .replace(/\(.*?\)/g, '')
-    .replace(/\[.*?\]/g, '')
-    .replace(/\{.*?\}/g, '')
-    .trim();
+  const { english, arabic, primary } = parseMemberName(name);
+  const targetName = english || primary || name;
 
-  // 2. Extract words containing English letters only
-  const words = cleaned
+  // Extract words containing English letters only
+  const words = targetName
     .split(/[\s\-_,.:;@/\\+]+/)
     .map((w) => w.replace(/[^a-zA-Z]/g, ''))
     .filter(Boolean);
@@ -27,8 +87,7 @@ export function getInitials(name = '') {
     return single.length >= 2 ? single.slice(0, 2) : single;
   }
 
-  // 3. Fallback: Search for any English letters in the entire raw string
-  const allEnglishLetters = name.replace(/[^a-zA-Z]/g, '').toUpperCase();
+  const allEnglishLetters = targetName.replace(/[^a-zA-Z]/g, '').toUpperCase();
   if (allEnglishLetters.length >= 2) {
     return allEnglishLetters.slice(0, 2);
   }
@@ -36,7 +95,6 @@ export function getInitials(name = '') {
     return allEnglishLetters;
   }
 
-  // 4. Default clean English monogram fallback for non-English names
   return 'SE';
 }
 

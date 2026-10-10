@@ -152,12 +152,13 @@ export function updateMember(id, updates) {
   return members[idx];
 }
 
-export function deleteMember(id) {
+export function deleteMember(id, options = {}) {
+  const { recordTombstone = true, skipNameTombstone = false } = options;
   const members = getMembers();
   const target = members.find((m) => m.id === id);
-  if (target) {
+  if (target && recordTombstone) {
     // Record tombstone to permanently prevent resurrection during Google Sheets sync
-    if (target.name) addTombstone(target.name.trim().toLowerCase());
+    if (target.name && !skipNameTombstone) addTombstone(target.name.trim().toLowerCase());
     if (target.id) addTombstone(target.id);
     if (target.sheetRowIndex) addTombstone(`sheet-row-${target.sheetRowIndex}`);
   }
@@ -259,10 +260,10 @@ export function getMapConfig() {
 
 export function saveMapConfig(config) {
   const safe = {
-    provider: 'esri_world',
-    apiKey: '',
-    styleId: '',
-    customTileUrl: '',
+    provider: config?.provider || 'esri_world',
+    apiKey: (config?.apiKey || '').trim(),
+    styleId: (config?.styleId || '').trim(),
+    customTileUrl: (config?.customTileUrl || '').trim(),
   };
   localStorage.setItem(STORAGE_KEYS.MAP_CONFIG, JSON.stringify(safe));
   pushToDisk({ mapConfig: safe });
