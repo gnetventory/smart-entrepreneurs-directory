@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.24.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.23.0...v1.24.0) (2026-10-10)
+
+
+### Features
+
+* replace stock avatar photos with dynamic founder gradient initials in marquee and pairings ([7da4173](https://github.com/gnetventory/smart-entrepreneurs-directory/commit/7da41733a07ca30c6ff4099d22caa3aa34b3cb0e))
+
 ## [1.23.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.22.0...v1.23.0) (2026-10-10)
 
 
