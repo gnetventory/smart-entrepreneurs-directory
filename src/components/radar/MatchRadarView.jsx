@@ -190,11 +190,11 @@ export default function MatchRadarView() {
             </div>
 
             {/* Threshold & Scope Toggles */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <div className="flex items-center gap-1 bg-stone-100 dark:bg-stone-800 p-1 rounded-xl border border-stone-200 dark:border-stone-700">
+            <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+              <div className="w-full sm:w-auto grid grid-cols-2 sm:flex items-center gap-1 bg-stone-100 dark:bg-stone-800 p-1 rounded-xl border border-stone-200 dark:border-stone-700">
                 <button
                   onClick={() => setShowTopFiveOnly(true)}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  className={`px-3 py-1.5 sm:py-1 rounded-lg text-xs font-bold transition cursor-pointer text-center ${
                     showTopFiveOnly
                       ? 'bg-orange-600 text-white shadow-xs'
                       : 'text-stone-600 dark:text-stone-400 hover:text-stone-900'
@@ -204,7 +204,7 @@ export default function MatchRadarView() {
                 </button>
                 <button
                   onClick={() => setShowTopFiveOnly(false)}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  className={`px-3 py-1.5 sm:py-1 rounded-lg text-xs font-bold transition cursor-pointer text-center ${
                     !showTopFiveOnly
                       ? 'bg-orange-600 text-white shadow-xs'
                       : 'text-stone-600 dark:text-stone-400 hover:text-stone-900'
@@ -217,7 +217,7 @@ export default function MatchRadarView() {
               <select
                 value={minMatchThreshold}
                 onChange={(e) => setMinMatchThreshold(Number(e.target.value))}
-                className="text-xs font-bold bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl px-2.5 py-1 text-stone-800 dark:text-stone-200 cursor-pointer"
+                className="w-full sm:w-auto text-xs font-bold bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl px-2.5 py-2 sm:py-1 text-stone-800 dark:text-stone-200 cursor-pointer"
               >
                 <option value={35}>Fit: Moderate (35%+)</option>
                 <option value={50}>Fit: Strong (50%+)</option>

@@ -10,40 +10,40 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-40 transition-colors">
       {/* Main header bar */}
-      <div className="bg-[#F8F9FA]/90 dark:bg-stone-950/90 backdrop-blur-md border-b border-stone-200/80 dark:border-stone-800 px-4 sm:px-8 py-3.5">
-        <div className="flex items-center gap-4 max-w-[1800px] mx-auto">
+      <div className="bg-[#F8F9FA]/90 dark:bg-stone-950/90 backdrop-blur-md border-b border-stone-200/80 dark:border-stone-800 px-3 sm:px-8 py-2.5 sm:py-3.5">
+        <div className="flex items-center gap-2.5 sm:gap-4 max-w-[1800px] mx-auto">
           {/* Mobile menu toggle */}
           <button
-            className="lg:hidden p-2 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 hover:bg-stone-50 transition-all shadow-xs"
+            className="lg:hidden p-2 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 hover:bg-stone-50 transition-all shadow-xs min-h-[40px] min-w-[40px] flex items-center justify-center cursor-pointer shrink-0"
             onClick={() => setSidebarOpen(!sidebarOpen)}
             aria-label="Toggle Navigation"
           >
-            {sidebarOpen ? <X size={19} /> : <Menu size={19} />}
+            {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
 
           {/* Logo */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             {/* Logo mark */}
-            <div className="relative flex-shrink-0">
+            <div className="relative shrink-0">
               <img
                 src="/bgm-logo.jpg"
                 alt="BGM Logo"
-                className="w-10 h-10 rounded-2xl object-cover shadow-sm border border-stone-200/80 dark:border-stone-700"
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl object-cover shadow-sm border border-stone-200/80 dark:border-stone-700"
               />
               {/* Subtle emerald live accent dot */}
-              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-stone-950 shadow-xs" />
+              <span className="absolute -top-0.5 -right-0.5 w-2 sm:w-2.5 h-2 sm:h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-stone-950 shadow-xs" />
             </div>
 
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-[17px] font-extrabold text-stone-900 dark:text-white tracking-tight leading-none font-display">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <h1 className="text-sm sm:text-[17px] font-extrabold text-stone-900 dark:text-white tracking-tight leading-none font-display truncate">
                   SMART DIRECTORY
                 </h1>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-bold uppercase tracking-wider">
+                <span className="text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.2 sm:py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-bold uppercase tracking-wider shrink-0">
                   Curated by BGM
                 </span>
               </div>
-              <p className="text-[12px] text-stone-500 dark:text-stone-400 font-medium mt-0.5">
+              <p className="text-[11px] sm:text-[12px] text-stone-500 dark:text-stone-400 font-medium mt-0.5 hidden sm:block truncate">
                 Peer-to-Peer Network of Egyptian & Regional Founders
               </p>
             </div>
@@ -52,7 +52,7 @@ export default function Header() {
           <div className="flex-1" />
 
           {/* Community Active Member Status pill */}
-          <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 text-xs font-bold shadow-xs transition-all">
+          <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 text-xs font-bold shadow-xs transition-all shrink-0">
             <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.8)]" />
             <span className="text-stone-700 dark:text-stone-300">
               {members?.length || 138} Active Members
@@ -62,7 +62,7 @@ export default function Header() {
           {/* About This Initiative Button */}
           <button
             onClick={() => setShowAboutModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 text-xs font-bold text-stone-700 dark:text-stone-300 hover:border-emerald-500 transition-all cursor-pointer shadow-xs"
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 text-xs font-bold text-stone-700 dark:text-stone-300 hover:border-emerald-500 transition-all cursor-pointer shadow-xs min-h-[40px] shrink-0"
             title="About this initiative"
           >
             <Info size={14} className="text-emerald-600 dark:text-emerald-400" />
@@ -72,14 +72,14 @@ export default function Header() {
           {/* Dark mode toggle */}
           <button
             onClick={toggleDarkMode}
-            className="p-2 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 shadow-xs transition-all cursor-pointer"
+            className="p-2 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 shadow-xs transition-all cursor-pointer min-h-[40px] min-w-[40px] flex items-center justify-center shrink-0"
             title="Toggle dark/light mode"
             aria-label="Toggle Dark Mode"
           >
             {darkMode ? (
-              <Sun size={17} className="text-amber-400" />
+              <Sun size={16} className="text-amber-400" />
             ) : (
-              <Moon size={17} className="text-stone-700" />
+              <Moon size={16} className="text-stone-700" />
             )}
           </button>
         </div>

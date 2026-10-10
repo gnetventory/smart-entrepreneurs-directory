@@ -19,6 +19,22 @@ export default function GlobalAllianceMap({
   const tileLayerRef = useRef(null);
   const markersGroupRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [interactiveMode, setInteractiveMode] = useState(false);
+
+  // Sync mobile touch interaction to prevent scroll trap
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    const isSmallScreen = typeof window !== 'undefined' && window.innerWidth < 640;
+    if (isSmallScreen && !isFullscreen && !interactiveMode) {
+      if (map.dragging?.disable) map.dragging.disable();
+      if (map.touchZoom?.disable) map.touchZoom.disable();
+    } else {
+      if (map.dragging?.enable) map.dragging.enable();
+      if (map.touchZoom?.enable) map.touchZoom.enable();
+    }
+  }, [interactiveMode, isFullscreen]);
 
   // 1. Initialize Global Leaflet Map on Mount
   useEffect(() => {
@@ -259,7 +275,7 @@ export default function GlobalAllianceMap({
   return (
     <div
       className={`relative w-full transition-all duration-300 ${
-        isFullscreen ? 'fixed inset-0 z-50 bg-stone-950 p-4' : 'h-[460px] sm:h-[520px] rounded-2xl'
+        isFullscreen ? 'fixed inset-0 z-50 bg-stone-950 p-4' : 'h-[320px] sm:h-[440px] lg:h-[520px] rounded-2xl'
       }`}
     >
       <div
@@ -277,6 +293,29 @@ export default function GlobalAllianceMap({
           {isFullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
         </button>
       </div>
+
+      {/* Mobile Scroll-Trap Prevention Badge */}
+      {!isFullscreen && (
+        <div className="sm:hidden absolute bottom-3 left-1/2 -translate-x-1/2 z-[1000]">
+          {interactiveMode ? (
+            <button
+              onClick={() => setInteractiveMode(false)}
+              className="px-3 py-1.5 rounded-full bg-emerald-700/90 text-white backdrop-blur-md shadow-lg text-[11px] font-bold border border-white/20 flex items-center gap-1.5 cursor-pointer active:scale-95 transition-transform"
+            >
+              <span>🔒</span>
+              <span>Lock map to scroll page</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => setInteractiveMode(true)}
+              className="px-3 py-1.5 rounded-full bg-stone-900/85 text-white backdrop-blur-md shadow-lg text-[11px] font-bold border border-white/20 flex items-center gap-1.5 cursor-pointer active:scale-95 transition-transform"
+            >
+              <span>🖐️</span>
+              <span>Tap to explore map</span>
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

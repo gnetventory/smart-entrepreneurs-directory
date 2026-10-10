@@ -117,7 +117,7 @@ export default function ProfileCard({ member, onDeleted, onUpdated, synergyScore
       {/* ── Glass-Bento Hybrid Member Profile Card ─────────────────────────── */}
       <div
         onClick={() => setShowDetail(true)}
-        className="group relative bg-white/80 dark:bg-stone-900/80 backdrop-blur-md rounded-3xl border border-emerald-200/70 dark:border-stone-800 hover:border-emerald-400 dark:hover:border-emerald-500/80 p-5 pt-5 shadow-[0_4px_20px_rgba(16,185,129,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_12px_32px_rgba(16,185,129,0.18)] transition-all duration-200 flex flex-col justify-between cursor-pointer overflow-hidden h-full"
+        className="group relative bg-white/80 dark:bg-stone-900/80 backdrop-blur-md rounded-3xl border border-emerald-200/70 dark:border-stone-800 hover:border-emerald-400 dark:hover:border-emerald-500/80 p-4 sm:p-5 pt-4 sm:pt-5 shadow-[0_4px_20px_rgba(16,185,129,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_12px_32px_rgba(16,185,129,0.18)] transition-all duration-200 flex flex-col justify-between cursor-pointer overflow-hidden h-full"
       >
         {/* Subtle luminous top border sheen */}
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-400/60 to-transparent group-hover:via-emerald-500 transition-all duration-300" />
@@ -173,7 +173,7 @@ export default function ProfileCard({ member, onDeleted, onUpdated, synergyScore
               <div className="flex items-center gap-1">
                 <button
                   onClick={handleToggleBookmark}
-                  className={`p-1.5 rounded-xl transition-all ${
+                  className={`p-2 sm:p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-xl transition-all ${
                     bookmarked
                       ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40'
                       : 'text-stone-300 hover:text-amber-500 hover:bg-stone-100 dark:hover:bg-stone-800'
@@ -297,7 +297,7 @@ export default function ProfileCard({ member, onDeleted, onUpdated, synergyScore
                 href={linkedInHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 hover:bg-blue-600 hover:text-white transition-all text-xs font-bold border border-blue-200/60 dark:border-blue-800 shadow-2xs"
+                className="p-2 min-w-[38px] min-h-[38px] flex items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 hover:bg-blue-600 hover:text-white transition-all text-xs font-bold border border-blue-200/60 dark:border-blue-800 shadow-2xs"
                 title="Open LinkedIn"
               >
                 <Linkedin size={14} />
@@ -307,7 +307,7 @@ export default function ProfileCard({ member, onDeleted, onUpdated, synergyScore
             {/* vCard Download */}
             <button
               onClick={handleDownloadVCard}
-              className="p-2 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-900 hover:text-white dark:hover:bg-white dark:hover:text-stone-900 transition-all text-xs font-bold border border-stone-200 dark:border-stone-700 shadow-2xs"
+              className="p-2 min-w-[38px] min-h-[38px] flex items-center justify-center rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-900 hover:text-white dark:hover:bg-white dark:hover:text-stone-900 transition-all text-xs font-bold border border-stone-200 dark:border-stone-700 shadow-2xs cursor-pointer"
               title="Download Contact (.vcf)"
             >
               <Download size={14} />
@@ -320,21 +320,20 @@ export default function ProfileCard({ member, onDeleted, onUpdated, synergyScore
                 href={w.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-2 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-800 hover:text-white transition-all text-xs font-bold border border-stone-200 dark:border-stone-700 shadow-2xs"
+                className="p-2 min-w-[38px] min-h-[38px] flex items-center justify-center rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-800 hover:text-white transition-all text-xs font-bold border border-stone-200 dark:border-stone-700 shadow-2xs"
                 title={`Visit ${w.label} (${w.url})`}
               >
                 <ExternalLink size={14} />
               </a>
             ))}
 
-            {/* Delete button (Admin only) */}
             {isAdmin && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   setConfirmDelete(true);
                 }}
-                className="p-2 rounded-xl text-stone-300 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                className="p-2 min-w-[38px] min-h-[38px] flex items-center justify-center rounded-xl text-stone-300 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
                 title="Delete member profile (Admin)"
               >
                 <Trash2 size={14} />
@@ -345,7 +344,7 @@ export default function ProfileCard({ member, onDeleted, onUpdated, synergyScore
           {/* View Details Primary Action */}
           <button
             onClick={() => setShowDetail(true)}
-            className="px-3.5 py-1.5 text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl shadow-xs hover:shadow-md transition-all flex items-center gap-1.5"
+            className="px-3.5 py-2 sm:py-1.5 min-h-[38px] text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl shadow-xs hover:shadow-md transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
           >
             <span>Details</span>
             <ArrowRight size={13} />

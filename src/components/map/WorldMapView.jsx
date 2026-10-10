@@ -37,6 +37,7 @@ export default function WorldMapView() {
   // Map Focus State
   const [focusedCoords, setFocusedCoords] = useState(null);
   const [focusedMemberId, setFocusedMemberId] = useState(null);
+  const [mobileActiveTab, setMobileActiveTab] = useState('map'); // 'map' | 'list'
 
   // 1. Resolve and index all members globally
   const { hubCounts, membersByHub, allIndustries, resolvedMembers } = useMemo(() => {
@@ -366,10 +367,36 @@ export default function WorldMapView() {
         </div>
       </div>
 
+      {/* Mobile Map vs List Segmented Switcher */}
+      <div className="lg:hidden flex items-center bg-stone-100 dark:bg-stone-850 p-1 rounded-2xl border border-stone-200 dark:border-stone-800">
+        <button
+          onClick={() => setMobileActiveTab('map')}
+          className={`flex-1 py-2 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            mobileActiveTab === 'map'
+              ? 'bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 shadow-sm'
+              : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
+          }`}
+        >
+          <Map size={14} className="text-emerald-600" />
+          <span>Map View</span>
+        </button>
+        <button
+          onClick={() => setMobileActiveTab('list')}
+          className={`flex-1 py-2 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            mobileActiveTab === 'list'
+              ? 'bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 shadow-sm'
+              : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
+          }`}
+        >
+          <Building2 size={14} className="text-orange-600" />
+          <span>Founders & Hubs ({filteredMembers.length})</span>
+        </button>
+      </div>
+
       {/* ── Main Dashboard Body: Global Map + Right Founder Drawer ─────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         {/* Left/Center Global GIS Map Canvas (8 Columns) */}
-        <div className="lg:col-span-8 flex flex-col space-y-3">
+        <div className={`lg:col-span-8 flex flex-col space-y-3 ${mobileActiveTab === 'map' ? 'flex' : 'hidden lg:flex'}`}>
           <div className="card overflow-hidden border-stone-200/90 dark:border-stone-800 p-0 shadow-lg">
             <GlobalAllianceMap
               hubCounts={dynamicHubCounts}
@@ -425,7 +452,7 @@ export default function WorldMapView() {
         </div>
 
         {/* Right Panel: Filterable Founders & Companies Drawer (4 Columns) */}
-        <div className="lg:col-span-4 card p-0 border-stone-200/90 dark:border-stone-800 flex flex-col overflow-hidden shadow-lg max-h-[590px]">
+        <div className={`lg:col-span-4 card p-0 border-stone-200/90 dark:border-stone-800 flex flex-col overflow-hidden shadow-lg ${mobileActiveTab === 'list' ? 'flex max-h-[75dvh]' : 'hidden lg:flex max-h-[590px]'}`}>
           {/* Header styled with Emerald-to-Teal gradient and Orange Badge */}
           <div className="p-3.5 bg-gradient-to-r from-emerald-800 via-teal-800 to-stone-900 text-white flex items-center justify-between">
             <div>

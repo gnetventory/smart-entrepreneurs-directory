@@ -1,6 +1,7 @@
 import React from 'react';
 import Header from './components/layout/Header';
 import Sidebar from './components/layout/Sidebar';
+import BottomNav from './components/layout/BottomNav';
 import Directory from './components/directory/Directory';
 import MatchRadarView from './components/radar/MatchRadarView';
 import WorldMapView from './components/map/WorldMapView';
@@ -29,7 +30,7 @@ export default function App() {
     <div className="min-h-screen bg-[#FAFAF7] dark:bg-stone-950 text-stone-900 dark:text-stone-100 flex flex-col font-sans transition-colors duration-200">
       {notification && (
         <div
-          className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl shadow-xl text-sm font-semibold flex items-center gap-2.5 animate-slide-up border ${
+          className={`fixed top-4 inset-x-4 sm:inset-x-auto sm:right-6 sm:max-w-md mx-auto sm:mx-0 z-50 px-4 py-3 rounded-2xl shadow-xl text-xs sm:text-sm font-semibold flex items-center justify-center sm:justify-start gap-2.5 animate-slide-up border ${
             notification.type === 'error'
               ? 'bg-rose-600 text-white border-rose-500'
               : notification.type === 'warning'
@@ -41,10 +42,11 @@ export default function App() {
         </div>
       )}
       <Header />
-      <div className="flex-1 flex items-start max-w-[1800px] w-full mx-auto px-4 sm:px-6 lg:px-10 gap-8">
+      <div className="flex-1 flex items-start max-w-[1800px] w-full mx-auto px-3 sm:px-6 lg:px-10 gap-8">
         <Sidebar />
-        <main className="flex-1 min-w-0 py-6 sm:py-8">{renderTabContent()}</main>
+        <main className="flex-1 min-w-0 py-4 sm:py-8 pb-24 lg:pb-8">{renderTabContent()}</main>
       </div>
+      <BottomNav />
     </div>
   );
 }

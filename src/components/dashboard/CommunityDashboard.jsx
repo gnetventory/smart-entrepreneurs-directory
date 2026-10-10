@@ -126,96 +126,96 @@ export default function CommunityDashboard() {
       </div>
 
       {/* ── 2. GROUNDED COMMUNITY KPI RIBBON ──── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         
         {/* KPI 1: Community Members */}
-        <div className="p-5 rounded-3xl bg-white dark:bg-stone-900 border border-slate-200/90 dark:border-stone-800 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-3">
+        <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-white dark:bg-stone-900 border border-slate-200/90 dark:border-stone-800 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-2 sm:space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 dark:text-stone-400">
-              Community Members
+            <span className="text-[11px] sm:text-xs font-bold text-slate-500 dark:text-stone-400 truncate">
+              Members
             </span>
-            <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-              <Users size={16} />
+            <div className="p-1.5 sm:p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 shrink-0">
+              <Users size={15} />
             </div>
           </div>
           <div>
-            <div className="flex items-baseline gap-2.5">
-              <span className="text-3xl font-black text-slate-900 dark:text-white font-display">
+            <div className="flex items-baseline gap-1.5 sm:gap-2.5 flex-wrap">
+              <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-display">
                 {analytics.total}
               </span>
-              <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-800">
-                +{analytics.monthlyVelocity} recent joins
+              <span className="text-[10px] sm:text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 sm:px-2 py-0.2 sm:py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800 truncate">
+                +{analytics.monthlyVelocity} recent
               </span>
             </div>
-            <p className="text-xs text-slate-500 dark:text-stone-400 font-medium mt-1">
-              Founders across Egypt & regional hubs
+            <p className="text-[10.5px] sm:text-xs text-slate-500 dark:text-stone-400 font-medium mt-1 truncate">
+              Egypt & regional hubs
             </p>
           </div>
         </div>
 
         {/* KPI 2: Reciprocal Fit Rate */}
-        <div className="relative p-5 rounded-3xl bg-white dark:bg-stone-900 border border-amber-200/90 dark:border-stone-800 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-3 overflow-hidden">
+        <div className="relative p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-white dark:bg-stone-900 border border-amber-200/90 dark:border-stone-800 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-2 sm:space-y-3 overflow-hidden">
           <div className="flex items-center justify-between relative z-10">
-            <span className="text-xs font-bold text-slate-500 dark:text-stone-400">
-              Reciprocal Fit Rate
+            <span className="text-[11px] sm:text-xs font-bold text-slate-500 dark:text-stone-400 truncate">
+              Fit Rate
             </span>
-            <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
-              <Sparkles size={16} />
+            <div className="p-1.5 sm:p-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 shrink-0">
+              <Sparkles size={15} />
             </div>
           </div>
           <div className="relative z-10">
-            <div className="flex items-baseline gap-2.5">
-              <span className="text-3xl font-black text-amber-600 dark:text-amber-400 font-display">
+            <div className="flex items-baseline gap-1.5 sm:gap-2.5 flex-wrap">
+              <span className="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400 font-display">
                 {analytics.synergyIndex}%
               </span>
-              <span className="text-[11px] font-bold text-amber-900 dark:text-amber-200 bg-amber-100 dark:bg-amber-950/80 px-2 py-0.5 rounded-md border border-amber-300 dark:border-amber-800">
-                Complementary Needs
+              <span className="text-[9.5px] sm:text-[11px] font-bold text-amber-900 dark:text-amber-200 bg-amber-100 dark:bg-amber-950/80 px-1.5 sm:px-2 py-0.2 sm:py-0.5 rounded-md border border-amber-300 dark:border-amber-800 truncate">
+                Reciprocal Fit
               </span>
             </div>
-            <p className="text-xs text-slate-500 dark:text-stone-400 font-medium mt-1">
-              Members with reciprocal needs & offers
+            <p className="text-[10.5px] sm:text-xs text-slate-500 dark:text-stone-400 font-medium mt-1 truncate">
+              Matching needs & offers
             </p>
           </div>
         </div>
 
         {/* KPI 3: Active Requests & Skills */}
-        <div className="p-5 rounded-3xl bg-white dark:bg-stone-900 border border-slate-200/90 dark:border-stone-800 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-3">
+        <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-white dark:bg-stone-900 border border-slate-200/90 dark:border-stone-800 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-2 sm:space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 dark:text-stone-400">
-              Active Needs & Skills
+            <span className="text-[11px] sm:text-xs font-bold text-slate-500 dark:text-stone-400 truncate">
+              Active Asks & Offers
             </span>
-            <div className="p-2 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-sky-800">
-              <Target size={16} />
+            <div className="p-1.5 sm:p-2 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-sky-800 shrink-0">
+              <Target size={15} />
             </div>
           </div>
           <div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-black text-sky-600 dark:text-sky-400 font-display">
+            <div className="flex items-baseline gap-1.5 flex-wrap">
+              <span className="text-2xl sm:text-3xl font-black text-sky-600 dark:text-sky-400 font-display">
                 {analytics.activeAsksCount}
               </span>
-              <span className="text-xs font-semibold text-slate-500 dark:text-stone-400">
-                needs ↔ <strong className="text-emerald-600 dark:text-emerald-400 font-bold">{analytics.activeOffersCount}</strong> offers
+              <span className="text-[10.5px] sm:text-xs font-semibold text-slate-500 dark:text-stone-400">
+                asks ↔ <strong className="text-emerald-600 dark:text-emerald-400 font-bold">{analytics.activeOffersCount}</strong> offers
               </span>
             </div>
-            <p className="text-xs text-slate-500 dark:text-stone-400 font-medium mt-1">
-              Specific requests listed by members
+            <p className="text-[10.5px] sm:text-xs text-slate-500 dark:text-stone-400 font-medium mt-1 truncate">
+              Listed by members
             </p>
           </div>
         </div>
 
         {/* KPI 4: Stage Composition */}
-        <div className="p-5 rounded-3xl bg-white dark:bg-stone-900 border border-slate-200/90 dark:border-stone-800 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-3">
+        <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-white dark:bg-stone-900 border border-slate-200/90 dark:border-stone-800 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-2 sm:space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 dark:text-stone-400">
-              Venture Stage Breakdown
+            <span className="text-[11px] sm:text-xs font-bold text-slate-500 dark:text-stone-400 truncate">
+              Venture Stages
             </span>
-            <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
-              <Layers size={16} />
+            <div className="p-1.5 sm:p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 shrink-0">
+              <Layers size={15} />
             </div>
           </div>
 
           <div>
-            <div className="h-3 w-full rounded-full bg-slate-100 dark:bg-stone-800 flex overflow-hidden border border-slate-200 dark:border-stone-700 shadow-2xs mb-2">
+            <div className="h-2.5 sm:h-3 w-full rounded-full bg-slate-100 dark:bg-stone-800 flex overflow-hidden border border-slate-200 dark:border-stone-700 shadow-2xs mb-2">
               <div
                 className="bg-blue-500 h-full transition-all duration-500"
                 style={{ width: `${stageStats.ideaPct}%` }}
@@ -238,11 +238,11 @@ export default function CommunityDashboard() {
               />
             </div>
 
-            <div className="grid grid-cols-4 gap-1 text-[11px] font-semibold text-center">
-              <span className="text-blue-700 dark:text-blue-400">Idea {stageStats.counts.idea}</span>
-              <span className="text-emerald-700 dark:text-emerald-400">Start {stageStats.counts.starting}</span>
-              <span className="text-amber-700 dark:text-amber-400">Run {stageStats.counts.running}</span>
-              <span className="text-purple-700 dark:text-purple-400">Scale {stageStats.counts.growing}</span>
+            <div className="grid grid-cols-4 gap-0.5 text-[9.5px] sm:text-[11px] font-semibold text-center truncate">
+              <span className="text-blue-700 dark:text-blue-400 truncate">Idea {stageStats.counts.idea}</span>
+              <span className="text-emerald-700 dark:text-emerald-400 truncate">Start {stageStats.counts.starting}</span>
+              <span className="text-amber-700 dark:text-amber-400 truncate">Run {stageStats.counts.running}</span>
+              <span className="text-purple-700 dark:text-purple-400 truncate">Scale {stageStats.counts.growing}</span>
             </div>
           </div>
         </div>
@@ -384,13 +384,15 @@ export default function CommunityDashboard() {
 
                     <div>
                       {isDeficit ? (
-                        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#FEF2F2] dark:bg-rose-950/50 text-[#991B1B] dark:text-rose-300 border border-rose-200 dark:border-rose-900">
+                        <span className="inline-flex items-center gap-1.5 text-[10.5px] sm:text-[11px] font-bold px-2 sm:px-2.5 py-0.5 rounded-full bg-[#FEF2F2] dark:bg-rose-950/50 text-[#991B1B] dark:text-rose-300 border border-rose-200 dark:border-rose-900 shrink-0">
                           <span className="w-1.5 h-1.5 rounded-full bg-[#EF4444]" />
-                          Need: {row.demand} vs Offer: {row.supply} (Shortage: {row.gap})
+                          <span className="hidden sm:inline">Need: {row.demand} vs Offer: {row.supply} (Shortage: {row.gap})</span>
+                          <span className="sm:hidden">Need {row.demand} · Gap -{row.gap}</span>
                         </span>
                       ) : isSurplus ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#ECFDF5] dark:bg-emerald-950/50 text-[#065F46] dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900">
-                          Surplus capacity (+{Math.abs(row.gap)})
+                        <span className="inline-flex items-center gap-1 text-[10.5px] sm:text-[11px] font-bold px-2 sm:px-2.5 py-0.5 rounded-full bg-[#ECFDF5] dark:bg-emerald-950/50 text-[#065F46] dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900 shrink-0">
+                          <span className="hidden sm:inline">Surplus capacity (+{Math.abs(row.gap)})</span>
+                          <span className="sm:hidden">Surplus +{Math.abs(row.gap)}</span>
                         </span>
                       ) : (
                         <span className="text-xs font-semibold text-slate-400">Balanced</span>

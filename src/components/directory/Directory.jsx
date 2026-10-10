@@ -44,8 +44,76 @@ import {
 import { explainSurpriseSynergy } from '../../utils/explainability';
 import ProfileCard from './ProfileCard';
 import EmptyState from './EmptyState';
-import FounderArchMarquee from './FounderArchMarquee';
 import Modal from '../common/Modal';
+
+function matchesIntentPreset(m, preset) {
+  if (!m || preset === 'all') return true;
+  if (preset === 'saved') return isMemberBookmarked(m.id);
+
+  const text = [
+    m.lookingFor || '',
+    m.business || '',
+    m.role || '',
+    (m.tags || []).join(' '),
+    (m.seeking || []).join(' '),
+  ].join(' ').toLowerCase();
+
+  switch (preset) {
+    case 'sos':
+      return (
+        text.includes('urgent') ||
+        text.includes('عاجل') ||
+        text.includes('ضروري') ||
+        text.includes('48') ||
+        text.includes('sos') ||
+        text.includes('سريع')
+      );
+    case 'cofounder':
+      return (
+        text.includes('co-founder') ||
+        text.includes('cofounder') ||
+        text.includes('شريك') ||
+        text.includes('شراكة') ||
+        text.includes('تأسيس')
+      );
+    case 'capital':
+      return (
+        text.includes('استثمار') ||
+        text.includes('مستثمر') ||
+        text.includes('تمويل') ||
+        text.includes('capital') ||
+        text.includes('fund') ||
+        text.includes('invest') ||
+        text.includes('angel') ||
+        text.includes('seed') ||
+        text.includes('raise')
+      );
+    case 'distribution':
+      return (
+        text.includes('توزيع') ||
+        text.includes('موزع') ||
+        text.includes('مبيعات') ||
+        text.includes('وكيل') ||
+        text.includes('b2b') ||
+        text.includes('distribution') ||
+        text.includes('distributor') ||
+        text.includes('retail') ||
+        text.includes('sales')
+      );
+    case 'export':
+      return (
+        text.includes('export') ||
+        text.includes('تصدير') ||
+        text.includes('توسع') ||
+        text.includes('خارجي') ||
+        text.includes('سعودية') ||
+        text.includes('خليج') ||
+        text.includes('expansion')
+      );
+    default:
+      return true;
+  }
+}
 
 export default function Directory() {
   const {
@@ -98,52 +166,26 @@ export default function Directory() {
     })).filter((s) => s.count > 0);
   }, [members]);
 
-  // Smart Preset Counts
+  // High-Signal Intent Preset Counts
   const presetCounts = useMemo(() => {
     const safeMembers = Array.isArray(members) ? members : [];
-    const saved = safeMembers.filter((m) => isMemberBookmarked(m.id)).length;
-    const partners = safeMembers.filter(
-      (m) =>
-        m.lookingFor?.toLowerCase().includes('شراك') ||
-        m.lookingFor?.toLowerCase().includes('partner') ||
-        m.lookingFor?.toLowerCase().includes('تعاون')
-    ).length;
-    const growing = safeMembers.filter((m) => m.stage === 'growing' || m.stage === 'running').length;
-    const exportCount = safeMembers.filter(
-      (m) =>
-        m.tags?.some((t) => t.toLowerCase().includes('export')) ||
-        m.business?.toLowerCase().includes('export') ||
-        m.canHelp?.toLowerCase().includes('تصدير') ||
-        m.lookingFor?.toLowerCase().includes('تصدير')
-    ).length;
-
-    return { saved, partners, growing, exportCount };
-  }, [members]);
+    return {
+      sos: safeMembers.filter((m) => matchesIntentPreset(m, 'sos')).length,
+      cofounder: safeMembers.filter((m) => matchesIntentPreset(m, 'cofounder')).length,
+      capital: safeMembers.filter((m) => matchesIntentPreset(m, 'capital')).length,
+      distribution: safeMembers.filter((m) => matchesIntentPreset(m, 'distribution')).length,
+      exportCount: safeMembers.filter((m) => matchesIntentPreset(m, 'export')).length,
+      saved: safeMembers.filter((m) => isMemberBookmarked(m.id)).length,
+    };
+  }, [members, bookmarkedIds]);
 
   // Filtered & Sorted Members
   const filteredMembers = useMemo(() => {
     let result = Array.isArray(members) ? [...members] : [];
 
-    // 1. Smart Presets
-    if (smartPreset === 'saved') {
-      result = result.filter((m) => isMemberBookmarked(m.id));
-    } else if (smartPreset === 'partners') {
-      result = result.filter(
-        (m) =>
-          m.lookingFor?.toLowerCase().includes('شراك') ||
-          m.lookingFor?.toLowerCase().includes('partner') ||
-          m.lookingFor?.toLowerCase().includes('تعاون')
-      );
-    } else if (smartPreset === 'growing') {
-      result = result.filter((m) => m.stage === 'growing' || m.stage === 'running');
-    } else if (smartPreset === 'export') {
-      result = result.filter(
-        (m) =>
-          m.tags?.some((t) => t.toLowerCase().includes('export')) ||
-          m.business?.toLowerCase().includes('export') ||
-          m.canHelp?.toLowerCase().includes('تصدير') ||
-          m.lookingFor?.toLowerCase().includes('تصدير')
-      );
+    // 1. High-Signal Intent Presets
+    if (smartPreset !== 'all') {
+      result = result.filter((m) => matchesIntentPreset(m, smartPreset));
     }
 
     // 2. Stage filter
@@ -218,65 +260,62 @@ export default function Directory() {
 
   return (
     <div className="space-y-6 animate-fade-in max-w-7xl pb-12">
-      {/* ── Living Kinetic Hero: Roman Arch Founder Marquee ──── */}
-      <FounderArchMarquee members={members} />
-
-      {/* ── Sticky Top Container: BGM Intake Banner + Glass-Bento Controls ──── */}
-      <div className="sticky top-[69px] z-20 space-y-3 bg-[#FAFAF7]/95 dark:bg-stone-950/95 backdrop-blur-md pb-2 pt-1 transition-colors">
-        
-        {/* Official Google Form Intake & BGM Network Banner */}
-        <div className="bg-gradient-to-r from-stone-900 via-stone-850 to-stone-900 text-white rounded-3xl p-4 sm:p-5 border border-stone-800 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            {/* BGM Logo integration */}
-            <div className="relative shrink-0">
-              <img
-                src="/bgm-logo.jpg"
-                alt="BGM Community"
-                className="w-11 h-11 rounded-2xl object-cover shadow-sm ring-2 ring-emerald-500/40 border border-stone-700"
-              />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-stone-900 shadow-xs" />
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-extrabold text-sm sm:text-base text-white tracking-tight flex items-center gap-2 font-display">
-                  BGM Smart Entrepreneurs Network
-                </h3>
-                <span className="text-[10px] uppercase font-mono font-bold tracking-widest px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-                  Verified Ecosystem
-                </span>
-              </div>
-              <p className="text-xs text-stone-300 font-medium mt-0.5">
-                Register new ventures, update looking-for requests, or explore serendipity introductions.
-              </p>
-            </div>
+      {/* Official Google Form Intake & BGM Network Banner */}
+      <div className="bg-gradient-to-r from-stone-900 via-stone-850 to-stone-900 text-white rounded-3xl p-4 sm:p-5 border border-stone-800 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          {/* BGM Logo integration */}
+          <div className="relative shrink-0">
+            <img
+              src="/bgm-logo.jpg"
+              alt="BGM Community"
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl object-cover shadow-sm ring-2 ring-emerald-500/40 border border-stone-700"
+            />
+            <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-stone-900 shadow-xs" />
           </div>
 
-          <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
-            {/* Serendipity Dice Button */}
-            <button
-              onClick={handleRollSerendipity}
-              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/15 backdrop-blur-md shadow-sm transition-all cursor-pointer active:scale-95"
-              title="Roll the Serendipity Dice for a surprise synergy match!"
-            >
-              <Dices size={15} className={`text-amber-400 ${isRollingDice ? 'animate-spin' : ''}`} />
-              <span>Surprise Synergy</span>
-            </button>
-
-            <a
-              href={GOOGLE_FORM_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-xs font-bold tracking-wide shadow-md transition-all cursor-pointer active:scale-95"
-            >
-              <span>Update Profile</span>
-              <ExternalLink size={13} />
-            </a>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-extrabold text-sm sm:text-base text-white tracking-tight flex items-center gap-2 font-display">
+                BGM Smart Entrepreneurs Network
+              </h3>
+              <span className="text-[9.5px] sm:text-[10px] uppercase font-mono font-bold tracking-widest px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                Verified Ecosystem
+              </span>
+            </div>
+            <p className="text-xs text-stone-300 font-medium mt-0.5">
+              Register new ventures, update looking-for requests, or explore serendipity introductions.
+            </p>
           </div>
         </div>
 
+        <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+          {/* Serendipity Dice Button */}
+          <button
+            onClick={handleRollSerendipity}
+            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/15 backdrop-blur-md shadow-sm transition-all cursor-pointer active:scale-95 min-h-[40px]"
+            title="Roll the Serendipity Dice for a surprise synergy match!"
+          >
+            <Dices size={15} className={`text-amber-400 ${isRollingDice ? 'animate-spin' : ''}`} />
+            <span>Surprise Synergy</span>
+          </button>
+
+          <a
+            href={GOOGLE_FORM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-xs font-bold tracking-wide shadow-md transition-all cursor-pointer active:scale-95 min-h-[40px]"
+          >
+            <span>Update Profile</span>
+            <ExternalLink size={13} />
+          </a>
+        </div>
+      </div>
+
+      {/* ── Sticky Top Container: Glass-Bento Controls ──── */}
+      <div className="sticky top-[58px] sm:top-[69px] z-20 space-y-3 bg-[#FAFAF7]/95 dark:bg-stone-950/95 backdrop-blur-md pb-2 pt-1 transition-colors">
+        
         {/* ── Glass-Bento Directory Control Panel ──── */}
-        <div className="bg-white/85 dark:bg-stone-900/85 backdrop-blur-md p-5 rounded-3xl border border-emerald-200/70 dark:border-stone-800 shadow-[0_4px_24px_rgba(16,185,129,0.06)] space-y-3.5">
+        <div className="bg-white/85 dark:bg-stone-900/85 backdrop-blur-md p-4 sm:p-5 rounded-3xl border border-emerald-200/70 dark:border-stone-800 shadow-[0_4px_24px_rgba(16,185,129,0.06)] space-y-3.5">
           
           {/* Top Row: Title, Counter & View Mode Toggles */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-emerald-100/70 dark:border-stone-800 pb-3">
@@ -349,15 +388,15 @@ export default function Directory() {
             />
           </div>
 
-          {/* 1-Tap Smart Default Discovery Presets */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5">
+          {/* 1-Tap High-Signal Intent Discovery Presets */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
             <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 flex items-center gap-1 shrink-0">
-              <Sparkles size={11} className="text-emerald-600" /> Presets:
+              <Sparkles size={11} className="text-emerald-600" /> Intent:
             </span>
 
             <button
               onClick={() => setSmartPreset('all')}
-              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
                 smartPreset === 'all'
                   ? 'bg-stone-900 text-white dark:bg-white dark:text-stone-900 shadow-xs'
                   : 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 hover:bg-stone-200'
@@ -367,52 +406,76 @@ export default function Directory() {
             </button>
 
             <button
-              onClick={() => setSmartPreset('saved')}
-              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
-                smartPreset === 'saved'
+              onClick={() => setSmartPreset('sos')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                smartPreset === 'sos'
+                  ? 'bg-rose-600 text-white shadow-xs'
+                  : 'bg-rose-50/80 dark:bg-rose-950/30 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60 hover:bg-rose-100'
+              }`}
+            >
+              <span>🚨 Urgent Asks</span>
+              <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full bg-black/10 dark:bg-white/10">{presetCounts.sos}</span>
+            </button>
+
+            <button
+              onClick={() => setSmartPreset('cofounder')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                smartPreset === 'cofounder'
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'bg-indigo-50/80 dark:bg-indigo-950/30 text-indigo-800 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-900/60 hover:bg-indigo-100'
+              }`}
+            >
+              <span>🤝 Co-Founders</span>
+              <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full bg-black/10 dark:bg-white/10">{presetCounts.cofounder}</span>
+            </button>
+
+            <button
+              onClick={() => setSmartPreset('capital')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                smartPreset === 'capital'
                   ? 'bg-amber-600 text-white shadow-xs'
-                  : 'bg-amber-50/80 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 hover:bg-amber-100'
+                  : 'bg-amber-50/80 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900/60 hover:bg-amber-100'
               }`}
             >
-              <Star size={11} className={smartPreset === 'saved' ? 'fill-white' : 'fill-amber-500 text-amber-500'} />
-              <span>Saved Watchlist</span>
-              <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full bg-black/10">{presetCounts.saved}</span>
+              <span>💸 Raising Capital</span>
+              <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full bg-black/10 dark:bg-white/10">{presetCounts.capital}</span>
             </button>
 
             <button
-              onClick={() => setSmartPreset('partners')}
-              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
-                smartPreset === 'partners'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'bg-blue-50/80 dark:bg-blue-950/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 hover:bg-blue-100'
+              onClick={() => setSmartPreset('distribution')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                smartPreset === 'distribution'
+                  ? 'bg-cyan-700 text-white shadow-xs'
+                  : 'bg-cyan-50/80 dark:bg-cyan-950/30 text-cyan-800 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-900/60 hover:bg-cyan-100'
               }`}
             >
-              <span>🤝 Partnerships</span>
-              <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full bg-black/10">{presetCounts.partners}</span>
-            </button>
-
-            <button
-              onClick={() => setSmartPreset('growing')}
-              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
-                smartPreset === 'growing'
-                  ? 'bg-emerald-700 text-white shadow-xs'
-                  : 'bg-emerald-50/80 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 hover:bg-emerald-100'
-              }`}
-            >
-              <span>🚀 Scaling</span>
-              <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full bg-black/10">{presetCounts.growing}</span>
+              <span>📦 B2B Distribution</span>
+              <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full bg-black/10 dark:bg-white/10">{presetCounts.distribution}</span>
             </button>
 
             <button
               onClick={() => setSmartPreset('export')}
-              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
                 smartPreset === 'export'
                   ? 'bg-purple-700 text-white shadow-xs'
                   : 'bg-purple-50/80 dark:bg-purple-950/30 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 hover:bg-purple-100'
               }`}
             >
-              <span>🌍 Exporters</span>
-              <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full bg-black/10">{presetCounts.exportCount}</span>
+              <span>🌍 Export</span>
+              <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full bg-black/10 dark:bg-white/10">{presetCounts.exportCount}</span>
+            </button>
+
+            <button
+              onClick={() => setSmartPreset('saved')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                smartPreset === 'saved'
+                  ? 'bg-amber-500 text-white shadow-xs'
+                  : 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 hover:bg-stone-200'
+              }`}
+            >
+              <Star size={11} className={smartPreset === 'saved' ? 'fill-white' : 'fill-amber-500 text-amber-500'} />
+              <span>Saved Watchlist</span>
+              <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full bg-black/10 dark:bg-white/10">{presetCounts.saved}</span>
             </button>
           </div>
 
@@ -444,14 +507,14 @@ export default function Directory() {
 
             {/* Controlled Sector Selector */}
             {sectorCounts.length > 0 && (
-              <div className="ml-auto flex items-center gap-1.5">
-                <span className="text-xs font-bold text-stone-500 flex items-center gap-1">
+              <div className="w-full sm:w-auto sm:ml-auto flex items-center justify-between sm:justify-start gap-1.5 pt-1 sm:pt-0">
+                <span className="text-xs font-bold text-stone-500 flex items-center gap-1 shrink-0">
                   <SlidersHorizontal size={12} className="text-emerald-600" /> Sector:
                 </span>
                 <select
                   value={tagFilter}
                   onChange={(e) => setTagFilter(e.target.value)}
-                  className="text-xs font-bold bg-white dark:bg-stone-900 border border-emerald-200 dark:border-stone-700 rounded-xl px-2.5 py-1 text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 cursor-pointer shadow-2xs"
+                  className="flex-1 sm:flex-none text-xs font-bold bg-white dark:bg-stone-900 border border-emerald-200 dark:border-stone-700 rounded-xl px-2.5 py-1 text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 cursor-pointer shadow-2xs"
                 >
                   <option value="">All Sectors ({members.length} Members)</option>
                   {sectorCounts.map((s) => (
@@ -472,7 +535,8 @@ export default function Directory() {
       ) : viewMode === 'table' ? (
         /* ── Compact Table View ─────────────────────────────────────────────── */
         <div className="bg-white/85 dark:bg-stone-900/85 backdrop-blur-md border border-emerald-200/70 dark:border-stone-800 rounded-3xl overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-emerald-50/50 dark:bg-stone-850 border-b border-emerald-100 dark:border-stone-800 text-[11px] uppercase tracking-wider font-extrabold text-stone-600 dark:text-stone-400">
@@ -644,6 +708,161 @@ export default function Directory() {
                 })}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Stacked Card List View */}
+          <div className="md:hidden divide-y divide-emerald-100/70 dark:divide-stone-800">
+            {filteredMembers.map((m) => {
+              const { english, arabic, primary } = parseMemberName(m.name);
+              const stage = STAGES[m.stage] || STAGES.idea;
+              const initials = getInitials(m.name);
+              const gradient = getAvatarGradient(m.name);
+              const isLinkedInValid = isValidLinkedInUrl(m.linkedin);
+              const linkedInHref = isLinkedInValid ? formatLinkedInUrl(m.linkedin) : null;
+              const websites = getMemberWebsites(m);
+              const isSaved = isMemberBookmarked(m.id);
+              const locLabel =
+                typeof m.location === 'string'
+                  ? m.location
+                  : [m.location?.city, m.location?.country].filter(Boolean).join(', ');
+
+              return (
+                <div
+                  key={`mobile-${m.id}`}
+                  onClick={() => setDetailMember(m)}
+                  className="p-4 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/20 cursor-pointer transition-colors space-y-3"
+                >
+                  {/* Row 1: Avatar, Name & Stage Badge */}
+                  <div className="flex items-start justify-between gap-2.5">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div
+                        className={`w-10 h-10 rounded-2xl bg-gradient-to-br ${gradient} text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs`}
+                      >
+                        {initials}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          {english ? (
+                            <span className="font-extrabold text-stone-900 dark:text-stone-100 text-sm truncate">
+                              {english}
+                            </span>
+                          ) : (
+                            <span className="font-extrabold text-stone-900 dark:text-stone-100 text-sm truncate" dir="rtl">
+                              {arabic || primary}
+                            </span>
+                          )}
+                          {isSaved && <Star size={13} className="fill-amber-500 text-amber-500 shrink-0" />}
+                        </div>
+                        {english && arabic && (
+                          <span className="text-[11px] font-bold text-stone-600 dark:text-stone-400 block truncate" dir="rtl">
+                            {arabic}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <span
+                      className={`badge ${stage.bg} ${stage.text} border ${stage.border} text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0`}
+                    >
+                      {stage.icon} {stage.label}
+                    </span>
+                  </div>
+
+                  {/* Row 2: Role, Business & Location */}
+                  <div className="flex items-center justify-between text-xs text-stone-600 dark:text-stone-300 gap-2">
+                    <div className="truncate">
+                      <span className="font-bold text-stone-800 dark:text-stone-200">{m.role || 'Member'}</span>
+                      {m.business && <span className="text-stone-500 dark:text-stone-400"> · {m.business}</span>}
+                    </div>
+                    <div className="shrink-0 text-[11px] text-stone-500 font-medium">
+                      {getCountryFlag(m.location?.country)} {locLabel || 'Global'}
+                    </div>
+                  </div>
+
+                  {/* Row 3: Needs & Offers compact */}
+                  {(m.lookingFor || m.canHelp) && (
+                    <div className="space-y-1 pt-0.5">
+                      {m.lookingFor && (
+                        <div className="text-[11px] text-amber-800 dark:text-amber-300 bg-amber-50/70 dark:bg-amber-950/30 px-2 py-1 rounded-lg border border-amber-200/50 dark:border-amber-900/40 truncate">
+                          <strong className="font-bold">🎯 Need:</strong> {m.lookingFor}
+                        </div>
+                      )}
+                      {m.canHelp && (
+                        <div className="text-[11px] text-emerald-800 dark:text-emerald-300 bg-emerald-50/70 dark:bg-emerald-950/30 px-2 py-1 rounded-lg border border-emerald-200/50 dark:border-emerald-900/40 truncate">
+                          <strong className="font-bold">💡 Offer:</strong> {m.canHelp}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Row 4: Actions Bar with Touch Friendly Targets */}
+                  <div
+                    className="flex items-center justify-between pt-1 border-t border-emerald-100/50 dark:border-stone-800/80"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          const isNow = toggleBookmarkId(m.id);
+                          refreshMembers();
+                          notify(isNow ? `⭐ Saved ${m.name}` : `Removed ${m.name}`);
+                        }}
+                        className={`p-2 min-w-[38px] min-h-[38px] flex items-center justify-center rounded-xl transition-all ${
+                          isSaved
+                            ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800'
+                            : 'text-stone-400 bg-stone-100 dark:bg-stone-800 hover:text-amber-500'
+                        }`}
+                        title="Toggle Watchlist"
+                      >
+                        <Star size={14} className={isSaved ? 'fill-amber-500' : ''} />
+                      </button>
+
+                      {isLinkedInValid && (
+                        <a
+                          href={linkedInHref}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 min-w-[38px] min-h-[38px] flex items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 hover:bg-blue-600 hover:text-white transition-all border border-blue-200/50 dark:border-blue-900/40"
+                          title="LinkedIn"
+                        >
+                          <Linkedin size={14} />
+                        </a>
+                      )}
+
+                      {websites.map((w, idx) => (
+                        <a
+                          key={`mobile-${w.url}-${idx}`}
+                          href={w.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 min-w-[38px] min-h-[38px] flex items-center justify-center rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-900 hover:text-white transition-all border border-stone-200 dark:border-stone-700"
+                          title={`Visit ${w.label}`}
+                        >
+                          <ExternalLink size={14} />
+                        </a>
+                      ))}
+
+                      {isAdmin && (
+                        <button
+                          onClick={() => setMemberToDelete(m)}
+                          className="p-2 min-w-[38px] min-h-[38px] flex items-center justify-center rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 hover:bg-rose-600 hover:text-white transition-all cursor-pointer border border-rose-200/50 dark:border-rose-900/40"
+                          title="Delete Member (Admin)"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+
+                    <button
+                      onClick={() => setDetailMember(m)}
+                      className="px-3 py-1.5 min-h-[38px] rounded-xl bg-emerald-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95 transition-transform"
+                    >
+                      <Eye size={13} />
+                      <span>Profile</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       ) : (
