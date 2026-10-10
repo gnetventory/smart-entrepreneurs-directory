@@ -33,30 +33,6 @@ import { explainProfileStrength } from '../../utils/explainability';
 import Modal from '../common/Modal';
 import ScoreExplainerModal from '../common/ScoreExplainerModal';
 
-// Curated high-resolution photorealistic founder portraits
-const FOUNDER_AVATARS = [
-  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=240&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=240&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=240&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=240&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=240&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=240&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=240&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=240&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=240&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=240&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=240&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=240&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=240&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=240&auto=format&fit=crop&q=80',
-];
-
-function getFounderAvatarUrl(member, index) {
-  const seed = (member.id || member.name || `${index}`)
-    .split('')
-    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return FOUNDER_AVATARS[seed % FOUNDER_AVATARS.length];
-}
 
 // Extract concise Superpower headline
 function extractSuperpower(member) {
@@ -573,8 +549,8 @@ export default function FounderArchMarquee({ members = [] }) {
           {marqueeCards.map((member, index) => {
             const palette = ARCH_PALETTES[index % ARCH_PALETTES.length];
             const waveTier = WAVE_TIERS[index % WAVE_TIERS.length];
-            const avatarUrl = getFounderAvatarUrl(member, index);
             const initials = getInitials(member.name);
+            const gradient = getAvatarGradient(member.name);
             const { english, arabic, primary } = parseMemberName(member.name);
             const role = member.role || 'Founder';
             const superpower = extractSuperpower(member);
@@ -645,20 +621,11 @@ export default function FounderArchMarquee({ members = [] }) {
                   </div>
                 </div>
 
-                {/* 2. CENTER ZONE: Humanized Headshot Avatar with Live Status Dot */}
+                {/* 2. CENTER ZONE: Stylized Founder Initials Avatar with Live Status Dot */}
                 <div className="my-auto flex flex-col items-center justify-center relative z-10 py-1">
                   <div className="relative group-hover:scale-105 transition-transform duration-200">
                     <div className={`w-20 h-20 rounded-full p-1 bg-white dark:bg-stone-900 shadow-md ring-4 ${palette.avatarRing}`}>
-                      <img
-                        src={avatarUrl}
-                        alt={member.name}
-                        className="w-full h-full rounded-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                          e.currentTarget.nextSibling.style.display = 'flex';
-                        }}
-                      />
-                      <div className="hidden w-full h-full rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 items-center justify-center text-white font-black text-lg">
+                      <div className={`w-full h-full rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center text-white font-black text-xl tracking-wider shadow-inner`}>
                         {initials}
                       </div>
                     </div>

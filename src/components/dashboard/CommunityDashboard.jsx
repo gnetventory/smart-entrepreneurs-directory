@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Users,
   Sparkles,
@@ -19,16 +19,6 @@ import {
   Linkedin,
   TrendingUp,
   RefreshCw,
-  Clock,
-  Send,
-  Calendar,
-  CalendarPlus,
-  Video,
-  Building2,
-  Navigation,
-  Share2,
-  Tag,
-  UserCheck,
   AlertCircle,
   HelpCircle,
 } from 'lucide-react';
@@ -45,46 +35,10 @@ import {
   getMemberWebsites,
   parseMemberName,
 } from '../../utils/helpers';
-import {
-  INITIAL_COMMUNITY_EVENTS,
-  generateGoogleCalendarUrl,
-  getSavedRsvps,
-  toggleEventRsvp,
-} from '../../utils/eventsData';
 import Modal from '../common/Modal';
-
-// High-resolution founder headshot portrait URLs
-const FOUNDER_AVATARS = [
-  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=240&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=240&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=240&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=240&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=240&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=240&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=240&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=240&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=240&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=240&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=240&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=240&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=240&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=240&auto=format&fit=crop&q=80',
-];
-
-function getMemberHeadshot(member, index = 0) {
-  const seed = (member?.id || member?.name || `${index}`)
-    .split('')
-    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return FOUNDER_AVATARS[seed % FOUNDER_AVATARS.length];
-}
 
 export default function CommunityDashboard() {
   const { activeMembers: members, setActiveTab, setSearchQuery, notify } = useApp();
-  
-  // Events filter & RSVP state
-  const [eventFilter, setEventFilter] = useState('all'); // 'all' | 'offline' | 'online'
-  const [userRsvps, setUserRsvps] = useState([]);
-  const [eventsList] = useState(INITIAL_COMMUNITY_EVENTS);
 
   // Interactive Modals State
   const [detailMember, setDetailMember] = useState(null);
@@ -94,40 +48,6 @@ export default function CommunityDashboard() {
 
   const isAdmin = isAdminSession();
   const analytics = useMemo(() => computeExecutiveAnalytics(members), [members]);
-
-  // Load saved RSVPs on mount
-  useEffect(() => {
-    setUserRsvps(getSavedRsvps());
-  }, []);
-
-  const handleToggleRsvp = (eventId, eventTitle) => {
-    const isNowRsvped = toggleEventRsvp(eventId);
-    setUserRsvps(getSavedRsvps());
-    if (isNowRsvped) {
-      notify(`🎉 You are attending "${eventTitle}"!`);
-    } else {
-      notify(`RSVP cancelled for "${eventTitle}"`);
-    }
-  };
-
-  // Next spotlight gathering
-  const spotlightEvent = useMemo(() => {
-    return eventsList.find((e) => e.featured) || eventsList[0];
-  }, [eventsList]);
-
-  // Filtered list of upcoming events
-  const filteredEvents = useMemo(() => {
-    if (eventFilter === 'offline') {
-      return eventsList.filter((e) => e.format === 'offline');
-    }
-    if (eventFilter === 'online') {
-      return eventsList.filter((e) => e.format === 'online');
-    }
-    return eventsList;
-  }, [eventsList, eventFilter]);
-
-  const inPersonCount = useMemo(() => eventsList.filter((e) => e.format === 'offline').length, [eventsList]);
-  const onlineCount = useMemo(() => eventsList.filter((e) => e.format === 'online').length, [eventsList]);
 
   const handleOpenBilateralModal = (pairing) => {
     setBilateralPairing(pairing);
@@ -372,11 +292,11 @@ export default function CommunityDashboard() {
                     onClick={() => setDetailMember(pairing.memberA)}
                     className="p-3 rounded-2xl bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-750 cursor-pointer hover:border-emerald-500 transition-all flex flex-col items-center text-center space-y-1.5"
                   >
-                    <img
-                      src={getMemberHeadshot(pairing.memberA, idx)}
-                      alt={pairing.memberA.name}
-                      className="w-11 h-11 rounded-full object-cover ring-2 ring-emerald-400 shadow-xs"
-                    />
+                    <div
+                      className={`w-11 h-11 rounded-full bg-gradient-to-br ${getAvatarGradient(pairing.memberA.name)} flex items-center justify-center text-white font-black text-sm ring-2 ring-emerald-400 shadow-xs`}
+                    >
+                      {getInitials(pairing.memberA.name)}
+                    </div>
                     <div className="font-extrabold text-xs text-slate-900 dark:text-white truncate w-full">
                       {pairing.memberA.name}
                     </div>
@@ -389,11 +309,11 @@ export default function CommunityDashboard() {
                     onClick={() => setDetailMember(pairing.memberB)}
                     className="p-3 rounded-2xl bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-750 cursor-pointer hover:border-emerald-500 transition-all flex flex-col items-center text-center space-y-1.5"
                   >
-                    <img
-                      src={getMemberHeadshot(pairing.memberB, idx + 1)}
-                      alt={pairing.memberB.name}
-                      className="w-11 h-11 rounded-full object-cover ring-2 ring-amber-400 shadow-xs"
-                    />
+                    <div
+                      className={`w-11 h-11 rounded-full bg-gradient-to-br ${getAvatarGradient(pairing.memberB.name)} flex items-center justify-center text-white font-black text-sm ring-2 ring-amber-400 shadow-xs`}
+                    >
+                      {getInitials(pairing.memberB.name)}
+                    </div>
                     <div className="font-extrabold text-xs text-slate-900 dark:text-white truncate w-full">
                       {pairing.memberB.name}
                     </div>
@@ -574,69 +494,6 @@ export default function CommunityDashboard() {
             </div>
           </div>
 
-          {/* Card B: Next Spotlight Gathering */}
-          {spotlightEvent && (
-            <div className="p-5 rounded-3xl bg-white dark:bg-stone-900 border border-slate-200/90 dark:border-stone-800 shadow-sm space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-100 dark:border-stone-800 pb-2.5">
-                <div className="flex items-center gap-2">
-                  <span className="p-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold">
-                    <Calendar size={13} />
-                  </span>
-                  <span className="text-xs font-extrabold text-slate-900 dark:text-white">
-                    Next Community Gathering
-                  </span>
-                </div>
-
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                  spotlightEvent.format === 'offline'
-                    ? 'bg-orange-50 text-orange-800 border-orange-200 dark:bg-orange-950 dark:text-orange-300'
-                    : 'bg-sky-50 text-sky-800 border-sky-200 dark:bg-sky-950 dark:text-sky-300'
-                }`}>
-                  {spotlightEvent.format === 'offline' ? '🏛️ In-Person' : '🌐 Virtual'}
-                </span>
-              </div>
-
-              <div>
-                <h4 className="font-extrabold text-xs sm:text-sm text-slate-950 dark:text-white leading-snug">
-                  {spotlightEvent.title}
-                </h4>
-                <div className="text-xs text-slate-500 dark:text-stone-400 font-medium mt-1 flex items-center gap-1.5">
-                  <Clock size={12} className="text-amber-500 shrink-0" />
-                  <span>{spotlightEvent.displayDate} • {spotlightEvent.time}</span>
-                </div>
-                <div className="text-xs text-slate-500 dark:text-stone-400 font-medium mt-0.5 flex items-center gap-1.5">
-                  <MapPin size={12} className="text-emerald-500 shrink-0" />
-                  <span className="truncate">{spotlightEvent.location}</span>
-                </div>
-              </div>
-
-              {/* Action Toolbar */}
-              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-stone-800">
-                <a
-                  href={generateGoogleCalendarUrl(spotlightEvent)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-stone-100 text-white dark:text-slate-900 font-bold text-xs flex items-center justify-center gap-1.5 transition"
-                >
-                  <CalendarPlus size={13} />
-                  <span>Add to Cal</span>
-                </a>
-
-                <button
-                  onClick={() => handleToggleRsvp(spotlightEvent.id, spotlightEvent.title)}
-                  className={`py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 border transition cursor-pointer ${
-                    userRsvps.includes(spotlightEvent.id)
-                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
-                      : 'bg-white dark:bg-stone-800 text-slate-700 dark:text-stone-300 border-slate-200 dark:border-stone-700 hover:border-emerald-400'
-                  }`}
-                >
-                  <UserCheck size={13} className={userRsvps.includes(spotlightEvent.id) ? 'text-emerald-600' : ''} />
-                  <span>{userRsvps.includes(spotlightEvent.id) ? 'Attending' : 'RSVP'}</span>
-                </button>
-              </div>
-            </div>
-          )}
-
         </div>
 
       </div>
@@ -717,189 +574,7 @@ export default function CommunityDashboard() {
         </div>
       </div>
 
-      {/* ── 6. UPCOMING COMMUNITY EVENTS & GATHERINGS HUB ───────────────── */}
-      <div className="p-6 rounded-3xl bg-white dark:bg-stone-900 border border-slate-200/90 dark:border-stone-800 shadow-sm space-y-5">
-        
-        <div className="flex items-center justify-between flex-wrap gap-3 border-b border-slate-100 dark:border-stone-800 pb-4">
-          <div>
-            <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2 font-display">
-              <Calendar size={18} className="text-emerald-600" />
-              Upcoming Community Gatherings & Masterminds
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-stone-400 font-medium mt-0.5">
-              In-person founder breakfasts, angel mixers, and virtual learning sessions for Smart Directory members.
-            </p>
-          </div>
-
-          {/* Event Filter Tabs */}
-          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-stone-800 p-1 rounded-2xl border border-slate-200 dark:border-stone-700">
-            <button
-              onClick={() => setEventFilter('all')}
-              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                eventFilter === 'all'
-                  ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs'
-                  : 'text-slate-600 dark:text-stone-300 hover:text-slate-900'
-              }`}
-            >
-              All Gatherings ({eventsList.length})
-            </button>
-            <button
-              onClick={() => setEventFilter('offline')}
-              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                eventFilter === 'offline'
-                  ? 'bg-orange-600 text-white shadow-xs'
-                  : 'text-slate-600 dark:text-stone-300 hover:text-orange-600'
-              }`}
-            >
-              🏛️ In-Person ({inPersonCount})
-            </button>
-            <button
-              onClick={() => setEventFilter('online')}
-              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                eventFilter === 'online'
-                  ? 'bg-sky-600 text-white shadow-xs'
-                  : 'text-slate-600 dark:text-stone-300 hover:text-sky-600'
-              }`}
-            >
-              🌐 Virtual ({onlineCount})
-            </button>
-          </div>
-        </div>
-
-        {/* Event Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {filteredEvents.map((evt) => {
-            const isRsvped = userRsvps.includes(evt.id);
-            const isOffline = evt.format === 'offline';
-
-            return (
-              <div
-                key={evt.id}
-                className="p-5 rounded-3xl border border-slate-200/90 dark:border-stone-800 bg-gradient-to-b from-white to-slate-50/50 dark:from-stone-850 dark:to-stone-900 hover:border-emerald-400 dark:hover:border-emerald-500 transition-all space-y-4 shadow-xs hover:shadow-lg group flex flex-col justify-between"
-              >
-                <div className="space-y-3.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <span
-                      className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
-                        isOffline
-                          ? 'bg-orange-50 text-orange-800 border-orange-200 dark:bg-orange-950/60 dark:text-orange-300 dark:border-orange-800'
-                          : 'bg-sky-50 text-sky-800 border-sky-200 dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-800'
-                      }`}
-                    >
-                      {isOffline ? '🏛️ In-Person Gathering' : '🌐 Virtual Masterclass'}
-                    </span>
-
-                    <span className="text-xs font-bold text-slate-500 dark:text-stone-400 bg-slate-100 dark:bg-stone-800 px-2 py-0.5 rounded-md border border-slate-200 dark:border-stone-700">
-                      {evt.category}
-                    </span>
-                  </div>
-
-                  <div>
-                    <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors leading-snug">
-                      {evt.title}
-                    </h4>
-                    {evt.titleAr && (
-                      <p className="text-xs text-slate-600 dark:text-stone-400 font-bold mt-0.5" dir="rtl">
-                        {evt.titleAr}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs bg-slate-50 dark:bg-stone-800/60 p-3 rounded-2xl border border-slate-100 dark:border-stone-750">
-                    <div className="flex items-center gap-2 text-slate-800 dark:text-stone-200 font-bold">
-                      <Clock size={14} className="text-amber-500 shrink-0" />
-                      <span>{evt.displayDate}</span>
-                    </div>
-
-                    <div className="flex items-center gap-2 text-slate-600 dark:text-stone-400 font-medium">
-                      {isOffline ? (
-                        <MapPin size={14} className="text-emerald-500 shrink-0" />
-                      ) : (
-                        <Video size={14} className="text-sky-500 shrink-0" />
-                      )}
-                      <span className="truncate">{evt.location}</span>
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-slate-600 dark:text-stone-300 leading-relaxed font-medium">
-                    {evt.description}
-                  </p>
-
-                  <div className="flex flex-wrap gap-1.5">
-                    {evt.tags.map((t) => (
-                      <span
-                        key={t}
-                        className="text-[11px] font-semibold px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-stone-800 text-slate-700 dark:text-stone-300 border border-slate-200 dark:border-stone-700"
-                      >
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-stone-800 text-xs">
-                    <div className="flex items-center gap-2.5">
-                      <img
-                        src={evt.hostAvatar}
-                        alt={evt.hostName}
-                        className="w-8 h-8 rounded-full object-cover ring-2 ring-emerald-400"
-                      />
-                      <div>
-                        <div className="font-extrabold text-xs text-slate-900 dark:text-white">
-                          {evt.hostName}
-                        </div>
-                        <div className="text-[10px] text-slate-500 dark:text-stone-400">
-                          {evt.hostRole}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="text-right">
-                      <span className="text-xs font-bold text-slate-700 dark:text-stone-300">
-                        {evt.attendeesCount} / {evt.capacity} Attending
-                      </span>
-                      <div className="w-20 h-1.5 bg-slate-200 dark:bg-stone-750 rounded-full overflow-hidden mt-1">
-                        <div
-                          className="h-full bg-emerald-500 rounded-full"
-                          style={{ width: `${Math.min(100, (evt.attendeesCount / evt.capacity) * 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Event Actions Toolbar */}
-                <div className="grid grid-cols-2 gap-2 pt-3 border-t border-slate-100 dark:border-stone-800 text-xs">
-                  <a
-                    href={generateGoogleCalendarUrl(evt)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-stone-100 text-white dark:text-slate-900 font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition"
-                    title="Add event to Google Calendar"
-                  >
-                    <CalendarPlus size={13} />
-                    <span>Add to Google Cal</span>
-                  </a>
-
-                  <button
-                    onClick={() => handleToggleRsvp(evt.id, evt.title)}
-                    className={`py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 border transition cursor-pointer ${
-                      isRsvped
-                        ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 shadow-xs'
-                        : 'bg-white dark:bg-stone-800 text-slate-700 dark:text-stone-300 border-slate-200 dark:border-stone-700 hover:border-emerald-400'
-                    }`}
-                  >
-                    <UserCheck size={13} className={isRsvped ? 'text-emerald-600' : ''} />
-                    <span>{isRsvped ? '✓ Attending' : 'RSVP: Attending'}</span>
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-      </div>
-
-      {/* ── 7. BILATERAL INTRO MODAL (Admin) ─────────────── */}
+      {/* ── 6. BILATERAL INTRO MODAL (Admin) ─────────────── */}
       {bilateralPairing && (
         <Modal
           isOpen={!!bilateralPairing}
