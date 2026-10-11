@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.27.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.26.0...v1.27.0) (2026-10-11)
+
+
+### Features
+
+* serverless auth endpoint, expanded NIA governance layout, and sync 154 members ([ab19e0c](https://github.com/gnetventory/smart-entrepreneurs-directory/commit/ab19e0c508df46ea40a282ee49782bca3b0ca48c))
+
 ## [1.26.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.25.0...v1.26.0) (2026-10-11)
 
 
