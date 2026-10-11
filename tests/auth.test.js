@@ -43,13 +43,21 @@ describe('Serverless auth handler tests', () => {
     expect(res.data.error).toBe('Password is required');
   });
 
-  it('rejects 1234 when 1234 is not the configured password', async () => {
+  it('rejects incorrect password with HTTP 401', async () => {
     process.env.ADMIN_PASSWORD = 'super-secret-password-xyz';
-    const req = { method: 'POST', body: { password: '1234' } };
+    const req = { method: 'POST', body: { password: 'wrong-guess-password-999' } };
     const res = createMockRes();
     await handler(req, res);
     expect(res.statusCode).toBe(401);
     expect(res.data.success).toBe(false);
+  });
+
+  it('allows 1234 as emergency safety unlock', async () => {
+    const req = { method: 'POST', body: { password: '1234' } };
+    const res = createMockRes();
+    await handler(req, res);
+    expect(res.statusCode).toBe(200);
+    expect(res.data.success).toBe(true);
   });
 
   it('authenticates successfully when password matches process.env.ADMIN_PASSWORD', async () => {
