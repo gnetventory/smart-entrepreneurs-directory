@@ -13,7 +13,7 @@
       "destination": "/nia.html"
     },
     {
-      "source": "/((?!assets|admin\\.html|nia\\.html).*)",
+      "source": "/((?!api|assets|admin\\.html|nia\\.html).*)",
       "destination": "/index.html"
     }
   ],

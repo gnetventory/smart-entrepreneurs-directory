@@ -58,10 +58,32 @@ function NiaPINGate({ onUnlocked, onPinSet }) {
     setLoading(true);
     setError('');
     try {
-      // Always fetch the latest saved PIN directly from storage
-      const storedHash = getNiaPIN();
-      const ok = await verifyPIN(pinInput.trim(), storedHash);
-      if (ok) {
+      // 1. Attempt secure serverless verification via /api/auth
+      let authenticated = false;
+      try {
+        const res = await fetch('/api/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pinInput.trim() }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.success) {
+            authenticated = true;
+          }
+        }
+      } catch {
+        // Fallback if offline or static host
+      }
+
+      // 2. Fallback to local stored hash verification if serverless endpoint is offline
+      if (!authenticated) {
+        const storedHash = getNiaPIN();
+        const ok = await verifyPIN(pinInput.trim(), storedHash);
+        if (ok) authenticated = true;
+      }
+
+      if (authenticated) {
         sessionStorage.removeItem(SESSION_ATTEMPT_KEY);
         grantNiaSession();
         onUnlocked();
@@ -130,7 +152,7 @@ function NiaPINGate({ onUnlocked, onPinSet }) {
                     NIA Verification
                   </h2>
                   <p className="text-xs text-stone-500 dark:text-stone-400">
-                    Enter your PIN to access NIA governance
+                    Enter your security credentials to access NIA governance
                   </p>
                 </div>
               </div>
@@ -142,12 +164,12 @@ function NiaPINGate({ onUnlocked, onPinSet }) {
               ) : (
                 <form onSubmit={handleUnlock} className="space-y-3.5">
                   <div>
-                    <label className="label text-[10px]">NIA PIN</label>
+                    <label className="label text-[10px]">Security Password / PIN</label>
                     <input
                       type="password"
                       value={pinInput}
                       onChange={(e) => setPinInput(e.target.value)}
-                      placeholder="Enter 4-digit PIN"
+                      placeholder="Enter security password"
                       className="input py-2.5 text-sm font-mono tracking-widest text-center"
                       autoFocus
                     />
@@ -172,13 +194,6 @@ function NiaPINGate({ onUnlocked, onPinSet }) {
                       'Unlock NIA Portal'
                     )}
                   </button>
-
-                  <div className="pt-2 border-t border-stone-100 dark:border-stone-800 text-center">
-                    <span className="text-[11px] text-stone-400">
-                      Default initial PIN is{' '}
-                      <strong className="text-stone-600 dark:text-stone-300 font-mono">1234</strong>
-                    </span>
-                  </div>
                 </form>
               )}
             </>
@@ -324,7 +339,7 @@ export default function NiaApp() {
         <div className="min-h-screen bg-stone-50 dark:bg-stone-950 text-stone-900 dark:text-stone-100 font-sans transition-colors duration-200">
           {/* NIA Header */}
           <header className="sticky top-0 z-40 bg-stone-50/90 dark:bg-stone-950/90 backdrop-blur-md border-b border-stone-200 dark:border-stone-800 px-6 py-3.5">
-            <div className="flex items-center gap-4 max-w-5xl mx-auto">
+            <div className="flex items-center gap-4 max-w-[1600px] w-full mx-auto">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center text-white text-base font-black shadow-sm">
                   ⚙️
@@ -361,7 +376,7 @@ export default function NiaApp() {
           </header>
 
           {/* NIA Content */}
-          <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-10 py-8">
+          <main className="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-10 py-8">
             <NiaPanel isNiaApp onLock={handleLock} />
           </main>
         </div>

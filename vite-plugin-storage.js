@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 
 // ─── Lightweight Vite Plugin for Disk-Backed JSON Persistence ────────────────
 // Stores data in ./data/directory_db.json so that members, admin PIN, and
@@ -62,6 +63,60 @@ export default function directoryStoragePlugin() {
     name: 'vite-plugin-directory-storage',
     configureServer(server) {
       initDB();
+
+      // ── Serverless Auth Middleware (/api/auth) ──────────────────────────
+      server.middlewares.use('/api/auth', (req, res) => {
+        res.setHeader('Content-Type', 'application/json');
+
+        if (req.method === 'POST') {
+          let body = '';
+          req.on('data', (chunk) => { body += chunk; });
+          req.on('end', () => {
+            try {
+              const payload = JSON.parse(body || '{}');
+              const submittedPassword = String(payload.password || payload.pin || '').trim();
+              if (!submittedPassword) {
+                res.statusCode = 400;
+                res.end(JSON.stringify({ error: 'Password is required' }));
+                return;
+              }
+
+              const envTarget = String(process.env.ADMIN_PASSWORD || process.env.ADMIN_PIN || '').trim();
+              const db = readDB();
+              const diskTarget = db.adminPIN || db.niaPIN || '';
+
+              const submittedHash = crypto.createHash('sha256').update(submittedPassword).digest('hex');
+              const envHash = envTarget ? crypto.createHash('sha256').update(envTarget).digest('hex') : null;
+
+              const isMatch =
+                (envTarget && (submittedPassword === envTarget || submittedHash === envHash || submittedHash === envTarget)) ||
+                (diskTarget && (submittedHash === diskTarget || submittedPassword === diskTarget)) ||
+                (!envTarget && !diskTarget && submittedPassword === '1234');
+
+              if (isMatch) {
+                res.statusCode = 200;
+                res.end(
+                  JSON.stringify({
+                    success: true,
+                    token: crypto.randomBytes(24).toString('hex'),
+                    timestamp: Date.now(),
+                  })
+                );
+              } else {
+                res.statusCode = 401;
+                res.end(JSON.stringify({ error: 'Invalid password' }));
+              }
+            } catch (err) {
+              res.statusCode = 500;
+              res.end(JSON.stringify({ error: err.message }));
+            }
+          });
+          return;
+        }
+
+        res.statusCode = 405;
+        res.end(JSON.stringify({ error: 'Method Not Allowed' }));
+      });
 
       server.middlewares.use('/api/storage', (req, res) => {
         res.setHeader('Content-Type', 'application/json');
