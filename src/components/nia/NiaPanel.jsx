@@ -346,23 +346,25 @@ export default function NiaPanel({ onLock }) {
   const handleChangePIN = async (e) => {
     e.preventDefault();
     if (newPinInput.length < 4) {
-      setPinError('PIN must be at least 4 characters.');
+      setPinError('Password must be at least 4 characters.');
       return;
     }
     if (newPinInput !== confirmPinInput) {
-      setPinError('PINs do not match.');
+      setPinError('Passwords do not match.');
       return;
     }
     try {
       const hash = await hashPIN(newPinInput);
       saveNiaPIN(hash);
+      // Synchronize hash with Google Sheets cloud properties
+      pushAdminConfigToSheets({ adminPinHash: hash });
       setShowChangePIN(false);
       setNewPinInput('');
       setConfirmPinInput('');
       setPinError('');
-      notify('NIA PIN permanently updated on disk!');
+      notify('Security password permanently updated & synchronized!');
     } catch (err) {
-      setPinError('Failed to change PIN: ' + err.message);
+      setPinError('Failed to change password: ' + err.message);
     }
   };
 
@@ -1398,28 +1400,31 @@ export default function NiaPanel({ onLock }) {
           setConfirmPinInput('');
           setPinError('');
         }}
-        title="Update NIA Security PIN"
+        title="Update Admin Security Password"
         size="sm"
       >
-        <form onSubmit={handleChangePIN} className="space-y-3">
+        <form onSubmit={handleChangePIN} className="space-y-3.5">
+          <p className="text-[11px] text-stone-500 dark:text-stone-400 leading-relaxed">
+            Changes your security credentials across devices. You can also configure the <code>ADMIN_PASSWORD</code> environment variable in your Vercel Dashboard for server-enforced authentication.
+          </p>
           <div>
-            <label className="label text-[10px]">New PIN (min 4 characters)</label>
+            <label className="label text-[10px]">New Password (min 4 characters)</label>
             <input
               type="password"
               value={newPinInput}
               onChange={(e) => setNewPinInput(e.target.value)}
-              placeholder="New PIN"
+              placeholder="Enter new password"
               className="input text-xs py-2"
               autoFocus
             />
           </div>
           <div>
-            <label className="label text-[10px]">Confirm New PIN</label>
+            <label className="label text-[10px]">Confirm New Password</label>
             <input
               type="password"
               value={confirmPinInput}
               onChange={(e) => setConfirmPinInput(e.target.value)}
-              placeholder="Confirm PIN"
+              placeholder="Confirm new password"
               className="input text-xs py-2"
             />
           </div>
@@ -1428,12 +1433,12 @@ export default function NiaPanel({ onLock }) {
             <button
               type="button"
               onClick={() => setShowChangePIN(false)}
-              className="btn-secondary text-xs py-1.5 px-3"
+              className="btn-secondary text-xs py-1.5 px-3 cursor-pointer"
             >
               Cancel
             </button>
-            <button type="submit" className="btn-primary text-xs py-1.5 px-3">
-              Save PIN
+            <button type="submit" className="btn-primary text-xs py-1.5 px-3.5 cursor-pointer font-bold">
+              Save Password
             </button>
           </div>
         </form>

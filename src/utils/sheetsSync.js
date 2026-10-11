@@ -6,6 +6,7 @@ import {
   addTombstone,
   getSheetsConfig,
   saveSheetsConfig,
+  saveNiaPIN,
 } from './storage';
 
 /**
@@ -51,10 +52,13 @@ function doGet(e) {
     rows.push(obj);
   }
 
+  var adminPinHash = PropertiesService.getScriptProperties().getProperty('ADMIN_PIN_HASH') || '';
+
   return ContentService.createTextOutput(JSON.stringify({
     success: true,
     totalRows: rows.length,
     rows: rows,
+    adminPinHash: adminPinHash,
     syncedAt: new Date().toISOString()
   })).setMimeType(ContentService.MimeType.JSON);
 }
@@ -63,7 +67,19 @@ function doPost(e) {
   try {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     var payload = JSON.parse(e.postData.contents || '{}');
-    var action = payload.action; // 'update' | 'delete' | 'add'
+    var action = payload.action; // 'update' | 'delete' | 'add' | 'setConfig'
+
+    if (action === 'setConfig') {
+      var cfg = payload.config || {};
+      if (cfg.adminEmail !== undefined) {
+        PropertiesService.getScriptProperties().setProperty('ADMIN_EMAIL', String(cfg.adminEmail).trim());
+      }
+      if (cfg.adminPinHash !== undefined) {
+        PropertiesService.getScriptProperties().setProperty('ADMIN_PIN_HASH', String(cfg.adminPinHash).trim());
+      }
+      return ContentService.createTextOutput(JSON.stringify({ success: true, message: 'Admin config saved' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
     var member = payload.member || {};
     var audit = payload.audit || {};
     var timestamp = new Date().toISOString();
@@ -410,6 +426,10 @@ export async function syncFromGoogleSheets() {
     if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
     const data = await res.json();
 
+    if (data.adminPinHash && typeof data.adminPinHash === 'string' && data.adminPinHash.length >= 10) {
+      saveNiaPIN(data.adminPinHash);
+    }
+
     const rawRows = Array.isArray(data.rows) ? data.rows : [];
     const tombstones = new Set(getTombstones());
     // Filter out legacy mock seed data so Google Sheets is the source of truth
@@ -624,21 +644,24 @@ export async function pushMemberUpdateToSheets(member, updates = {}) {
  * Called from Admin Panel when admin saves their notification email.
  * The Apps Script onFormSubmit trigger reads this email to send notifications.
  */
-export async function pushAdminConfigToSheets({ adminEmail }) {
+export async function pushAdminConfigToSheets({ adminEmail, adminPinHash } = {}) {
   const config = getSheetsConfig();
   if (!config.apiUrl || !config.apiUrl.trim())
     return { success: false, error: 'No Apps Script URL configured' };
 
   try {
+    const payloadConfig = {
+      adminPortalUrl: 'https://smart-entrepreneurs-directory.vercel.app/admin.html',
+    };
+    if (adminEmail !== undefined) payloadConfig.adminEmail = adminEmail;
+    if (adminPinHash !== undefined) payloadConfig.adminPinHash = adminPinHash;
+
     const res = await fetch(config.apiUrl.trim(), {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({
         action: 'setConfig',
-        config: {
-          adminEmail: adminEmail || '',
-          adminPortalUrl: 'https://smart-entrepreneurs-directory.vercel.app/admin.html',
-        },
+        config: payloadConfig,
       }),
     });
     const data = await res.json();

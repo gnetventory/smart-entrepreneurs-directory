@@ -85,13 +85,14 @@ export default function directoryStoragePlugin() {
               const db = readDB();
               const diskTarget = db.adminPIN || db.niaPIN || '';
 
-              const submittedHash = crypto.createHash('sha256').update(submittedPassword).digest('hex');
+              const submittedRawSha = crypto.createHash('sha256').update(submittedPassword).digest('hex');
+              const submittedSaltedSha = crypto.createHash('sha256').update(`sed-pin-salt-${submittedPassword}`).digest('hex');
               const envHash = envTarget ? crypto.createHash('sha256').update(envTarget).digest('hex') : null;
+              const envSaltedHash = envTarget ? crypto.createHash('sha256').update(`sed-pin-salt-${envTarget}`).digest('hex') : null;
 
               const isMatch =
-                (envTarget && (submittedPassword === envTarget || submittedHash === envHash || submittedHash === envTarget)) ||
-                (diskTarget && (submittedHash === diskTarget || submittedPassword === diskTarget)) ||
-                (!envTarget && !diskTarget && submittedPassword === '1234');
+                (envTarget && (submittedPassword === envTarget || submittedRawSha === envHash || submittedSaltedSha === envSaltedHash || submittedRawSha === envTarget)) ||
+                (diskTarget && (submittedSaltedSha === diskTarget || submittedRawSha === diskTarget || submittedPassword === diskTarget));
 
               if (isMatch) {
                 res.statusCode = 200;

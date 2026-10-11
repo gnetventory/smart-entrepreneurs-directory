@@ -280,8 +280,8 @@ export default function NiaApp() {
           if (diskData.adminPIN || diskData.niaPIN) {
             setPinHash(diskData.niaPIN || diskData.adminPIN);
           } else {
-            // Default PIN hash for 1234
-            const defaultHash = '0ad56b7d42b80f306a24b61853ecb571e83411f6c0dd5c06c998d9e1c3eecf87';
+            // Default PIN hash aligned with persistent directory_db.json
+            const defaultHash = '69f7dc428ec502288a8f081f0e304aef16fb7647008429f21eef6262a4ab6ff6';
             saveNiaPIN(defaultHash);
             setPinHash(defaultHash);
           }
