@@ -55,8 +55,10 @@ export async function syncFromDisk() {
           if (data.sheetsConfig && typeof data.sheetsConfig === 'object') {
             localStorage.setItem(STORAGE_KEYS.SHEETS_CONFIG, JSON.stringify(data.sheetsConfig));
           }
-          if (data.adminPIN) {
-            localStorage.setItem(STORAGE_KEYS.ADMIN_PIN, data.adminPIN);
+          const diskPin = data.niaPIN || data.adminPIN;
+          if (diskPin) {
+            localStorage.setItem(STORAGE_KEYS.NIA_PIN, diskPin);
+            localStorage.setItem(STORAGE_KEYS.ADMIN_PIN, diskPin);
           }
           if (data.apiKey) {
             localStorage.setItem(STORAGE_KEYS.API_KEY, data.apiKey);
