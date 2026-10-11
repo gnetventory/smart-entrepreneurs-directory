@@ -208,7 +208,7 @@ export function saveDarkMode(isDark) {
 
 // ─── NIA PIN ──────────────────────────────────────────────────────────────────
 // Default hash aligned with persistent directory_db.json
-const DEFAULT_PIN_HASH = '69f7dc428ec502288a8f081f0e304aef16fb7647008429f21eef6262a4ab6ff6';
+const DEFAULT_PIN_HASH = '0568510e983947061ab03d780ad117058058af692fea26606e03d102f62f34f4';
 
 export function getNiaPIN() {
   return (

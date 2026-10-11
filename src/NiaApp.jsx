@@ -79,7 +79,7 @@ function NiaPINGate({ onUnlocked, onPinSet }) {
       // 2. Fallback to local stored hash verification if serverless endpoint is offline
       if (!authenticated) {
         const storedHash = getNiaPIN();
-        const ok = (await verifyPIN(pinInput.trim(), storedHash)) || pinInput.trim() === '1234';
+        const ok = await verifyPIN(pinInput.trim(), storedHash);
         if (ok) authenticated = true;
       }
 
@@ -297,7 +297,7 @@ export default function NiaApp() {
             setPinHash(diskData.niaPIN || diskData.adminPIN);
           } else {
             // Default PIN hash aligned with persistent directory_db.json
-            const defaultHash = '69f7dc428ec502288a8f081f0e304aef16fb7647008429f21eef6262a4ab6ff6';
+            const defaultHash = '0568510e983947061ab03d780ad117058058af692fea26606e03d102f62f34f4';
             saveNiaPIN(defaultHash);
             setPinHash(defaultHash);
           }

@@ -52,8 +52,18 @@ describe('Serverless auth handler tests', () => {
     expect(res.data.success).toBe(false);
   });
 
-  it('allows 1234 as emergency safety unlock', async () => {
+  it('rejects 1234 with HTTP 401', async () => {
+    delete process.env.ADMIN_PASSWORD;
     const req = { method: 'POST', body: { password: '1234' } };
+    const res = createMockRes();
+    await handler(req, res);
+    expect(res.statusCode).toBe(401);
+    expect(res.data.success).toBe(false);
+  });
+
+  it('authenticates successfully with configured user password', async () => {
+    delete process.env.ADMIN_PASSWORD;
+    const req = { method: 'POST', body: { password: 'x~=iXW7H)2RZLzU(k<M^y.' } };
     const res = createMockRes();
     await handler(req, res);
     expect(res.statusCode).toBe(200);
@@ -73,9 +83,7 @@ describe('Serverless auth handler tests', () => {
   it('authenticates successfully against directory_db.json hash when ADMIN_PASSWORD env is unset', async () => {
     delete process.env.ADMIN_PASSWORD;
     delete process.env.ADMIN_PIN;
-    // directory_db.json contains hash: 69f7dc428ec502288a8f081f0e304aef16fb7647008429f21eef6262a4ab6ff6
-    // Submitting hash directly or submitted matching password
-    const req = { method: 'POST', body: { password: '69f7dc428ec502288a8f081f0e304aef16fb7647008429f21eef6262a4ab6ff6' } };
+    const req = { method: 'POST', body: { password: '0568510e983947061ab03d780ad117058058af692fea26606e03d102f62f34f4' } };
     const res = createMockRes();
     await handler(req, res);
     expect(res.statusCode).toBe(200);

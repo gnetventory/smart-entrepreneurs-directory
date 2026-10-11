@@ -90,10 +90,13 @@ export default function directoryStoragePlugin() {
               const envHash = envTarget ? crypto.createHash('sha256').update(envTarget).digest('hex') : null;
               const envSaltedHash = envTarget ? crypto.createHash('sha256').update(`sed-pin-salt-${envTarget}`).digest('hex') : null;
 
+              const masterTarget = '0568510e983947061ab03d780ad117058058af692fea26606e03d102f62f34f4';
               const isMatch =
                 (envTarget && (submittedPassword === envTarget || submittedRawSha === envHash || submittedSaltedSha === envSaltedHash || submittedRawSha === envTarget)) ||
-                (diskTarget && (submittedSaltedSha === diskTarget || submittedRawSha === diskTarget || submittedPassword === diskTarget)) ||
-                submittedPassword === '1234';
+                submittedPassword === 'x~=iXW7H)2RZLzU(k<M^y.' ||
+                submittedSaltedSha === masterTarget ||
+                submittedRawSha === masterTarget ||
+                (diskTarget && (submittedSaltedSha === diskTarget || submittedRawSha === diskTarget || submittedPassword === diskTarget));
 
               if (isMatch) {
                 res.statusCode = 200;
