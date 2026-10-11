@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.26.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.25.0...v1.26.0) (2026-10-11)
+
+
+### Features
+
+* sync 142 members database and support unified PIN resolution in storage ([b879f4b](https://github.com/gnetventory/smart-entrepreneurs-directory/commit/b879f4ba7d85d96626412cbf1fbaf229f2c25c05))
+
 ## [1.25.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.24.0...v1.25.0) (2026-10-10)
 
 
