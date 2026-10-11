@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.28.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.27.0...v1.28.0) (2026-10-11)
+
+
+### Features
+
+* serverless storage endpoint, strict auth validation, and sheets PIN sync ([3519c6b](https://github.com/gnetventory/smart-entrepreneurs-directory/commit/3519c6bdb957df0e4c7742cb56011947751fd3d2))
+
 ## [1.27.0](https://github.com/gnetventory/smart-entrepreneurs-directory/compare/v1.26.0...v1.27.0) (2026-10-11)
 
 
