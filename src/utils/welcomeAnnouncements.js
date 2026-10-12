@@ -48,14 +48,6 @@ export function isMemberProfileUpdate(member) {
   if (!member) return false;
   if (member.isProfileUpdate === true) return true;
   if (member.appStatus === 'APPROVED_UPDATE' || member.submissionType === 'update') return true;
-  // If explicitly has both timestamps and updatedAt is significantly after createdAt (> 1 hour)
-  if (member.createdAt && member.updatedAt) {
-    const created = new Date(member.createdAt).getTime();
-    const updated = new Date(member.updatedAt).getTime();
-    if (!isNaN(created) && !isNaN(updated) && (updated - created) > 60 * 60 * 1000) {
-      return true;
-    }
-  }
   return false;
 }
 

@@ -64,10 +64,10 @@ describe('welcomeAnnouncements utility tests', () => {
       expect(isMemberProfileUpdate({ submissionType: 'update' })).toBe(true);
     });
 
-    it('detects profile update by timestamp difference (> 1 hour)', () => {
+    it('does not falsely flag members with updatedAt diffs unless explicitly flagged', () => {
       const created = '2026-10-01T10:00:00.000Z';
       const updated = '2026-10-12T12:00:00.000Z';
-      expect(isMemberProfileUpdate({ createdAt: created, updatedAt: updated })).toBe(true);
+      expect(isMemberProfileUpdate({ createdAt: created, updatedAt: updated })).toBe(false);
     });
 
     it('returns false for fresh member creation', () => {
