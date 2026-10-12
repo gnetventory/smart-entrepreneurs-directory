@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   Sparkles,
-  MessageCircle,
   ExternalLink,
   ChevronDown,
   ChevronUp,
@@ -12,7 +11,6 @@ import {
 } from 'lucide-react';
 import {
   getRecentMembers,
-  getMemberWelcomeIcebreakerUrl,
   isMemberProfileUpdate,
 } from '../../utils/welcomeAnnouncements';
 import { getAvatarGradient, getInitials, parseMemberName } from '../../utils/helpers';
@@ -61,7 +59,7 @@ export default function NewMemberSpotlight({ members, onSelectMember }) {
               </span>
             </div>
             <p className="text-[11px] sm:text-xs text-stone-600 dark:text-stone-300 font-medium mt-0.5 hidden sm:block">
-              Meet the latest founders to join BGM. Reach out on WhatsApp to welcome them and uncover early synergies!
+              Meet the latest founders to join BGM. Explore their profiles, ventures, and uncover strategic synergies!
             </p>
           </div>
         </div>
@@ -99,13 +97,13 @@ export default function NewMemberSpotlight({ members, onSelectMember }) {
             const { english, arabic, primary } = parseMemberName(m.name);
             const stageObj = STAGES[m.stage] || STAGES.starting;
             const flag = getCountryFlag(m.location?.country);
-            const icebreakerUrl = getMemberWelcomeIcebreakerUrl(m);
             const isUpdate = isMemberProfileUpdate(m);
 
             return (
               <div
                 key={m.id}
-                className="p-3.5 rounded-2xl bg-white/90 dark:bg-stone-900/90 border border-emerald-100 dark:border-stone-800 hover:border-emerald-400 dark:hover:border-emerald-600 transition-all shadow-xs flex flex-col justify-between group"
+                onClick={() => onSelectMember?.(m)}
+                className="p-3.5 rounded-2xl bg-white/90 dark:bg-stone-900/90 border border-emerald-100 dark:border-stone-800 hover:border-emerald-400 dark:hover:border-emerald-600 transition-all shadow-xs flex flex-col justify-between group cursor-pointer"
               >
                 <div className="space-y-2">
                   <div className="flex items-start justify-between gap-2.5">
@@ -171,31 +169,19 @@ export default function NewMemberSpotlight({ members, onSelectMember }) {
                   </div>
                 </div>
 
-                {/* 1-Click Interactive Actions */}
+                {/* 1-Click Interactive Action: View Profile Card */}
                 <div className="flex items-center gap-2 pt-3 mt-2.5 border-t border-stone-100 dark:border-stone-800">
-                  <a
-                    href={icebreakerUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`flex-1 py-1.5 px-2.5 rounded-xl border text-[11px] font-extrabold transition-all flex items-center justify-center gap-1.5 shadow-2xs ${
-                      isUpdate
-                        ? 'bg-cyan-50 dark:bg-cyan-950/50 hover:bg-cyan-600 hover:text-white text-cyan-800 dark:text-cyan-300 border-cyan-200/80 dark:border-cyan-800'
-                        : 'bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-600 hover:text-white text-emerald-700 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800'
-                    }`}
-                    title={isUpdate ? `Say Congrats to ${primary} on WhatsApp` : `Say Welcome to ${primary} on WhatsApp`}
-                  >
-                    <MessageCircle size={13} />
-                    <span>{isUpdate ? 'Say Congrats' : 'Say Welcome'}</span>
-                  </a>
-
                   <button
                     type="button"
-                    onClick={() => onSelectMember?.(m)}
-                    className="py-1.5 px-3 rounded-xl bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-750 text-stone-700 dark:text-stone-300 text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectMember?.(m);
+                    }}
+                    className="w-full py-1.5 px-3 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/40 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-600 text-emerald-800 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800 text-[11px] font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                     title="View Profile Card"
                   >
-                    <Compass size={12} />
-                    <span>Card</span>
+                    <Compass size={13} />
+                    <span>View Profile Card</span>
                   </button>
                 </div>
               </div>
