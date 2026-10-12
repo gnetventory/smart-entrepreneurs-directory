@@ -103,7 +103,7 @@ export default function FounderProblemBoard({ onOpenDiagnostic }) {
     }
 
     const newPost = {
-      id: `block-${Date.now()}-${generateId()}`,
+      id: `block-${generateId()}`,
       authorName: newAuthorName.trim(),
       authorBusiness: newBusinessName.trim() || 'Founder Venture',
       category: newCategory,
@@ -131,7 +131,7 @@ export default function FounderProblemBoard({ onOpenDiagnostic }) {
     }
 
     const newResp = {
-      id: `resp-${Date.now()}-${generateId()}`,
+      id: `resp-${generateId()}`,
       authorName: replyAuthor.trim(),
       text: replyText.trim(),
       createdAt: new Date().toISOString(),
