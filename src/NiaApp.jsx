@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Sun, Moon, ExternalLink, KeyRound, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Shield, Sun, Moon, ExternalLink, KeyRound, Loader2, Eye, EyeOff, FileSpreadsheet, Users, Sparkles } from 'lucide-react';
 import { AppProvider } from './contexts/AppContext';
 import NiaPanel from './components/nia/NiaPanel';
 import { grantNiaSession, isNiaSession, revokeNiaSession } from './utils/session';
@@ -309,6 +309,7 @@ export default function NiaApp() {
   const [darkMode, setDarkMode] = useState(getDarkMode());
   const [pinHash, setPinHash] = useState(getNiaPIN());
   const [isInitializing, setIsInitializing] = useState(true);
+  const [adminTab, setAdminTab] = useState('overview');
 
   // Sync disk storage on mount to ensure persistent PIN and data are loaded
   useEffect(() => {
@@ -376,24 +377,33 @@ export default function NiaApp() {
           onUnlocked={() => setUnlocked(true)}
         />
       ) : (
-        <div className="min-h-screen bg-stone-50 dark:bg-stone-950 text-stone-900 dark:text-stone-100 font-sans transition-colors duration-200">
+        <div className="min-h-screen bg-stone-50 dark:bg-stone-950 text-stone-900 dark:text-stone-100 font-sans transition-colors duration-200 overflow-x-hidden">
           {/* NIA Header */}
-          <header className="sticky top-0 z-40 bg-stone-50/90 dark:bg-stone-950/90 backdrop-blur-md border-b border-stone-200 dark:border-stone-800 px-6 py-3.5">
-            <div className="flex items-center gap-4 max-w-[1600px] w-full mx-auto">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center text-white text-base font-black shadow-sm">
+          <header className="sticky top-0 z-40 bg-stone-50/90 dark:bg-stone-950/90 backdrop-blur-md border-b border-stone-200 dark:border-stone-800 px-3.5 sm:px-6 py-2.5 sm:py-3.5">
+            <div className="flex items-center gap-3 sm:gap-4 max-w-[1600px] w-full mx-auto">
+              <div className="flex items-center gap-2.5 sm:gap-3">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 bg-emerald-600 rounded-xl flex items-center justify-center text-white text-sm sm:text-base font-black shadow-sm shrink-0">
                   ⚙️
                 </div>
                 <div>
-                  <h1 className="text-base font-bold text-stone-900 dark:text-white tracking-tight">
+                  <h1 className="text-sm sm:text-base font-bold text-stone-900 dark:text-white tracking-tight leading-tight">
                     NIA Portal
                   </h1>
-                  <p className="text-xs text-stone-500 dark:text-stone-400">
+                  <p className="text-[11px] sm:text-xs text-stone-500 dark:text-stone-400 leading-tight">
                     Smart Entrepreneurs Directory
                   </p>
                 </div>
               </div>
               <div className="flex-1" />
+              <a
+                href="/index.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex sm:hidden p-2 rounded-xl text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 transition-colors"
+                title="Public Directory"
+              >
+                <ExternalLink size={16} />
+              </a>
               <a
                 href="/index.html"
                 target="_blank"
@@ -404,7 +414,8 @@ export default function NiaApp() {
               </a>
               <button
                 onClick={toggleDark}
-                className="p-2.5 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-all cursor-pointer"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 flex items-center justify-center transition-all cursor-pointer"
+                aria-label="Toggle Dark Mode"
               >
                 {darkMode ? (
                   <Sun size={16} className="text-amber-400" />
@@ -416,9 +427,81 @@ export default function NiaApp() {
           </header>
 
           {/* NIA Content */}
-          <main className="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-10 py-8">
-            <NiaPanel isNiaApp onLock={handleLock} />
+          <main className="max-w-[1600px] w-full mx-auto px-3 sm:px-6 lg:px-10 py-4 sm:py-8 pb-24 lg:pb-8">
+            <NiaPanel isNiaApp onLock={handleLock} activeTab={adminTab} setActiveTab={setAdminTab} />
           </main>
+
+          {/* Mobile Bottom Admin Dock (Thumb Navigation) */}
+          <nav
+            aria-label="Admin Navigation Dock"
+            className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border-t border-stone-200 dark:border-stone-800 pb-[env(safe-area-inset-bottom,0px)] shadow-lg"
+          >
+            <div className="grid grid-cols-4 h-16 max-w-lg mx-auto px-1 sm:px-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setAdminTab('overview');
+                  navigator.vibrate?.([10]);
+                }}
+                className={`flex flex-col items-center justify-center gap-1 transition-all cursor-pointer py-1 ${
+                  adminTab === 'overview'
+                    ? 'text-emerald-600 dark:text-emerald-400 font-bold'
+                    : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
+                }`}
+              >
+                <FileSpreadsheet size={18} />
+                <span className="text-[10px] tracking-tight">Overview</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setAdminTab('members');
+                  navigator.vibrate?.([10]);
+                }}
+                className={`flex flex-col items-center justify-center gap-1 transition-all cursor-pointer py-1 relative ${
+                  adminTab === 'members'
+                    ? 'text-emerald-600 dark:text-emerald-400 font-bold'
+                    : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
+                }`}
+              >
+                <Users size={18} />
+                <span className="text-[10px] tracking-tight">Members</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setAdminTab('ai');
+                  navigator.vibrate?.([10]);
+                }}
+                className={`flex flex-col items-center justify-center gap-1 transition-all cursor-pointer py-1 ${
+                  adminTab === 'ai'
+                    ? 'text-emerald-600 dark:text-emerald-400 font-bold'
+                    : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
+                }`}
+              >
+                <Sparkles size={18} />
+                <span className="text-[10px] tracking-tight">AI Match</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setAdminTab('system');
+                  navigator.vibrate?.([10]);
+                }}
+                className={`flex flex-col items-center justify-center gap-1 transition-all cursor-pointer py-1 ${
+                  adminTab === 'system'
+                    ? 'text-emerald-600 dark:text-emerald-400 font-bold'
+                    : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
+                }`}
+              >
+                <Shield size={18} />
+                <span className="text-[10px] tracking-tight">Security</span>
+              </button>
+            </div>
+          </nav>
         </div>
       )}
     </AppProvider>

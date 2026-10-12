@@ -74,6 +74,7 @@ export default function CommunityWelcomeDispatcherModal({ isOpen, onClose, membe
   const handleCopy = (type = 'group') => {
     const textToCopy = type === 'group' ? announcementText : directText;
     copyToClipboard(textToCopy);
+    navigator.vibrate?.([15]);
     if (type === 'group') {
       setCopiedGroup(true);
       setTimeout(() => setCopiedGroup(false), 2000);
@@ -86,6 +87,7 @@ export default function CommunityWelcomeDispatcherModal({ isOpen, onClose, membe
   };
 
   const handleDispatchGroup = () => {
+    navigator.vibrate?.([20]);
     const url = getWhatsAppGroupShareUrl(announcementText);
     window.open(url, '_blank', 'noopener,noreferrer');
     notify('🚀 WhatsApp group dispatch opened!');
@@ -96,6 +98,7 @@ export default function CommunityWelcomeDispatcherModal({ isOpen, onClose, membe
       notify('No phone number on record for this member', 'warning');
       return;
     }
+    navigator.vibrate?.([20]);
     const url = getWhatsAppDirectChatUrl(member.phone, directText);
     window.open(url, '_blank', 'noopener,noreferrer');
     notify(`🚀 Direct chat opened with ${primary}!`);
@@ -170,12 +173,12 @@ export default function CommunityWelcomeDispatcherModal({ isOpen, onClose, membe
         {/* Tone Selector & AI Hook Bar */}
         <div className="flex items-center justify-between gap-3 flex-wrap bg-stone-50 dark:bg-stone-850/60 p-3 rounded-2xl border border-stone-200 dark:border-stone-800">
           {/* Tone Pills */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-[11px] font-bold text-stone-500 mr-1">Tone:</span>
+          <div className="flex items-center gap-1.5 flex-wrap w-full sm:w-auto">
+            <span className="text-[11px] font-bold text-stone-500 mr-1 w-full sm:w-auto">Tone:</span>
             <button
               type="button"
               onClick={() => setTone('egyptian')}
-              className={`px-3 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-xl font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer flex-1 sm:flex-none ${
                 tone === 'egyptian'
                   ? 'bg-emerald-600 text-white shadow-xs'
                   : 'bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-750 border border-stone-200 dark:border-stone-700'
@@ -188,27 +191,27 @@ export default function CommunityWelcomeDispatcherModal({ isOpen, onClose, membe
             <button
               type="button"
               onClick={() => setTone('english')}
-              className={`px-3 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-xl font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer flex-1 sm:flex-none ${
                 tone === 'english'
                   ? 'bg-emerald-600 text-white shadow-xs'
                   : 'bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-750 border border-stone-200 dark:border-stone-700'
               }`}
             >
               <span>🇬🇧</span>
-              <span>Modern English</span>
+              <span>English</span>
             </button>
 
             <button
               type="button"
               onClick={() => setTone('arabic')}
-              className={`px-3 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-xl font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer flex-1 sm:flex-none ${
                 tone === 'arabic'
                   ? 'bg-emerald-600 text-white shadow-xs'
                   : 'bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-750 border border-stone-200 dark:border-stone-700'
               }`}
             >
               <span>🇸🇦</span>
-              <span>الفصحى المهنية</span>
+              <span>الفصحى</span>
             </button>
           </div>
 
@@ -385,22 +388,22 @@ export default function CommunityWelcomeDispatcherModal({ isOpen, onClose, membe
         )}
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-between gap-3 pt-4 border-t border-stone-200 dark:border-stone-800 flex-wrap">
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 pt-4 border-t border-stone-200 dark:border-stone-800">
           <button
             type="button"
             onClick={onClose}
-            className="btn-secondary py-2 px-4 text-xs font-bold cursor-pointer"
+            className="btn-secondary py-2.5 px-4 text-xs font-bold cursor-pointer justify-center"
           >
             Close
           </button>
 
-          <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
             {activeTab === 'group' ? (
               <>
                 <button
                   type="button"
                   onClick={() => handleCopy('group')}
-                  className="btn-secondary py-2 px-4 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                  className="btn-secondary py-2.5 px-4 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer w-full sm:w-auto min-h-[44px] sm:min-h-0"
                 >
                   {copiedGroup ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
                   <span>{copiedGroup ? 'Copied!' : 'Copy Text'}</span>
@@ -409,7 +412,7 @@ export default function CommunityWelcomeDispatcherModal({ isOpen, onClose, membe
                 <button
                   type="button"
                   onClick={handleDispatchGroup}
-                  className="btn-primary py-2 px-5 text-xs font-extrabold flex items-center gap-2 shadow-tactile-sm cursor-pointer"
+                  className="btn-primary py-2.5 px-5 text-xs font-extrabold flex items-center justify-center gap-2 shadow-tactile-sm cursor-pointer w-full sm:w-auto min-h-[44px] sm:min-h-0"
                 >
                   <Share2 size={14} />
                   <span>📣 Dispatch to WhatsApp Group</span>
@@ -420,7 +423,7 @@ export default function CommunityWelcomeDispatcherModal({ isOpen, onClose, membe
                 <button
                   type="button"
                   onClick={() => handleCopy('direct')}
-                  className="btn-secondary py-2 px-4 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                  className="btn-secondary py-2.5 px-4 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer w-full sm:w-auto min-h-[44px] sm:min-h-0"
                 >
                   {copiedDirect ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
                   <span>{copiedDirect ? 'Copied!' : 'Copy Direct Message'}</span>
@@ -430,7 +433,7 @@ export default function CommunityWelcomeDispatcherModal({ isOpen, onClose, membe
                   <button
                     type="button"
                     onClick={handleDispatchDirect}
-                    className="btn-primary py-2 px-5 text-xs font-extrabold flex items-center gap-2 shadow-tactile-sm cursor-pointer"
+                    className="btn-primary py-2.5 px-5 text-xs font-extrabold flex items-center justify-center gap-2 shadow-tactile-sm cursor-pointer w-full sm:w-auto min-h-[44px] sm:min-h-0"
                   >
                     <MessageCircle size={14} />
                     <span>💬 Open WhatsApp with {primary.split(' ')[0]}</span>

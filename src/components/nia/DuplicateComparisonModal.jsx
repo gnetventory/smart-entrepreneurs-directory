@@ -65,69 +65,71 @@ export default function DuplicateComparisonModal({
         </div>
 
         {/* Side-by-Side Comparison Grid */}
-        <div className="border border-stone-200 dark:border-stone-800 rounded-2xl overflow-hidden shadow-xs">
-          <div className="grid grid-cols-12 bg-stone-100 dark:bg-stone-850 p-3 text-[11px] font-mono font-black uppercase tracking-wider text-stone-600 dark:text-stone-300 border-b border-stone-200 dark:border-stone-800">
-            <div className="col-span-3">Profile Field</div>
-            <div className="col-span-4 text-stone-700 dark:text-stone-200 flex items-center gap-1.5">
-              <span>🏛️ Existing Directory Profile</span>
+        <div className="border border-stone-200 dark:border-stone-800 rounded-2xl overflow-x-auto shadow-xs">
+          <div className="min-w-[540px]">
+            <div className="grid grid-cols-12 bg-stone-100 dark:bg-stone-850 p-3 text-[11px] font-mono font-black uppercase tracking-wider text-stone-600 dark:text-stone-300 border-b border-stone-200 dark:border-stone-800">
+              <div className="col-span-3">Profile Field</div>
+              <div className="col-span-4 text-stone-700 dark:text-stone-200 flex items-center gap-1.5">
+                <span>🏛️ Existing Directory Profile</span>
+              </div>
+              <div className="col-span-1 text-center">⇄</div>
+              <div className="col-span-4 text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                <span>✨ New Form Submission</span>
+              </div>
             </div>
-            <div className="col-span-1 text-center">⇄</div>
-            <div className="col-span-4 text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
-              <span>✨ New Form Submission</span>
-            </div>
-          </div>
 
-          <div className="divide-y divide-stone-100 dark:divide-stone-800 max-h-[380px] overflow-y-auto">
-            {comparisonRows.map((row) => (
-              <div
-                key={row.field}
-                className={`grid grid-cols-12 p-3 items-center text-xs transition-colors ${
-                  row.isChanged
-                    ? 'bg-blue-50/70 dark:bg-blue-950/20'
-                    : row.isNew
-                      ? 'bg-emerald-50/50 dark:bg-emerald-950/20'
-                      : 'bg-white dark:bg-stone-900'
-                }`}
-              >
-                {/* Field Label */}
-                <div className="col-span-3 font-bold text-stone-500 dark:text-stone-400 flex items-center gap-1">
-                  <span>{row.label}</span>
-                  {row.isChanged && (
-                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 font-mono font-black">
-                      UPDATED
-                    </span>
-                  )}
-                  {row.isNew && (
-                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 font-mono font-black">
-                      NEW
-                    </span>
-                  )}
-                </div>
-
-                {/* Old Value */}
-                <div className="col-span-4 text-stone-600 dark:text-stone-300 font-medium break-words pr-2">
-                  {row.oldVal}
-                </div>
-
-                {/* Arrow */}
-                <div className="col-span-1 text-center text-stone-400 font-bold">
-                  {row.isChanged ? <ArrowRight size={13} className="mx-auto text-blue-500" /> : '—'}
-                </div>
-
-                {/* New Value */}
+            <div className="divide-y divide-stone-100 dark:divide-stone-800 max-h-[380px] overflow-y-auto">
+              {comparisonRows.map((row) => (
                 <div
-                  className={`col-span-4 font-bold break-words pl-2 ${
+                  key={row.field}
+                  className={`grid grid-cols-12 p-3 items-center text-xs transition-colors ${
                     row.isChanged
-                      ? 'text-blue-900 dark:text-blue-300'
+                      ? 'bg-blue-50/70 dark:bg-blue-950/20'
                       : row.isNew
-                        ? 'text-emerald-700 dark:text-emerald-300'
-                        : 'text-stone-800 dark:text-stone-200'
+                        ? 'bg-emerald-50/50 dark:bg-emerald-950/20'
+                        : 'bg-white dark:bg-stone-900'
                   }`}
                 >
-                  {row.newVal}
+                  {/* Field Label */}
+                  <div className="col-span-3 font-bold text-stone-500 dark:text-stone-400 flex items-center gap-1">
+                    <span>{row.label}</span>
+                    {row.isChanged && (
+                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 font-mono font-black">
+                        UPDATED
+                      </span>
+                    )}
+                    {row.isNew && (
+                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 font-mono font-black">
+                        NEW
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Old Value */}
+                  <div className="col-span-4 text-stone-600 dark:text-stone-300 font-medium break-words pr-2">
+                    {row.oldVal}
+                  </div>
+
+                  {/* Arrow */}
+                  <div className="col-span-1 text-center text-stone-400 font-bold">
+                    {row.isChanged ? <ArrowRight size={13} className="mx-auto text-blue-500" /> : '—'}
+                  </div>
+
+                  {/* New Value */}
+                  <div
+                    className={`col-span-4 font-bold break-words pl-2 ${
+                      row.isChanged
+                        ? 'text-blue-900 dark:text-blue-300'
+                        : row.isNew
+                          ? 'text-emerald-700 dark:text-emerald-300'
+                          : 'text-stone-800 dark:text-stone-200'
+                    }`}
+                  >
+                    {row.newVal}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
 
@@ -142,8 +144,11 @@ export default function DuplicateComparisonModal({
             <button
               type="button"
               disabled={isProcessing}
-              onClick={() => onApproveAndMerge(pendingMember, existingMember)}
-              className="p-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex flex-col items-center text-center gap-1 transition-all shadow-tactile-sm active:translate-x-[1px] active:translate-y-[1px] cursor-pointer"
+              onClick={() => {
+                navigator.vibrate?.([15]);
+                onApproveAndMerge(pendingMember, existingMember);
+              }}
+              className="p-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex flex-col items-center text-center gap-1 transition-all shadow-tactile-sm active:translate-x-[1px] active:translate-y-[1px] cursor-pointer min-h-[48px] justify-center"
             >
               <div className="flex items-center gap-1.5">
                 <RotateCcw size={14} />
@@ -158,8 +163,11 @@ export default function DuplicateComparisonModal({
             <button
               type="button"
               disabled={isProcessing}
-              onClick={() => onApproveAsNew(pendingMember)}
-              className="p-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex flex-col items-center text-center gap-1 transition-all shadow-tactile-sm active:translate-x-[1px] active:translate-y-[1px] cursor-pointer"
+              onClick={() => {
+                navigator.vibrate?.([15]);
+                onApproveAsNew(pendingMember);
+              }}
+              className="p-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex flex-col items-center text-center gap-1 transition-all shadow-tactile-sm active:translate-x-[1px] active:translate-y-[1px] cursor-pointer min-h-[48px] justify-center"
             >
               <div className="flex items-center gap-1.5">
                 <UserCheck size={14} />
@@ -174,8 +182,11 @@ export default function DuplicateComparisonModal({
             <button
               type="button"
               disabled={isProcessing}
-              onClick={() => onReject(pendingMember)}
-              className="p-3 rounded-xl bg-stone-200 dark:bg-stone-800 hover:bg-rose-600 hover:text-white text-stone-700 dark:text-stone-300 font-bold text-xs flex flex-col items-center text-center gap-1 transition-all cursor-pointer"
+              onClick={() => {
+                navigator.vibrate?.([15]);
+                onReject(pendingMember);
+              }}
+              className="p-3 rounded-xl bg-stone-200 dark:bg-stone-800 hover:bg-rose-600 hover:text-white text-stone-700 dark:text-stone-300 font-bold text-xs flex flex-col items-center text-center gap-1 transition-all cursor-pointer min-h-[48px] justify-center"
             >
               <div className="flex items-center gap-1.5">
                 <UserX size={14} />

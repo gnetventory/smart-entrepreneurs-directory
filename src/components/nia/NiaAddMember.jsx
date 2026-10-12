@@ -101,6 +101,23 @@ export default function NiaAddMember({ onMemberAdded }) {
   const setLocationField = (field, val) =>
     setForm((prev) => ({ ...prev, location: { ...prev.location, [field]: val } }));
 
+  const handlePasteFromClipboard = async () => {
+    try {
+      if (navigator.clipboard?.readText) {
+        const text = await navigator.clipboard.readText();
+        if (text && text.trim()) {
+          setRawText(text.trim());
+          notify('📋 Pasted message from clipboard!');
+          navigator.vibrate?.([15]);
+          return;
+        }
+      }
+      notify('Clipboard is empty or access denied', 'warning');
+    } catch {
+      notify('Could not access clipboard — please paste manually', 'warning');
+    }
+  };
+
   // ── Parse WhatsApp Message using Gemini AI ──────────────────────────────────
   const handleParseWhatsApp = async () => {
     if (!rawText.trim()) {
@@ -259,11 +276,11 @@ export default function NiaAddMember({ onMemberAdded }) {
         </div>
 
         {/* Mode Toggle */}
-        <div className="flex items-center p-1 bg-stone-100 dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 text-xs font-bold">
+        <div className="grid grid-cols-2 sm:flex items-center p-1 bg-stone-100 dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 text-xs font-bold w-full sm:w-auto">
           <button
             type="button"
             onClick={() => setTab('whatsapp')}
-            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
               tab === 'whatsapp'
                 ? 'bg-white dark:bg-stone-900 text-stone-950 dark:text-white shadow-xs'
                 : 'text-stone-600 dark:text-stone-400 hover:text-stone-950 dark:hover:text-stone-200'
@@ -278,7 +295,7 @@ export default function NiaAddMember({ onMemberAdded }) {
               setTab('manual');
               if (!parsedData) setForm(EMPTY_FORM);
             }}
-            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
               tab === 'manual'
                 ? 'bg-white dark:bg-stone-900 text-stone-950 dark:text-white shadow-xs'
                 : 'text-stone-600 dark:text-stone-400 hover:text-stone-950 dark:hover:text-stone-200'
@@ -342,8 +359,17 @@ export default function NiaAddMember({ onMemberAdded }) {
               <label className="label text-[11px] font-bold text-stone-700 dark:text-stone-300">
                 Paste Raw WhatsApp Introduction Message
               </label>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider">
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={handlePasteFromClipboard}
+                  className="btn-secondary text-[11px] py-1 px-2.5 font-bold flex items-center gap-1.5 cursor-pointer text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800"
+                  title="Read from device clipboard"
+                >
+                  <Copy size={12} />
+                  <span>Paste from Clipboard</span>
+                </button>
+                <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider hidden sm:inline">
                   Test Samples:
                 </span>
                 <button
@@ -351,7 +377,7 @@ export default function NiaAddMember({ onMemberAdded }) {
                   onClick={() => handleLoadSample('moselhy')}
                   className="text-[11px] font-bold text-orange-600 dark:text-orange-400 hover:underline cursor-pointer bg-orange-50 dark:bg-orange-950/40 px-2 py-0.5 rounded-md border border-orange-200 dark:border-orange-800"
                 >
-                  ⚡ Mohamed Moselhy
+                  ⚡ Moselhy
                 </button>
                 <button
                   type="button"
@@ -529,6 +555,7 @@ export default function NiaAddMember({ onMemberAdded }) {
                 </label>
                 <input
                   type="text"
+                  inputMode="tel"
                   value={form.phone || ''}
                   onChange={(e) => setField('phone', e.target.value)}
                   placeholder="e.g. +20 10 1234 5678"
@@ -539,6 +566,7 @@ export default function NiaAddMember({ onMemberAdded }) {
                 <label className="label text-[10.5px]">LinkedIn Profile URL</label>
                 <input
                   type="text"
+                  inputMode="url"
                   value={form.linkedin || ''}
                   onChange={(e) => setField('linkedin', e.target.value)}
                   placeholder="https://linkedin.com/in/username"
@@ -548,7 +576,7 @@ export default function NiaAddMember({ onMemberAdded }) {
             </div>
 
             {/* Websites & Social Links (Labeled Platforms & Multi-Links Support) */}
-            <div className="space-y-2.5 p-3.5 rounded-2xl bg-stone-50 dark:bg-stone-850 border border-stone-200 dark:border-stone-750">
+            <div className="space-y-2.5 p-3.5 rounded-2xl bg-stone-50 dark:bg-stone-850 border border-stone-200 dark:border-stone-755">
               <div className="flex items-center justify-between">
                 <label className="label text-[11px] font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1.5 mb-0">
                   <Globe size={13} className="text-orange-500" />
@@ -568,44 +596,49 @@ export default function NiaAddMember({ onMemberAdded }) {
                   const badgeStyle = getPlatformBadgeStyle(url);
                   const platform = getPlatformLabel(url);
                   return (
-                    <div key={idx} className="flex items-center gap-2">
-                      {/* Platform Badge / Label */}
-                      <div
-                        className={`px-2.5 py-1.5 rounded-xl text-xs font-extrabold border flex items-center gap-1.5 shrink-0 min-w-[105px] justify-center shadow-xs ${badgeStyle.bg} ${badgeStyle.border}`}
-                      >
-                        <span>{badgeStyle.label}</span>
+                    <div key={idx} className="flex flex-col sm:flex-row sm:items-center gap-2">
+                      <div className="flex items-center gap-2">
+                        {/* Platform Badge / Label */}
+                        <div
+                          className={`px-2.5 py-1 rounded-lg sm:rounded-xl text-xs font-extrabold border flex items-center gap-1.5 shrink-0 min-w-[90px] sm:min-w-[105px] justify-center shadow-xs ${badgeStyle.bg} ${badgeStyle.border}`}
+                        >
+                          <span>{badgeStyle.label}</span>
+                        </div>
                       </div>
 
-                      <input
-                        type="text"
-                        value={url}
-                        onChange={(e) => handleUpdateWebsite(idx, e.target.value)}
-                        placeholder={`e.g. https://${platform.toLowerCase().replace(/[^a-z0-9]/g, '') || 'website'}.com/...`}
-                        className="input text-xs py-1.5 font-mono flex-1"
-                      />
+                      <div className="flex items-center gap-2 flex-1 w-full">
+                        <input
+                          type="text"
+                          inputMode="url"
+                          value={url}
+                          onChange={(e) => handleUpdateWebsite(idx, e.target.value)}
+                          placeholder={`e.g. https://${platform.toLowerCase().replace(/[^a-z0-9]/g, '') || 'website'}.com/...`}
+                          className="input text-xs py-1.5 font-mono flex-1"
+                        />
 
-                      {url && (
-                        <a
-                          href={formatWebsiteUrl(url)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2 rounded-xl bg-stone-200 dark:bg-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-300 dark:hover:bg-stone-600 transition-colors"
-                          title={`Test open ${platform}`}
-                        >
-                          <ExternalLink size={13} />
-                        </a>
-                      )}
+                        {url && (
+                          <a
+                            href={formatWebsiteUrl(url)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 rounded-xl bg-stone-200 dark:bg-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-300 dark:hover:bg-stone-600 transition-colors shrink-0"
+                            title={`Test open ${platform}`}
+                          >
+                            <ExternalLink size={13} />
+                          </a>
+                        )}
 
-                      {currentWebsites.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveWebsiteLink(idx)}
-                          className="p-2 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-400 hover:text-rose-600 transition-colors cursor-pointer"
-                          title="Remove link"
-                        >
-                          <X size={13} />
-                        </button>
-                      )}
+                        {currentWebsites.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveWebsiteLink(idx)}
+                            className="p-2 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-400 hover:text-rose-600 transition-colors cursor-pointer shrink-0"
+                            title="Remove link"
+                          >
+                            <X size={13} />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
@@ -712,17 +745,17 @@ export default function NiaAddMember({ onMemberAdded }) {
             </div>
 
             {/* Save Button */}
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-stone-100 dark:border-stone-800">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t border-stone-100 dark:border-stone-800">
               <button
                 type="button"
                 onClick={handleReset}
-                className="btn-secondary text-xs py-2.5 px-4 font-bold"
+                className="btn-secondary text-xs py-2.5 px-4 font-bold justify-center"
               >
                 Reset
               </button>
               <button
                 type="submit"
-                className="btn-primary text-xs py-2.5 px-6 font-extrabold shadow-tactile-sm flex items-center gap-2 cursor-pointer"
+                className="btn-primary text-xs py-3 sm:py-2.5 px-6 font-extrabold shadow-tactile-sm flex items-center justify-center gap-2 cursor-pointer min-h-[44px] sm:min-h-0"
               >
                 <Save size={14} />
                 Save & Add {form.name || 'Member'} to Directory

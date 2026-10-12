@@ -38,7 +38,6 @@ import {
   clearAllData,
   getNiaPIN,
   saveNiaPIN,
-  loadDemoSeedData,
   getSheetsConfig,
   saveSheetsConfig,
   getTombstones,
@@ -69,9 +68,11 @@ import NiaAddMember from './NiaAddMember';
 import DuplicateComparisonModal from './DuplicateComparisonModal';
 import CommunityWelcomeDispatcherModal from '../admin/CommunityWelcomeDispatcherModal';
 
-export default function NiaPanel({ onLock }) {
+export default function NiaPanel({ onLock, activeTab: externalTab, setActiveTab: setExternalTab }) {
   const { apiKey, updateApiKey, members, refreshMembers, notify } = useApp();
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'members' | 'ai' | 'system'
+  const [internalTab, setInternalTab] = useState('overview'); // 'overview' | 'members' | 'ai' | 'system'
+  const activeTab = externalTab !== undefined ? externalTab : internalTab;
+  const setActiveTab = setExternalTab || setInternalTab;
   const [keyInput, setKeyInput] = useState(apiKey);
   const [importMode, setImportMode] = useState('merge');
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
@@ -337,11 +338,6 @@ export default function NiaPanel({ onLock }) {
     reader.readAsText(file);
   };
 
-  const handleLoadDemoProfiles = () => {
-    loadDemoSeedData();
-    refreshMembers();
-    notify('Sample demo profiles loaded successfully!');
-  };
 
   const handleClearAll = () => {
     if (deleteConfirmText.trim().toUpperCase() !== 'DELETE') return;
@@ -380,39 +376,39 @@ export default function NiaPanel({ onLock }) {
   return (
     <div className="space-y-6 animate-fade-in w-full">
       {/* ── Top Header Banner (Widescreen Executive Console) ──────────────── */}
-      <div className="card p-5 sm:p-6 bg-stone-950 text-white border-[1.5px] border-stone-800 shadow-tactile dark:shadow-tactile-dark flex items-center justify-between gap-4 flex-wrap relative overflow-hidden">
+      <div className="card p-4 sm:p-6 bg-stone-950 text-white border-[1.5px] border-stone-800 shadow-tactile dark:shadow-tactile-dark flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-orange-600/20 via-emerald-600/10 to-transparent rounded-full blur-3xl pointer-events-none" />
-        <div className="flex items-center gap-3.5 relative z-10">
-          <div className="p-3 bg-emerald-600 rounded-2xl flex-shrink-0 border-[1.5px] border-emerald-400 shadow-tactile-sm">
-            <Settings size={22} className="text-white" />
+        <div className="flex items-center gap-3 relative z-10">
+          <div className="p-2.5 sm:p-3 bg-emerald-600 rounded-2xl shrink-0 border-[1.5px] border-emerald-400 shadow-tactile-sm">
+            <Settings size={20} className="text-white" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl font-black tracking-tight font-display text-white">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="text-lg sm:text-xl font-black tracking-tight font-display text-white">
                 NIA & Data Governance
               </h2>
-              <span className="text-[10px] font-mono font-black uppercase px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+              <span className="text-[9px] sm:text-[10px] font-mono font-black uppercase px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
                 Persistent Disk DB
               </span>
             </div>
-            <p className="text-xs text-stone-300 font-medium mt-0.5">
+            <p className="text-[11px] sm:text-xs text-stone-300 font-medium mt-0.5">
               Enterprise console: Google Sheets 2-way sync, member intake queue, AI matchmaking & system security.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 relative z-10">
+        <div className="flex items-center gap-2 relative z-10 w-full sm:w-auto">
           <a
             href="/index.html"
             target="_blank"
             rel="noopener noreferrer"
-            className="btn-secondary text-xs py-2 px-3.5 font-bold shadow-tactile-sm"
+            className="btn-secondary text-xs py-2 px-3 sm:px-3.5 font-bold shadow-tactile-sm flex-1 sm:flex-none justify-center"
           >
             <ExternalLink size={13} /> Public Directory
           </a>
           <button
             onClick={handleLock}
-            className="btn-accent text-xs py-2 px-3.5 font-bold shadow-tactile-sm cursor-pointer"
+            className="btn-accent text-xs py-2 px-3 sm:px-3.5 font-bold shadow-tactile-sm cursor-pointer flex-1 sm:flex-none justify-center"
           >
             <Lock size={13} /> Lock Session
           </button>
@@ -420,7 +416,7 @@ export default function NiaPanel({ onLock }) {
       </div>
 
       {/* ── Live Telemetry Metric Bar ────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3.5">
         <button
           type="button"
           onClick={() => setActiveTab('members')}
@@ -516,7 +512,7 @@ export default function NiaPanel({ onLock }) {
       </div>
 
       {/* ── Tab Navigation ───────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-2 border-b border-stone-200 dark:border-stone-800 pb-2 overflow-x-auto">
+      <div className="flex items-center gap-1.5 sm:gap-2 border-b border-stone-200 dark:border-stone-800 pb-2 overflow-x-auto no-scrollbar scroll-smooth snap-x">
         <button
           type="button"
           onClick={() => setActiveTab('overview')}
@@ -629,9 +625,10 @@ export default function NiaPanel({ onLock }) {
               <div className="space-y-4 pt-1">
                 <div>
                   <label className="label text-[10px]">Google Apps Script Web App URL</label>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <input
                       type="text"
+                      inputMode="url"
                       value={apiUrlInput}
                       onChange={(e) => setApiUrlInput(e.target.value)}
                       placeholder="https://script.google.com/macros/s/.../exec"
@@ -641,7 +638,7 @@ export default function NiaPanel({ onLock }) {
                       type="button"
                       onClick={handleTestSheets}
                       disabled={isTestingSheets || !apiUrlInput.trim()}
-                      className="btn-secondary text-xs py-2.5 px-3.5 font-bold cursor-pointer"
+                      className="btn-secondary text-xs py-2.5 px-3.5 font-bold cursor-pointer justify-center"
                     >
                       {isTestingSheets ? (
                         <Loader2 size={13} className="animate-spin" />
@@ -682,11 +679,11 @@ export default function NiaPanel({ onLock }) {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                     <button
                       type="button"
                       onClick={handleSaveSheetsConfig}
-                      className="btn-secondary text-xs py-2 px-3 font-bold cursor-pointer"
+                      className="btn-secondary text-xs py-2 px-3 font-bold cursor-pointer justify-center"
                     >
                       Save URL
                     </button>
@@ -694,7 +691,7 @@ export default function NiaPanel({ onLock }) {
                       type="button"
                       onClick={handleSyncSheetsNow}
                       disabled={isSyncingSheets || !apiUrlInput.trim()}
-                      className="btn-primary text-xs py-2 px-4 font-bold cursor-pointer"
+                      className="btn-primary text-xs py-2 px-4 font-bold cursor-pointer justify-center"
                     >
                       {isSyncingSheets ? (
                         <Loader2 size={14} className="animate-spin" />
@@ -758,27 +755,6 @@ export default function NiaPanel({ onLock }) {
                   Replace All
                 </label>
               </div>
-            </div>
-
-            {/* Demo Data Seeding */}
-            <div className="card p-5 sm:p-6 space-y-4">
-              <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3">
-                <h3 className="section-title text-base">
-                  <Sparkles size={16} className="text-orange-500" />
-                  Demo Data Seeding
-                </h3>
-                <span className="text-[10px] font-bold text-stone-400">Optional</span>
-              </div>
-              <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed font-medium">
-                Populate sample Egyptian startup founders into the directory to test the Map, Radar, and
-                Matchmaker.
-              </p>
-              <button
-                onClick={handleLoadDemoProfiles}
-                className="btn-secondary text-xs py-2.5 w-full font-bold justify-center text-emerald-700 dark:text-emerald-400 cursor-pointer"
-              >
-                <Sparkles size={14} /> Load Sample Demo Profiles
-              </button>
             </div>
           </div>
         </div>
@@ -977,14 +953,15 @@ export default function NiaPanel({ onLock }) {
               </div>
 
               {/* Quick Search Input */}
-              <div className="relative min-w-[240px]">
+              <div className="relative w-full sm:w-auto sm:min-w-[260px]">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
                 <input
                   type="text"
+                  inputMode="search"
                   value={rosterSearch}
                   onChange={(e) => setRosterSearch(e.target.value)}
                   placeholder="Search founder or business..."
-                  className="input text-xs pl-8 py-1.5 w-full bg-stone-50 dark:bg-stone-800 border-stone-200 dark:border-stone-700"
+                  className="input text-xs pl-8 py-2 sm:py-1.5 w-full bg-stone-50 dark:bg-stone-800 border-stone-200 dark:border-stone-700"
                 />
               </div>
             </div>
@@ -1013,9 +990,9 @@ export default function NiaPanel({ onLock }) {
                   return (
                     <div
                       key={m.id}
-                      className="py-3 flex items-center justify-between gap-3 hover:bg-stone-50/80 dark:hover:bg-stone-800/40 px-2 rounded-xl transition-colors flex-wrap sm:flex-nowrap"
+                      className="py-3 px-2 rounded-xl transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 hover:bg-stone-50/80 dark:hover:bg-stone-800/40"
                     >
-                      <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
                         <div
                           className={`w-9 h-9 rounded-xl bg-gradient-to-br ${getAvatarGradient(
                             m.name
@@ -1023,7 +1000,7 @@ export default function NiaPanel({ onLock }) {
                         >
                           {getInitials(m.name)}
                         </div>
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-extrabold text-xs text-stone-900 dark:text-stone-100 truncate">
                               {english || primary}
@@ -1043,11 +1020,11 @@ export default function NiaPanel({ onLock }) {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 shrink-0 ml-auto sm:ml-0">
+                      <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end sm:justify-start">
                         <button
                           type="button"
                           onClick={() => setDispatchModalMember(m)}
-                          className="btn-primary text-[11px] py-1.5 px-3 font-bold flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer shadow-xs"
+                          className="btn-primary text-[11px] py-2 sm:py-1.5 px-3 font-bold flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer shadow-xs w-full sm:w-auto"
                           title="Generate WhatsApp Announcement"
                         >
                           <Share2 size={12} />

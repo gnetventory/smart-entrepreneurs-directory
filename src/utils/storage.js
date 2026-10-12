@@ -50,7 +50,10 @@ export async function syncFromDisk() {
             localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(data.members));
           }
           if (Array.isArray(data.tombstones)) {
-            localStorage.setItem(STORAGE_KEYS.TOMBSTONES, JSON.stringify(data.tombstones));
+            const wasCleared = localStorage.getItem('sed_tombstones_cleared_at');
+            if (!wasCleared || data.tombstones.length === 0) {
+              localStorage.setItem(STORAGE_KEYS.TOMBSTONES, JSON.stringify(data.tombstones));
+            }
           }
           if (data.sheetsConfig && typeof data.sheetsConfig === 'object') {
             localStorage.setItem(STORAGE_KEYS.SHEETS_CONFIG, JSON.stringify(data.sheetsConfig));
@@ -373,7 +376,12 @@ export function addTombstone(tombstoneKey) {
   const current = getTombstones();
   if (!current.includes(clean)) {
     const updated = [...current, clean];
-    localStorage.setItem(STORAGE_KEYS.TOMBSTONES, JSON.stringify(updated));
+    try {
+      localStorage.removeItem('sed_tombstones_cleared_at');
+      localStorage.setItem(STORAGE_KEYS.TOMBSTONES, JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
     pushToDisk({ tombstones: updated });
   }
 }
@@ -383,12 +391,21 @@ export function removeTombstone(tombstoneKey) {
   const clean = String(tombstoneKey).trim().toLowerCase();
   const current = getTombstones();
   const updated = current.filter((k) => k !== clean);
-  localStorage.setItem(STORAGE_KEYS.TOMBSTONES, JSON.stringify(updated));
+  try {
+    localStorage.setItem(STORAGE_KEYS.TOMBSTONES, JSON.stringify(updated));
+  } catch {
+    // ignore
+  }
   pushToDisk({ tombstones: updated });
 }
 
 export function clearTombstones() {
-  localStorage.setItem(STORAGE_KEYS.TOMBSTONES, JSON.stringify([]));
+  try {
+    localStorage.setItem(STORAGE_KEYS.TOMBSTONES, JSON.stringify([]));
+    localStorage.setItem('sed_tombstones_cleared_at', Date.now().toString());
+  } catch {
+    // ignore
+  }
   pushToDisk({ tombstones: [] });
 }
 
