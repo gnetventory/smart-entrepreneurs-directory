@@ -14,6 +14,8 @@ import {
   Building,
   MapPin,
   Tag,
+  RotateCw,
+  UserPlus,
 } from 'lucide-react';
 import Modal from '../common/Modal';
 import {
@@ -21,6 +23,7 @@ import {
   generateDirectWelcome,
   getWhatsAppGroupShareUrl,
   getWhatsAppDirectChatUrl,
+  isMemberProfileUpdate,
 } from '../../utils/welcomeAnnouncements';
 import { generateAIWelcomeHook } from '../../utils/gemini';
 import { getAvatarGradient, getInitials, parseMemberName, copyToClipboard } from '../../utils/helpers';
@@ -30,6 +33,9 @@ import { useApp } from '../../contexts/AppContext';
 export default function CommunityWelcomeDispatcherModal({ isOpen, onClose, member }) {
   const { notify } = useApp();
   const [tone, setTone] = useState('egyptian'); // 'egyptian' | 'english' | 'arabic'
+  const [announcementMode, setAnnouncementMode] = useState(() =>
+    isMemberProfileUpdate(member) ? 'update' : 'new'
+  );
   const [customHook, setCustomHook] = useState('');
   const [isGeneratingHook, setIsGeneratingHook] = useState(false);
   const [announcementText, setAnnouncementText] = useState('');
@@ -38,15 +44,29 @@ export default function CommunityWelcomeDispatcherModal({ isOpen, onClose, membe
   const [activeTab, setActiveTab] = useState('group'); // 'group' | 'direct'
   const [directText, setDirectText] = useState('');
 
-  // Re-generate deterministic template whenever member, tone, or hook changes
+  // Keep announcementMode synchronized if the member changes
+  useEffect(() => {
+    if (member) {
+      setAnnouncementMode(isMemberProfileUpdate(member) ? 'update' : 'new');
+    }
+  }, [member]);
+
+  // Re-generate deterministic template whenever member, tone, mode, or hook changes
   useEffect(() => {
     if (!member) return;
-    const generated = generateWelcomeAnnouncement(member, { tone, customHook });
+    const generated = generateWelcomeAnnouncement(member, {
+      tone,
+      customHook,
+      mode: announcementMode,
+    });
     setAnnouncementText(generated);
 
-    const directMsg = generateDirectWelcome(member, { tone });
+    const directMsg = generateDirectWelcome(member, {
+      tone,
+      mode: announcementMode,
+    });
     setDirectText(directMsg);
-  }, [member, tone, customHook]);
+  }, [member, tone, customHook, announcementMode]);
 
   if (!member) return null;
 
@@ -164,9 +184,54 @@ export default function CommunityWelcomeDispatcherModal({ isOpen, onClose, membe
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/80 dark:bg-stone-850/80 border border-stone-200 dark:border-stone-700 text-[11px] font-bold text-stone-600 dark:text-stone-400">
-            <ShieldCheck size={14} className="text-emerald-600" />
-            <span>Admin Dispatch Only</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span
+              className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border flex items-center gap-1 ${
+                announcementMode === 'update'
+                  ? 'bg-cyan-50 dark:bg-cyan-950 text-cyan-800 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800'
+                  : 'bg-emerald-50 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+              }`}
+            >
+              {announcementMode === 'update' ? <RotateCw size={10} /> : <Sparkles size={10} />}
+              {announcementMode === 'update' ? 'Profile Update' : 'New Joiner'}
+            </span>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/80 dark:bg-stone-850/80 border border-stone-200 dark:border-stone-700 text-[11px] font-bold text-stone-600 dark:text-stone-400">
+              <ShieldCheck size={14} className="text-emerald-600" />
+              <span>Admin Dispatch Only</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Announcement Mode Segmented Switcher (New Member vs Profile Update) */}
+        <div className="flex items-center justify-between gap-3 p-2.5 rounded-2xl bg-stone-100/80 dark:bg-stone-850 border border-stone-200 dark:border-stone-800">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-bold text-stone-500">Announcement Type:</span>
+          </div>
+          <div className="flex items-center gap-1.5 bg-white dark:bg-stone-900 p-1 rounded-xl border border-stone-200 dark:border-stone-800">
+            <button
+              type="button"
+              onClick={() => setAnnouncementMode('new')}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                announcementMode === 'new'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
+              }`}
+            >
+              <UserPlus size={13} />
+              <span>🎉 New Member Welcome</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setAnnouncementMode('update')}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                announcementMode === 'update'
+                  ? 'bg-cyan-600 text-white shadow-xs'
+                  : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
+              }`}
+            >
+              <RotateCw size={13} />
+              <span>🔄 Profile Update Refresh</span>
+            </button>
           </div>
         </div>
 

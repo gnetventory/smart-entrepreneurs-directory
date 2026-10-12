@@ -244,8 +244,8 @@ export default function NiaPanel({ onLock, activeTab: externalTab, setActiveTab:
   const handleApproveMember = async (member) => {
     setApprovingId(member.id);
     try {
-      const approvedMember = { ...member, status: 'active', appStatus: 'APPROVED' };
-      updateMember(member.id, { status: 'active', appStatus: 'APPROVED' });
+      const approvedMember = { ...member, status: 'active', appStatus: 'APPROVED', isProfileUpdate: false };
+      updateMember(member.id, { status: 'active', appStatus: 'APPROVED', isProfileUpdate: false });
       await approveMember(member);
       refreshMembers();
       setDispatchModalMember(approvedMember);
@@ -276,6 +276,7 @@ export default function NiaPanel({ onLock, activeTab: externalTab, setActiveTab:
         tags: pendingMember.tags?.length ? pendingMember.tags : existingMember.tags,
         status: 'active',
         appStatus: 'APPROVED_UPDATE',
+        isProfileUpdate: true,
         formTimestamp: pendingMember.formTimestamp || pendingMember.createdAt,
         updatedAt: new Date().toISOString(),
       };

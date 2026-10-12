@@ -513,6 +513,8 @@ export async function syncFromGoogleSheets() {
             ...normalized,
             id: existing.id, // Preserve established ID
             sheetRowIndex: normalized.sheetRowIndex || existing.sheetRowIndex,
+            isProfileUpdate: true,
+            updatedAt: new Date().toISOString(),
           };
           updatedCount++;
         }

@@ -5,7 +5,7 @@
  * 1. Open your Google Sheet linked to your Google Form.
  * 2. Click "Extensions" > "Apps Script".
  * 3. Replace all code in Code.gs with this script.
- * 4. Click "Deploy" > "New deployment".
+ * 4. Click "Deploy" > "New deployment" (or "Manage deployments" > Edit > New version).
  * 5. Select type "Web app". Execute as: "Me". Who has access: "Anyone".
  * 6. Click "Deploy", authorize access, and copy the Web App URL.
  * 7. Paste the Web App URL into the Smart Directory Admin Portal.
@@ -39,7 +39,15 @@ function onFormSubmit(e) {
   try {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-    var values = e.values;
+    var values = (e && e.values) ? e.values : [];
+
+    // Fallback: If e.values is undefined (e.g. installable trigger object variation), read the last row
+    if (!values || values.length === 0) {
+      var lastRow = sheet.getLastRow();
+      if (lastRow > 1) {
+        values = sheet.getRange(lastRow, 1, 1, sheet.getLastColumn()).getValues()[0];
+      }
+    }
 
     var member = {};
     for (var i = 0; i < headers.length; i++) {
@@ -58,28 +66,30 @@ function onFormSubmit(e) {
     var canHelp    = member.canHelp    || '';
     var submitted  = new Date().toLocaleString('en-GB', { timeZone: 'Africa/Cairo' });
 
-    var subject = '🔔 New Member Pending Approval: ' + name;
+    // Clean plain text subject (avoids unescaped UTF-8 4-byte surrogate issues in strict mail clients)
+    var subject = '[Smart Directory] New Member Pending Approval: ' + name;
 
-    var htmlBody = '<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px;background:#f9fafb;border-radius:12px">'
+    // Rich HTML email body using Unicode escape sequences (\\uXXXX) to guarantee flawless email rendering across all mail clients
+    var htmlBody = '<div style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;background:#f9fafb;border-radius:12px">'
       + '<div style="background:linear-gradient(135deg,#059669,#047857);padding:20px;border-radius:10px;margin-bottom:20px">'
-      + '<h2 style="color:white;margin:0;font-size:20px">🔔 New Member Pending Approval</h2>'
+      + '<h2 style="color:white;margin:0;font-size:20px;font-weight:800">\u2728 New Member Pending Approval</h2>'
       + '<p style="color:#d1fae5;margin:4px 0 0;font-size:13px">Smart Entrepreneurs Directory</p></div>'
       + '<table style="width:100%;border-collapse:collapse;background:white;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08)">'
-      + '<tr style="background:#f0fdf4"><td style="padding:10px 14px;font-weight:700;color:#065f46;width:35%">👤 Name</td><td style="padding:10px 14px">' + name + '</td></tr>'
-      + '<tr><td style="padding:10px 14px;font-weight:700;color:#065f46">💼 Role</td><td style="padding:10px 14px">' + role + '</td></tr>'
-      + '<tr style="background:#f0fdf4"><td style="padding:10px 14px;font-weight:700;color:#065f46">🚀 Business</td><td style="padding:10px 14px">' + business + '</td></tr>'
-      + '<tr><td style="padding:10px 14px;font-weight:700;color:#065f46">📍 Location</td><td style="padding:10px 14px">' + city + '</td></tr>'
-      + '<tr style="background:#f0fdf4"><td style="padding:10px 14px;font-weight:700;color:#065f46">📱 Phone</td><td style="padding:10px 14px">' + phone + '</td></tr>'
-      + '<tr><td style="padding:10px 14px;font-weight:700;color:#065f46">🔗 LinkedIn</td><td style="padding:10px 14px">' + linkedin + '</td></tr>'
-      + '<tr style="background:#f0fdf4"><td style="padding:10px 14px;font-weight:700;color:#065f46">📊 Stage</td><td style="padding:10px 14px">' + stage + '</td></tr>'
-      + '<tr><td style="padding:10px 14px;font-weight:700;color:#065f46">🤝 Looking For</td><td style="padding:10px 14px">' + lookingFor + '</td></tr>'
-      + '<tr style="background:#f0fdf4"><td style="padding:10px 14px;font-weight:700;color:#065f46">💡 Can Help</td><td style="padding:10px 14px">' + canHelp + '</td></tr>'
-      + '<tr><td style="padding:10px 14px;font-weight:700;color:#065f46">🕐 Submitted</td><td style="padding:10px 14px">' + submitted + '</td></tr>'
+      + '<tr style="background:#f0fdf4"><td style="padding:10px 14px;font-weight:700;color:#065f46;width:35%">Name</td><td style="padding:10px 14px">' + escapeHtml(name) + '</td></tr>'
+      + '<tr><td style="padding:10px 14px;font-weight:700;color:#065f46">Role</td><td style="padding:10px 14px">' + escapeHtml(role) + '</td></tr>'
+      + '<tr style="background:#f0fdf4"><td style="padding:10px 14px;font-weight:700;color:#065f46">Business</td><td style="padding:10px 14px">' + escapeHtml(business) + '</td></tr>'
+      + '<tr><td style="padding:10px 14px;font-weight:700;color:#065f46">Location</td><td style="padding:10px 14px">' + escapeHtml(city) + '</td></tr>'
+      + '<tr style="background:#f0fdf4"><td style="padding:10px 14px;font-weight:700;color:#065f46">Phone</td><td style="padding:10px 14px">' + escapeHtml(phone) + '</td></tr>'
+      + '<tr><td style="padding:10px 14px;font-weight:700;color:#065f46">LinkedIn</td><td style="padding:10px 14px">' + (linkedin ? ('<a href="' + escapeHtml(linkedin) + '" target="_blank">' + escapeHtml(linkedin) + '</a>') : '—') + '</td></tr>'
+      + '<tr style="background:#f0fdf4"><td style="padding:10px 14px;font-weight:700;color:#065f46">Stage</td><td style="padding:10px 14px">' + escapeHtml(stage) + '</td></tr>'
+      + '<tr><td style="padding:10px 14px;font-weight:700;color:#065f46">Looking For</td><td style="padding:10px 14px">' + escapeHtml(lookingFor) + '</td></tr>'
+      + '<tr style="background:#f0fdf4"><td style="padding:10px 14px;font-weight:700;color:#065f46">Can Help</td><td style="padding:10px 14px">' + escapeHtml(canHelp) + '</td></tr>'
+      + '<tr><td style="padding:10px 14px;font-weight:700;color:#065f46">Submitted</td><td style="padding:10px 14px">' + escapeHtml(submitted) + '</td></tr>'
       + '</table>'
       + '<div style="margin-top:20px;text-align:center">'
-      + '<a href="' + config.adminPortalUrl + '" style="display:inline-block;background:#059669;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px">✅ Review &amp; Approve in Admin Portal →</a>'
+      + '<a href="' + config.adminPortalUrl + '" style="display:inline-block;background:#059669;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px">\u2714 Review &amp; Approve in Admin Portal \u2192</a>'
       + '</div>'
-      + '<p style="text-align:center;color:#9ca3af;font-size:11px;margin-top:16px">Smart Entrepreneurs Directory · Automated Notification</p></div>';
+      + '<p style="text-align:center;color:#9ca3af;font-size:11px;margin-top:16px">Smart Entrepreneurs Directory \u00B7 Automated Notification</p></div>';
 
     GmailApp.sendEmail(
       config.adminEmail,
@@ -90,6 +100,16 @@ function onFormSubmit(e) {
   } catch (err) {
     console.log('Email notification error: ' + err.toString());
   }
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function doGet(e) {
@@ -125,7 +145,7 @@ function doPost(e) {
   try {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     var payload = JSON.parse(e.postData.contents || '{}');
-    var action = payload.action; // 'update' | 'delete' | 'add'
+    var action = payload.action; // 'update' | 'delete' | 'add' | 'setConfig'
     var member = payload.member || {};
     var audit = payload.audit || {};
     var timestamp = new Date().toISOString();
@@ -254,4 +274,3 @@ function normalizeHeader(header) {
   if (h.indexOf('app_notes') > -1) return 'appNotes';
   return h.replace(/[^a-z0-9]/gi, '_');
 }
-

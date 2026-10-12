@@ -4,18 +4,33 @@ import { getMemberWebsites, parseMemberName } from './helpers';
 const DEFAULT_APP_URL = 'https://smart-entrepreneurs-directory.vercel.app';
 
 /**
- * Checks if a member joined within the last N days.
+ * Returns a reliable epoch millisecond timestamp for a member.
+ * Checks formTimestamp (Google Sheets / Form), createdAt, and updatedAt.
+ * @param {Object} member
+ * @returns {number}
+ */
+export function getEffectiveTimestamp(member) {
+  if (!member) return 0;
+  const raw = member.formTimestamp || member.createdAt || member.updatedAt;
+  if (!raw) return 0;
+  const parsed = new Date(raw);
+  const time = parsed.getTime();
+  return isNaN(time) ? 0 : time;
+}
+
+/**
+ * Checks if a member joined or was updated within the last N days.
  * @param {Object} member
  * @param {number} days
  * @returns {boolean}
  */
 export function isRecentlyJoined(member, days = 14) {
-  if (!member || !member.createdAt) return false;
+  if (!member) return false;
+  const time = getEffectiveTimestamp(member);
+  if (!time) return false;
   try {
-    const createdDate = new Date(member.createdAt);
-    if (isNaN(createdDate.getTime())) return false;
-    const now = new Date();
-    const diffMs = now.getTime() - createdDate.getTime();
+    const now = Date.now();
+    const diffMs = now - time;
     const diffDays = diffMs / (1000 * 60 * 60 * 24);
     return diffDays >= 0 && diffDays <= days;
   } catch {
@@ -24,8 +39,29 @@ export function isRecentlyJoined(member, days = 14) {
 }
 
 /**
- * Retrieves the newest members from the directory.
- * If fewer than minCount have recent createdAt stamps, falls back to the top items.
+ * Determines whether a member submission represents an updated / edited profile
+ * rather than a brand-new join.
+ * @param {Object} member
+ * @returns {boolean}
+ */
+export function isMemberProfileUpdate(member) {
+  if (!member) return false;
+  if (member.isProfileUpdate === true) return true;
+  if (member.appStatus === 'APPROVED_UPDATE' || member.submissionType === 'update') return true;
+  // If explicitly has both timestamps and updatedAt is significantly after createdAt (> 1 hour)
+  if (member.createdAt && member.updatedAt) {
+    const created = new Date(member.createdAt).getTime();
+    const updated = new Date(member.updatedAt).getTime();
+    if (!isNaN(created) && !isNaN(updated) && (updated - created) > 60 * 60 * 1000) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Retrieves the newest members from the directory, strictly sorted descending by effective timestamp.
+ * If fewer than minCount have recent stamps, gracefully falls back to the newest members by date.
  * @param {Array} members
  * @param {number} days
  * @param {number} limit
@@ -38,13 +74,16 @@ export function getRecentMembers(members, days = 14, limit = 6) {
     (m) => m && m.status !== 'rejected' && m.status !== 'pending'
   );
 
-  const recentlyJoined = activeMembers.filter((m) => isRecentlyJoined(m, days));
+  // Strictly sort all active members by effective timestamp descending
+  const sorted = [...activeMembers].sort((a, b) => getEffectiveTimestamp(b) - getEffectiveTimestamp(a));
+
+  const recentlyJoined = sorted.filter((m) => isRecentlyJoined(m, days));
   if (recentlyJoined.length >= 2) {
     return recentlyJoined.slice(0, limit);
   }
 
-  // Graceful fallback: return the top members in the list (newest first)
-  return activeMembers.slice(0, limit);
+  // Graceful fallback: return the top newest members in descending chronological order
+  return sorted.slice(0, limit);
 }
 
 /**
@@ -89,7 +128,7 @@ export function getWhatsAppDirectChatUrl(phone, text) {
 }
 
 /**
- * Builds a public 1-click WhatsApp icebreaker for community members to welcome a new founder.
+ * Builds a public 1-click WhatsApp icebreaker for community members to welcome or congratulate a founder.
  * @param {Object} member
  * @returns {string}
  */
@@ -98,22 +137,32 @@ export function getMemberWelcomeIcebreakerUrl(member) {
   const { arabic, primary } = parseMemberName(member.name);
   const firstName = (arabic || primary || member.name || 'Founder').split(' ')[0];
   const venture = member.business ? ` (${member.business})` : '';
+  const isUpdate = isMemberProfileUpdate(member);
 
-  const message = `أهلاً يا ${firstName}! 👋 شفت بروفايلك في الـ Smart Directory وحبيت أرحب بيك في مجتمع رواد الأعمال BGM${venture}. بالتوفيق ومنور الجروب! 🚀`;
+  let message = '';
+  if (isUpdate) {
+    message = `أهلاً يا ${firstName}! 👋 شفت تحديث بروفايلك في الـ Smart Directory وحبيت أباركلك على التطورات الجديدة في مجتمع BGM${venture}. بالتوفيق ودايماً في نجاح! 🚀`;
+  } else {
+    message = `أهلاً يا ${firstName}! 👋 شفت بروفايلك في الـ Smart Directory وحبيت أرحب بيك في مجتمع رواد الأعمال BGM${venture}. بالتوفيق ومنور الجروب! 🚀`;
+  }
+
   return getWhatsAppDirectChatUrl(member.phone, message);
 }
 
 /**
- * Deterministically generates a community welcome announcement for WhatsApp.
+ * Deterministically generates a community announcement for WhatsApp.
+ * Supports both brand-new member welcomes and profile update refresh announcements.
  * @param {Object} member
  * @param {Object} options
  * @returns {string}
  */
 export function generateWelcomeAnnouncement(
   member,
-  { tone = 'egyptian', customHook = '', appUrl = DEFAULT_APP_URL } = {}
+  { tone = 'egyptian', customHook = '', appUrl = DEFAULT_APP_URL, mode = 'auto' } = {}
 ) {
   if (!member) return '';
+
+  const isUpdate = mode === 'update' || (mode === 'auto' && isMemberProfileUpdate(member));
 
   const { english, arabic, primary } = parseMemberName(member.name);
   const displayName = english && arabic ? `${english} (${arabic})` : primary || member.name;
@@ -137,12 +186,29 @@ export function generateWelcomeAnnouncement(
     .map((w) => `🌐 ${w.label}: ${w.url}`)
     .join('\n');
 
+  // ── ENGLISH TONE ──
   if (tone === 'english') {
     const hookSection = customHook ? `\n💡 *Community Highlight:* ${customHook}\n` : '';
     const needsSection = member.lookingFor ? `\n🎯 *Currently Looking For:* ${member.lookingFor}` : '';
     const offersSection = member.canHelp ? `\n💡 *Can Help With:* ${member.canHelp}` : '';
     const webSection = websiteLines ? `\n${websiteLines}` : '';
     const tagsSection = tags ? `\n🏷️ ${tags}` : '';
+
+    if (isUpdate) {
+      return (
+`🔄 *BGM MEMBER PROFILE UPDATE / SPOTLIGHT!* 🚀
+
+Excited to share the latest updates & milestones from *${displayName}*! 👏
+💼 *Role:* ${role}
+🏢 *Venture:* ${business}
+📊 *Current Stage:* ${stageLabel}
+📍 *Location:* ${flag} ${locationLabel}
+${hookSection}${needsSection}${offersSection}${tagsSection}${webSection}
+🔗 *Updated Smart Directory Card:* ${profileUrl}
+
+🤝 *Connect with ${primary.split(' ')[0]}:* If you have synergies or partnership opportunities with these new updates, feel free to reach out directly!`
+      ).trim();
+    }
 
     return (
 `🌟 *WELCOME NEW BGM COMMUNITY MEMBER!* 🚀
@@ -159,12 +225,29 @@ ${hookSection}${needsSection}${offersSection}${tagsSection}${webSection}
     ).trim();
   }
 
+  // ── FORMAL ARABIC TONE ──
   if (tone === 'arabic') {
     const hookSection = customHook ? `\n💡 *إضاءة خاصة:* ${customHook}\n` : '';
     const needsSection = member.lookingFor ? `\n🎯 *يبحث حالياً عن:* ${member.lookingFor}` : '';
     const offersSection = member.canHelp ? `\n💡 *يمكنه تقديم المساعدة في:* ${member.canHelp}` : '';
     const webSection = websiteLines ? `\n${websiteLines}` : '';
     const tagsSection = tags ? `\n🏷️ *المجالات:* ${tags}` : '';
+
+    if (isUpdate) {
+      return (
+`🔄 *تحديث بيانات عضو في مجتمع رواد الأعمال BGM* 🚀
+
+يسرنا مشاركة آخر تطورات الزميل/ة *${displayName}* ومشروعه *${business}*! 👏
+💼 *المسمى المهني الحالي:* ${role}
+🏢 *المشروع / الشركة:* ${business}
+📊 *مرحلة المشروع:* ${stageLabel}
+📍 *المقر:* ${flag} ${locationLabel}
+${hookSection}${needsSection}${offersSection}${tagsSection}${webSection}
+🔗 *رابط بطاقة العضوية المحدثة:* ${profileUrl}
+
+🤝 *فرص التواصل والتعاون:* نرجو من الزملاء استكشاف سبل التعاون والشراكة وفق التحديثات الجديدة.`
+      ).trim();
+    }
 
     return (
 `🌟 *إعلان انضمام عضو جديد إلى مجتمع رواد الأعمال BGM* 🚀
@@ -181,12 +264,28 @@ ${hookSection}${needsSection}${offersSection}${tagsSection}${webSection}
     ).trim();
   }
 
-  // Default: Egyptian Founder Tone (اللهجة المصرية الودودة)
+  // ── DEFAULT: EGYPTIAN FOUNDER TONE (اللهجة المصرية الودودة) ──
   const hookSection = customHook ? `\n💡 *نبذة وسينرجي سريع:* ${customHook}\n` : '';
   const needsSection = member.lookingFor ? `\n🎯 *محتاج / بيدوّر على:* ${member.lookingFor}` : '';
   const offersSection = member.canHelp ? `\n💡 *يقدر يفيد المجتمع في:* ${member.canHelp}` : '';
   const webSection = websiteLines ? `\n${websiteLines}` : '';
   const tagsSection = tags ? `\n🏷️ ${tags}` : '';
+
+  if (isUpdate) {
+    return (
+`🔄 *تحديث بروفايل في مجتمع رواد الأعمال BGM!* 🚀
+
+يسعدنا نشارككم آخر تطورات الزميل/ة *${displayName}* وبيزنس *${business}*! 👏
+💼 *الدور الحالي:* ${role}
+🏢 *البيزنس / المشروع:* ${business}
+📊 *المرحلة:* ${stageLabel}
+📍 *المكان:* ${flag} ${locationLabel}
+${hookSection}${needsSection}${offersSection}${tagsSection}${webSection}
+🔗 *كارت العضوية المحدّث في الدايركتوري:* ${profileUrl}
+
+🤝 لو شغال في نفس المجال أو شايف فرصة تعاون بعد التحديثات دي، ابعتله وتواصل معاه مباشرة! بالتوفيق والنجاح المستمر ✨`
+    ).trim();
+  }
 
   return (
 `🌟 *رحّبوا معانا بإنضمام عضو جديد لمجتمع BGM!* 🚀
@@ -204,21 +303,33 @@ ${hookSection}${needsSection}${offersSection}${tagsSection}${webSection}
 }
 
 /**
- * Generates a direct 1-on-1 welcome message to the new member.
+ * Generates a direct 1-on-1 welcome message to the member (new join or update).
  * @param {Object} member
  * @param {Object} options
  * @returns {string}
  */
 export function generateDirectWelcome(
   member,
-  { tone = 'egyptian', appUrl = DEFAULT_APP_URL } = {}
+  { tone = 'egyptian', appUrl = DEFAULT_APP_URL, mode = 'auto' } = {}
 ) {
   if (!member) return '';
+  const isUpdate = mode === 'update' || (mode === 'auto' && isMemberProfileUpdate(member));
   const { primary } = parseMemberName(member.name);
   const firstName = (primary || member.name || 'Founder').split(' ')[0];
   const profileUrl = `${appUrl.replace(/\/$/, '')}/?member=${encodeURIComponent(member.id || '')}`;
 
   if (tone === 'english') {
+    if (isUpdate) {
+      return (
+`Hi ${firstName}! 👋
+
+Your profile updates have been reviewed and published to the Smart Directory:
+🔗 ${profileUrl}
+
+Thank you for keeping your profile up-to-date! Wishing you continued growth and success with your venture. 🚀`
+      ).trim();
+    }
+
     return (
 `Hi ${firstName}! 👋
 
@@ -227,6 +338,17 @@ Your profile has been published to the Smart Directory:
 🔗 ${profileUrl}
 
 Feel free to check out other founders, download your digital vCard, and engage with the group. Glad to have you with us! 🚀`
+    ).trim();
+  }
+
+  if (isUpdate) {
+    return (
+`أهلاً يا ${firstName}! 👋
+
+تم اعتماد ونشر التحديثات الجديدة لكارت عضويتك في الـ Smart Directory:
+🔗 ${profileUrl}
+
+شكراً لحرصك على تحديث بياناتك ومشاركتها مع مجتمع رواد الأعمال BGM. بالتوفيق ودايماً في تقدم ونجاح! 🚀`
     ).trim();
   }
 

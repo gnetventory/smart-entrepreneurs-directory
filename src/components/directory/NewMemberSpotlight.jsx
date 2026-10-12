@@ -8,8 +8,13 @@ import {
   X,
   Users,
   Compass,
+  RotateCw,
 } from 'lucide-react';
-import { getRecentMembers, getMemberWelcomeIcebreakerUrl } from '../../utils/welcomeAnnouncements';
+import {
+  getRecentMembers,
+  getMemberWelcomeIcebreakerUrl,
+  isMemberProfileUpdate,
+} from '../../utils/welcomeAnnouncements';
 import { getAvatarGradient, getInitials, parseMemberName } from '../../utils/helpers';
 import { getCountryFlag, STAGES } from '../../utils/constants';
 
@@ -95,6 +100,7 @@ export default function NewMemberSpotlight({ members, onSelectMember }) {
             const stageObj = STAGES[m.stage] || STAGES.starting;
             const flag = getCountryFlag(m.location?.country);
             const icebreakerUrl = getMemberWelcomeIcebreakerUrl(m);
+            const isUpdate = isMemberProfileUpdate(m);
 
             return (
               <div
@@ -113,7 +119,11 @@ export default function NewMemberSpotlight({ members, onSelectMember }) {
                         >
                           {getInitials(m.name)}
                         </div>
-                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-stone-900 shadow-xs" />
+                        <span
+                          className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-stone-900 shadow-xs ${
+                            isUpdate ? 'bg-cyan-500' : 'bg-emerald-500'
+                          }`}
+                        />
                       </div>
 
                       <div className="min-w-0">
@@ -144,14 +154,20 @@ export default function NewMemberSpotlight({ members, onSelectMember }) {
                     {m.lookingFor || m.canHelp || 'Exploring ecosystem partnerships.'}
                   </div>
 
-                  {/* Location badge */}
-                  <div className="text-[10.5px] text-stone-500 flex items-center gap-1.5">
+                  {/* Location & Status badge */}
+                  <div className="text-[10.5px] text-stone-500 flex items-center gap-1.5 flex-wrap">
                     <span>{flag}</span>
                     <span>{m.location?.city || 'Egypt'}</span>
                     <span>•</span>
-                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">
-                      Just Joined
-                    </span>
+                    {isUpdate ? (
+                      <span className="text-[9.5px] text-cyan-700 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-950/60 border border-cyan-200 dark:border-cyan-800 px-1.5 py-0.2 rounded-md font-extrabold flex items-center gap-0.5">
+                        <RotateCw size={9} /> Profile Updated
+                      </span>
+                    ) : (
+                      <span className="text-[9.5px] text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-1.5 py-0.2 rounded-md font-extrabold flex items-center gap-0.5">
+                        <Sparkles size={9} /> Fresh Join
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -161,11 +177,15 @@ export default function NewMemberSpotlight({ members, onSelectMember }) {
                     href={icebreakerUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 py-1.5 px-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-600 hover:text-white text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800 text-[11px] font-extrabold transition-all flex items-center justify-center gap-1.5 shadow-2xs"
-                    title={`Say Welcome to ${primary} on WhatsApp`}
+                    className={`flex-1 py-1.5 px-2.5 rounded-xl border text-[11px] font-extrabold transition-all flex items-center justify-center gap-1.5 shadow-2xs ${
+                      isUpdate
+                        ? 'bg-cyan-50 dark:bg-cyan-950/50 hover:bg-cyan-600 hover:text-white text-cyan-800 dark:text-cyan-300 border-cyan-200/80 dark:border-cyan-800'
+                        : 'bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-600 hover:text-white text-emerald-700 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800'
+                    }`}
+                    title={isUpdate ? `Say Congrats to ${primary} on WhatsApp` : `Say Welcome to ${primary} on WhatsApp`}
                   >
-                    <MessageCircle size={12} />
-                    <span>Say Welcome</span>
+                    <MessageCircle size={13} />
+                    <span>{isUpdate ? 'Say Congrats' : 'Say Welcome'}</span>
                   </a>
 
                   <button
