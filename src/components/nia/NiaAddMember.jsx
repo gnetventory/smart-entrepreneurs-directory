@@ -17,6 +17,7 @@ import {
   Linkedin,
   MapPin,
   CheckCircle2,
+  Share2,
 } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
 import { parseIntro } from '../../utils/gemini';
@@ -32,6 +33,7 @@ import {
   getPlatformBadgeStyle,
 } from '../../utils/helpers';
 import ProfileCard from '../directory/ProfileCard';
+import CommunityWelcomeDispatcherModal from '../admin/CommunityWelcomeDispatcherModal';
 
 const SAMPLE_MOSELHY_INTRO = `السلام عليكم اتمني تكونوا بخير 
 انا لسه داخل الجروب حبيت اعرف عن نفسي 
@@ -93,6 +95,7 @@ export default function NiaAddMember({ onMemberAdded }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [newTagInput, setNewTagInput] = useState('');
   const [lastAddedMember, setLastAddedMember] = useState(null);
+  const [dispatcherMember, setDispatcherMember] = useState(null);
 
   const setField = (field, val) => setForm((prev) => ({ ...prev, [field]: val }));
   const setLocationField = (field, val) =>
@@ -218,6 +221,7 @@ export default function NiaAddMember({ onMemberAdded }) {
 
     refreshMembers();
     setLastAddedMember(newMember);
+    setDispatcherMember(newMember);
     setParsedData(null);
     setForm(EMPTY_FORM);
     setRawText('');
@@ -302,7 +306,15 @@ export default function NiaAddMember({ onMemberAdded }) {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setDispatcherMember(lastAddedMember)}
+              className="btn-primary text-xs py-1.5 px-3 font-extrabold flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs cursor-pointer"
+            >
+              <Share2 size={13} />
+              <span>📣 Dispatch Announcement</span>
+            </button>
             <a
               href="/index.html"
               target="_blank"
@@ -314,7 +326,7 @@ export default function NiaAddMember({ onMemberAdded }) {
             <button
               type="button"
               onClick={handleReset}
-              className="btn-primary text-xs py-1.5 px-3 font-bold"
+              className="btn-secondary text-xs py-1.5 px-3 font-bold"
             >
               Add Another Member
             </button>
@@ -718,6 +730,15 @@ export default function NiaAddMember({ onMemberAdded }) {
             </div>
           </form>
         </div>
+      )}
+
+      {/* ── Community Welcome Announcement Dispatcher Modal ────────────── */}
+      {dispatcherMember && (
+        <CommunityWelcomeDispatcherModal
+          isOpen={!!dispatcherMember}
+          onClose={() => setDispatcherMember(null)}
+          member={dispatcherMember}
+        />
       )}
     </div>
   );

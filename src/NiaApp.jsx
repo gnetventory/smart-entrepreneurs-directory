@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Sun, Moon, ExternalLink, KeyRound, Loader2 } from 'lucide-react';
+import { Shield, Sun, Moon, ExternalLink, KeyRound, Loader2, Eye, EyeOff } from 'lucide-react';
 import { AppProvider } from './contexts/AppContext';
 import NiaPanel from './components/nia/NiaPanel';
 import { grantNiaSession, isNiaSession, revokeNiaSession } from './utils/session';
@@ -9,6 +9,7 @@ import { hashPIN, verifyPIN } from './utils/helpers';
 // ─── PIN Gate (lives here in NIA app) ─────────────────────────────────────────
 function NiaPINGate({ onUnlocked, onPinSet }) {
   const [pinInput, setPinInput] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [error, setError] = useState('');
@@ -91,7 +92,6 @@ function NiaPINGate({ onUnlocked, onPinSet }) {
         onUnlocked();
       } else {
         recordFail();
-        setPinInput('');
       }
     } catch (err) {
       setError('Verification error. Please try again.');
@@ -181,20 +181,44 @@ function NiaPINGate({ onUnlocked, onPinSet }) {
                 <form onSubmit={handleUnlock} className="space-y-3.5">
                   <div>
                     <label className="label text-[10px]">Security Password / PIN</label>
-                    <input
-                      type="password"
-                      value={pinInput}
-                      onChange={(e) => setPinInput(e.target.value)}
-                      placeholder="Enter security password"
-                      className="input py-2.5 text-sm font-mono tracking-widest text-center"
-                      autoFocus
-                    />
+                    <div className="relative flex items-center">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={pinInput}
+                        onChange={(e) => setPinInput(e.target.value)}
+                        placeholder="Enter security password"
+                        className="input py-2.5 px-10 text-sm font-mono tracking-wider text-center w-full"
+                        autoFocus
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 transition-colors cursor-pointer"
+                        title={showPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
                   </div>
 
                   {error && (
-                    <p className="text-xs text-rose-600 dark:text-rose-400 font-bold text-center">
-                      {error}
-                    </p>
+                    <div className="space-y-1.5 text-center">
+                      <p className="text-xs text-rose-600 dark:text-rose-400 font-bold">
+                        {error}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          sessionStorage.removeItem(SESSION_ATTEMPT_KEY);
+                          setAttemptCount(0);
+                          setLockdownSecs(0);
+                          setError('');
+                        }}
+                        className="text-[11px] text-stone-500 hover:text-stone-900 dark:hover:text-stone-200 underline font-semibold cursor-pointer"
+                      >
+                        Reset Attempts Counter
+                      </button>
+                    </div>
                   )}
 
                   <button

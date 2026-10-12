@@ -28,6 +28,8 @@ import {
   Clock,
   LayoutDashboard,
   Users,
+  Share2,
+  Search,
 } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
 import {
@@ -57,14 +59,15 @@ import {
   approveMember,
   rejectMember,
 } from '../../utils/sheetsSync';
-import { MAP_TILE_PRESETS } from '../../utils/constants';
-import { downloadJSON, hashPIN, copyToClipboard } from '../../utils/helpers';
+import { MAP_TILE_PRESETS, getCountryFlag, STAGES } from '../../utils/constants';
+import { downloadJSON, hashPIN, copyToClipboard, parseMemberName, getAvatarGradient, getInitials } from '../../utils/helpers';
 import { revokeNiaSession } from '../../utils/session';
 import { detectDuplicateMatch } from '../../utils/duplicateDetector';
 import Modal from '../common/Modal';
 import AIMatchmaker from '../matchmaker/AIMatchmaker';
 import NiaAddMember from './NiaAddMember';
 import DuplicateComparisonModal from './DuplicateComparisonModal';
+import CommunityWelcomeDispatcherModal from '../admin/CommunityWelcomeDispatcherModal';
 
 export default function NiaPanel({ onLock }) {
   const { apiKey, updateApiKey, members, refreshMembers, notify } = useApp();
@@ -101,6 +104,8 @@ export default function NiaPanel({ onLock }) {
   const [approvingId, setApprovingId] = useState(null);
   const [rejectingId, setRejectingId] = useState(null);
   const [duplicateReview, setDuplicateReview] = useState(null); // { pendingMember, existingMember, matchReason, confidence }
+  const [dispatchModalMember, setDispatchModalMember] = useState(null);
+  const [rosterSearch, setRosterSearch] = useState('');
 
   const handleLock = () => {
     revokeNiaSession();
@@ -238,9 +243,11 @@ export default function NiaPanel({ onLock }) {
   const handleApproveMember = async (member) => {
     setApprovingId(member.id);
     try {
+      const approvedMember = { ...member, status: 'active', appStatus: 'APPROVED' };
       updateMember(member.id, { status: 'active', appStatus: 'APPROVED' });
       await approveMember(member);
       refreshMembers();
+      setDispatchModalMember(approvedMember);
       notify(`✅ ${member.name} approved and is now visible in the public directory!`);
     } catch (err) {
       notify(`Failed to approve: ${err.message}`, 'error');
@@ -275,8 +282,10 @@ export default function NiaPanel({ onLock }) {
       updateMember(existingMember.id, updatedFields);
       deleteMember(pendingMember.id, { skipNameTombstone: true });
 
-      await approveMember({ ...existingMember, ...updatedFields });
+      const finalMember = { ...existingMember, ...updatedFields };
+      await approveMember(finalMember);
       refreshMembers();
+      setDispatchModalMember(finalMember);
       notify(`✅ Updated and replaced ${existingMember.name}'s profile in the directory!`);
     } catch (err) {
       notify(`Failed to update profile: ${err.message}`, 'error');
@@ -953,6 +962,103 @@ export default function NiaPanel({ onLock }) {
           <div className="w-full">
             <NiaAddMember />
           </div>
+
+          {/* Section 1: Active Member Roster & Welcome Dispatcher */}
+          <div className="card p-5 sm:p-6 space-y-4 border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-sm">
+            <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3 flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <Users size={18} className="text-emerald-600 dark:text-emerald-400" />
+                <h3 className="section-title text-base">
+                  Active Directory Roster & Announcement Dispatcher
+                </h3>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+                  {members.filter((m) => m.status !== 'pending' && m.status !== 'rejected').length} Members
+                </span>
+              </div>
+
+              {/* Quick Search Input */}
+              <div className="relative min-w-[240px]">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+                <input
+                  type="text"
+                  value={rosterSearch}
+                  onChange={(e) => setRosterSearch(e.target.value)}
+                  placeholder="Search founder or business..."
+                  className="input text-xs pl-8 py-1.5 w-full bg-stone-50 dark:bg-stone-800 border-stone-200 dark:border-stone-700"
+                />
+              </div>
+            </div>
+
+            <p className="text-xs text-stone-500 dark:text-stone-400">
+              Select any member from the directory to re-generate, polish, or dispatch their personalized
+              WhatsApp welcome announcement to the community group.
+            </p>
+
+            <div className="divide-y divide-stone-100 dark:divide-stone-800 max-h-[420px] overflow-y-auto pr-1">
+              {members
+                .filter(
+                  (m) =>
+                    m.status !== 'pending' &&
+                    m.status !== 'rejected' &&
+                    (!rosterSearch.trim() ||
+                      m.name?.toLowerCase().includes(rosterSearch.toLowerCase()) ||
+                      m.business?.toLowerCase().includes(rosterSearch.toLowerCase()) ||
+                      m.role?.toLowerCase().includes(rosterSearch.toLowerCase()))
+                )
+                .slice(0, 50)
+                .map((m) => {
+                  const { english, arabic, primary } = parseMemberName(m.name);
+                  const stageObj = STAGES[m.stage] || STAGES.starting;
+                  const flag = getCountryFlag(m.location?.country);
+                  return (
+                    <div
+                      key={m.id}
+                      className="py-3 flex items-center justify-between gap-3 hover:bg-stone-50/80 dark:hover:bg-stone-800/40 px-2 rounded-xl transition-colors flex-wrap sm:flex-nowrap"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div
+                          className={`w-9 h-9 rounded-xl bg-gradient-to-br ${getAvatarGradient(
+                            m.name
+                          )} text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs`}
+                        >
+                          {getInitials(m.name)}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-extrabold text-xs text-stone-900 dark:text-stone-100 truncate">
+                              {english || primary}
+                            </span>
+                            {arabic && (
+                              <span className="text-[11px] text-stone-500 font-semibold" dir="rtl">
+                                ({arabic})
+                              </span>
+                            )}
+                            <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-md border ${stageObj.bg} ${stageObj.text} ${stageObj.border}`}>
+                              {stageObj.label}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-stone-500 truncate mt-0.5">
+                            {m.role || 'Founder'} · <span className="font-medium text-stone-700 dark:text-stone-300">{m.business || 'Venture'}</span> · {flag} {m.location?.city || 'Egypt'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0 ml-auto sm:ml-0">
+                        <button
+                          type="button"
+                          onClick={() => setDispatchModalMember(m)}
+                          className="btn-primary text-[11px] py-1.5 px-3 font-bold flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer shadow-xs"
+                          title="Generate WhatsApp Announcement"
+                        >
+                          <Share2 size={12} />
+                          <span>📣 Dispatch Announcement</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
         </div>
       )}
 
@@ -1469,6 +1575,15 @@ export default function NiaPanel({ onLock }) {
             await handleRejectMember(pending);
             setDuplicateReview(null);
           }}
+        />
+      )}
+
+      {/* ── Community Welcome Announcement Dispatcher Modal ────────────── */}
+      {dispatchModalMember && (
+        <CommunityWelcomeDispatcherModal
+          isOpen={Boolean(dispatchModalMember)}
+          onClose={() => setDispatchModalMember(null)}
+          member={dispatchModalMember}
         />
       )}
     </div>

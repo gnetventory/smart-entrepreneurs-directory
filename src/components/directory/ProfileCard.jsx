@@ -38,6 +38,7 @@ import {
   toggleBookmarkId,
 } from '../../utils/psychologyHelpers';
 import { explainProfileStrength } from '../../utils/explainability';
+import { isRecentlyJoined } from '../../utils/welcomeAnnouncements';
 import Modal from '../common/Modal';
 import ScoreExplainerModal from '../common/ScoreExplainerModal';
 
@@ -57,6 +58,7 @@ export default function ProfileCard({ member, onDeleted, onUpdated, synergyScore
 
   const isLinkedInValid = isValidLinkedInUrl(member.linkedin);
   const linkedInHref = isLinkedInValid ? formatLinkedInUrl(member.linkedin) : null;
+  const isNew = isRecentlyJoined(member, 14);
 
   // Calculate Endowed Progress Profile Strength & Badges
   const profileStrength = explainProfileStrength(member);
@@ -154,6 +156,11 @@ export default function ProfileCard({ member, onDeleted, onUpdated, synergyScore
                     </h3>
                   )}
                   {flag && <span className="text-xs shrink-0" title={member.location?.country}>{flag}</span>}
+                  {isNew && (
+                    <span className="text-[9.5px] font-black uppercase px-1.5 py-0.2 rounded-md bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 shrink-0">
+                      ✨ New
+                    </span>
+                  )}
                 </div>
 
                 {english && arabic && (

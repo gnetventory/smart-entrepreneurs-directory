@@ -1138,3 +1138,39 @@ export async function generateWeeklyDigest(newMembers, period = '7 days') {
     return lines.join('\n');
   }
 }
+
+// ─── 7. Generate AI Welcome Hook for Community Announcements ──────────────────
+export async function generateAIWelcomeHook(member, tone = 'egyptian') {
+  if (!member) return '';
+  try {
+    const languageInstruction =
+      tone === 'english'
+        ? 'Write in modern, encouraging English for an entrepreneur network.'
+        : tone === 'arabic'
+          ? 'اكتب بالعربية الفصحى المهنية الراقية لشبكة رواد أعمال.'
+          : 'اكتب باللهجة المصرية الودودة الذكية الخاصة بمجتمع رواد الأعمال والستارتبس.';
+
+    const prompt = `You are the community host for the BGM Egyptian & Regional Entrepreneurs Network.
+A new founder has just joined the community:
+- Name: ${member.name}
+- Role: ${member.role || 'Founder'}
+- Venture: ${member.business || 'Venture'}
+- Stage: ${member.stage || 'Active'}
+- Location: ${member.location?.city || ''}, ${member.location?.country || 'Egypt'}
+- Looking for: ${member.lookingFor || 'Partnerships and growth'}
+- Can help with: ${member.canHelp || 'Industry expertise'}
+- Tags: ${(member.tags || []).join(', ')}
+
+Task: Write a punchy 1-2 sentence hook highlighting their unique value proposition and who in the community should reach out to them.
+Guidance:
+${languageInstruction}
+Keep it concise, energetic, and natural. Return ONLY the 1-2 sentence hook without quotes, asterisks, or labels.`;
+
+    const result = await generateContentWithFallback(prompt);
+    const text = result?.response?.text()?.trim() || '';
+    return text.replace(/^["']|["']$/g, '');
+  } catch (err) {
+    console.warn('AI welcome hook generation failed:', err.message);
+    return '';
+  }
+}

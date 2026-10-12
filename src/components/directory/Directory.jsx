@@ -45,6 +45,7 @@ import { explainSurpriseSynergy } from '../../utils/explainability';
 import ProfileCard from './ProfileCard';
 import EmptyState from './EmptyState';
 import Modal from '../common/Modal';
+import NewMemberSpotlight from './NewMemberSpotlight';
 
 function matchesIntentPreset(m, preset) {
   if (!m || preset === 'all') return true;
@@ -528,6 +529,9 @@ export default function Directory() {
           </div>
         </div>
       </div>
+
+      {/* ── 🎉 Welcome New Members Celebration Spotlight ─────────────────── */}
+      <NewMemberSpotlight members={members} onSelectMember={setDetailMember} />
 
       {/* ── View Output ──────────────────────────────────────────────────────── */}
       {filteredMembers.length === 0 ? (
