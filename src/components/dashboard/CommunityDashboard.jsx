@@ -36,8 +36,9 @@ import {
   parseMemberName,
 } from '../../utils/helpers';
 import Modal from '../common/Modal';
+import FounderManifestoCard from './FounderManifestoCard';
 
-export default function CommunityDashboard() {
+export default function CommunityDashboard({ onOpenDiagnostic }) {
   const { activeMembers: members, setActiveTab, setSearchQuery, notify } = useApp();
 
   // Interactive Modals State
@@ -124,6 +125,12 @@ export default function CommunityDashboard() {
           </div>
         </div>
       </div>
+
+      {/* ── 1.5 FOUNDER MANIFESTO & MICRO-ECOSYSTEM BANNER ──── */}
+      <FounderManifestoCard
+        onOpenDiagnostic={onOpenDiagnostic}
+        onOpenProblemBoard={() => setActiveTab('exchange')}
+      />
 
       {/* ── 2. GROUNDED COMMUNITY KPI RIBBON ──── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">

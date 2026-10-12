@@ -1,12 +1,13 @@
 import React from 'react';
-import { BarChart3, Users, Radio, Globe } from 'lucide-react';
+import { BarChart3, Users, Radio, Globe, HelpCircle } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
 
 const NAV_ITEMS = [
   { id: 'dashboard', label: 'Snapshot', icon: BarChart3 },
   { id: 'directory', label: 'Directory', icon: Users, showBadge: true },
-  { id: 'radar', label: 'Match Radar', icon: Radio },
-  { id: 'map', label: 'Atlas Map', icon: Globe },
+  { id: 'exchange', label: 'Problems', icon: HelpCircle },
+  { id: 'radar', label: 'Radar', icon: Radio },
+  { id: 'map', label: 'Atlas', icon: Globe },
 ];
 
 export default function BottomNav() {

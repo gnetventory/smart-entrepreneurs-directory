@@ -94,30 +94,34 @@ export default function Header() {
           size="md"
         >
           <div className="space-y-4 text-xs text-stone-800 dark:text-stone-200 leading-relaxed">
-            <div className="p-3.5 bg-emerald-50/80 dark:bg-emerald-950/40 rounded-2xl border border-emerald-200/80 dark:border-emerald-800 space-y-1">
+            <div className="p-3.5 bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent rounded-2xl border border-emerald-500/20 space-y-1.5">
               <div className="font-extrabold text-sm text-emerald-900 dark:text-emerald-200 flex items-center gap-1.5">
-                <HeartHandshake size={16} className="text-emerald-600" />
-                <span>Curated by BGM as a Non-Commercial Community Hub</span>
+                <HeartHandshake size={16} className="text-emerald-600 dark:text-emerald-400" />
+                <span>Why BGM Exists: The Founder Micro-Ecosystem</span>
               </div>
-              <p className="text-[11.5px] text-emerald-800/90 dark:text-emerald-300">
-                This directory is designed strictly for peer collaboration, peer advisory, and reciprocal assistance between active entrepreneurs in Egypt, the Gulf, and the diaspora.
+              <p className="text-[12px] text-stone-700 dark:text-stone-300 italic">
+                &ldquo;I wanted to create a micro-ecosystem where people can actually help each other without needing to pay thousands just to get an outside opinion... Not another WhatsApp group where everyone joins and nothing happens 😂 — but a place to meet, exchange ideas, share problems, and build together.&rdquo;
               </p>
+              <div className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 pt-0.5">
+                — Nia, Founder & Growth Business Consultant
+              </div>
             </div>
 
             <div className="space-y-2">
               <h4 className="font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
                 <ShieldCheck size={15} className="text-emerald-600" />
-                Community Principles & Rules
+                Community Principles
               </h4>
               <ul className="space-y-1.5 pl-2 list-disc list-inside text-stone-600 dark:text-stone-300 text-[11.5px]">
-                <li><strong className="text-stone-800 dark:text-stone-100">No Cold Pitching:</strong> Treat fellow founders as collaborators, not a sales lead list.</li>
-                <li><strong className="text-stone-800 dark:text-stone-100">Reciprocal Help:</strong> Every member is encouraged to offer guidance or introductions in areas where they have surplus experience.</li>
-                <li><strong className="text-stone-800 dark:text-stone-100">Privacy & Respect:</strong> Direct phone numbers and personal contact information are kept protected for confirmed members.</li>
+                <li><strong className="text-stone-800 dark:text-stone-100">Peer Exchange:</strong> If you face a block in your business, ask here: <em>&ldquo;What do you think the problem is?&rdquo;</em> and offer the same back.</li>
+                <li><strong className="text-stone-800 dark:text-stone-100">No Cold Pitching:</strong> Treat fellow founders as collaborators and peers, not as a cold sales leads list.</li>
+                <li><strong className="text-stone-800 dark:text-stone-100">Growth Gap Diagnostics:</strong> For working businesses that hit a growth ceiling, Nia provides direct diagnostic sessions to uncover blockers and build growth strategies.</li>
+                <li><strong className="text-stone-800 dark:text-stone-100">Respect & Privacy:</strong> Direct phone numbers and personal contact information are kept protected for confirmed members.</li>
               </ul>
             </div>
 
             <div className="p-3 bg-stone-50 dark:bg-stone-850 rounded-2xl border border-stone-200 dark:border-stone-750 text-[11px] text-stone-500 dark:text-stone-400">
-              💡 <strong>Profile Updates:</strong> To update your venture information, stage, or what you are currently seeking, reach out directly to the BGM community team or submit an update request.
+              💡 <strong>Profile Updates:</strong> To update your venture info, stage, or what you are currently seeking, reach out directly to Nia or the BGM community team.
             </div>
 
             <div className="flex justify-end pt-2">

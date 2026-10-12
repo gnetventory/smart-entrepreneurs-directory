@@ -6,23 +6,28 @@ import Directory from './components/directory/Directory';
 import MatchRadarView from './components/radar/MatchRadarView';
 import WorldMapView from './components/map/WorldMapView';
 import CommunityDashboard from './components/dashboard/CommunityDashboard';
+import FounderProblemBoard from './components/exchange/FounderProblemBoard';
+import GrowthDiagnosticModal from './components/dashboard/GrowthDiagnosticModal';
 import { useApp } from './contexts/AppContext';
 
 export default function App() {
   const { activeTab, notification, setActiveTab } = useApp();
+  const [showGlobalDiagnostic, setShowGlobalDiagnostic] = React.useState(false);
 
   const renderTabContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <CommunityDashboard />;
+        return <CommunityDashboard onOpenDiagnostic={() => setShowGlobalDiagnostic(true)} />;
       case 'directory':
         return <Directory />;
+      case 'exchange':
+        return <FounderProblemBoard onOpenDiagnostic={() => setShowGlobalDiagnostic(true)} />;
       case 'radar':
         return <MatchRadarView />;
       case 'map':
         return <WorldMapView />;
       default:
-        return <CommunityDashboard />;
+        return <CommunityDashboard onOpenDiagnostic={() => setShowGlobalDiagnostic(true)} />;
     }
   };
 
@@ -47,6 +52,12 @@ export default function App() {
         <main className="flex-1 min-w-0 py-4 sm:py-8 pb-24 lg:pb-8">{renderTabContent()}</main>
       </div>
       <BottomNav />
+      {showGlobalDiagnostic && (
+        <GrowthDiagnosticModal
+          isOpen={showGlobalDiagnostic}
+          onClose={() => setShowGlobalDiagnostic(false)}
+        />
+      )}
     </div>
   );
 }

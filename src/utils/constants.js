@@ -114,6 +114,15 @@ export const STORAGE_KEYS = {
   TOMBSTONES: 'sed_tombstones',
   NIA_EMAIL: 'sed_nia_email',
   ADMIN_EMAIL: 'sed_admin_email',
+  NIA_PHONE: 'sed_nia_phone',
+};
+
+// ─── Default Nia Contact Config (Customizable in admin / localStorage) ─────────
+export const DEFAULT_NIA_CONTACT = {
+  name: 'Omnia Bahaaeldin (Nia)',
+  role: 'Growth Business Consultant & Founder',
+  phone: '201000998449', // Editable in admin portal or settings
+  whatsappNumber: '201000998449',
 };
 
 // ─── Map Tile Providers & API Configuration ────────────────────────────────────
@@ -167,6 +176,12 @@ export const NAV_TABS = [
     description: 'Overview of members, community needs & gaps',
   },
   { id: 'directory', label: 'Directory', icon: 'Users', description: 'Browse all founders & ventures' },
+  {
+    id: 'exchange',
+    label: 'Problem Board',
+    icon: 'HelpCircle',
+    description: 'Founder block exchange: share problems & get peer solutions',
+  },
   {
     id: 'radar',
     label: 'Find Your Match',

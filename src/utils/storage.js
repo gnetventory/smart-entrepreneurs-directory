@@ -63,6 +63,13 @@ export async function syncFromDisk() {
             localStorage.setItem(STORAGE_KEYS.NIA_PIN, diskPin);
             localStorage.setItem(STORAGE_KEYS.ADMIN_PIN, diskPin);
           }
+          if (Array.isArray(data.exchangePosts)) {
+            _exchangeCache = data.exchangePosts;
+            localStorage.setItem(STORAGE_KEYS.EXCHANGE, JSON.stringify(data.exchangePosts));
+          }
+          if (data.niaPhone) {
+            localStorage.setItem(STORAGE_KEYS.NIA_PHONE, data.niaPhone);
+          }
           if (data.apiKey) {
             localStorage.setItem(STORAGE_KEYS.API_KEY, data.apiKey);
           }
@@ -433,3 +440,53 @@ export function saveNiaEmail(email) {
 // Aliases for backwards compatibility
 export const getAdminEmail = getNiaEmail;
 export const saveAdminEmail = saveNiaEmail;
+
+// ─── NIA Phone & Growth Diagnostic WhatsApp ──────────────────────────────────
+export function getNiaPhone() {
+  try {
+    return (
+      localStorage.getItem(STORAGE_KEYS.NIA_PHONE) ||
+      '201000998449'
+    );
+  } catch {
+    return '201000998449';
+  }
+}
+
+export function saveNiaPhone(phone) {
+  const safe = String(phone || '').replace(/[^0-9]/g, '');
+  localStorage.setItem(STORAGE_KEYS.NIA_PHONE, safe);
+  pushToDisk({ niaPhone: safe });
+  return safe;
+}
+
+// ─── Founder Problem Board (Exchange Posts) ───────────────────────────────────
+export function getExchangePosts() {
+  if (_exchangeCache) return _exchangeCache;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.EXCHANGE);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    _exchangeCache = Array.isArray(parsed) ? parsed : [];
+    return _exchangeCache;
+  } catch {
+    return [];
+  }
+}
+
+export function saveExchangePosts(posts) {
+  const safe = Array.isArray(posts) ? posts : [];
+  _exchangeCache = safe;
+  try {
+    localStorage.setItem(STORAGE_KEYS.EXCHANGE, JSON.stringify(safe));
+  } catch {
+    // ignore
+  }
+  pushToDisk({ exchangePosts: safe });
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(
+      new CustomEvent('sed_exchange_updated', { detail: safe })
+    );
+  }
+  return safe;
+}

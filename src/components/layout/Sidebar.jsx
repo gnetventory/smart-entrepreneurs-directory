@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, UserPlus, Sparkles, Globe, Map, BarChart3, Radio, TrendingUp } from 'lucide-react';
+import { Users, UserPlus, Sparkles, Globe, Map, BarChart3, Radio, TrendingUp, HelpCircle } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
 import { NAV_TABS } from '../../utils/constants';
 
@@ -11,6 +11,7 @@ const ICONS = {
   Map,
   BarChart3,
   Radio,
+  HelpCircle,
 };
 
 export default function Sidebar() {
